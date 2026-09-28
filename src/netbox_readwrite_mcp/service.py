@@ -4,7 +4,7 @@ import json
 import re
 import time
 import uuid
-from .store import Store, encode, digest
+from .store import Store, encode, digest, consistent_read
 
 FIELDS = {"description", "serial", "status"}
 PENDING = {"prepared", "dispatched", "uncertain", "applied_unverified"}
@@ -79,6 +79,7 @@ class Service:
             self.store.event("task_started", {"task_id": task, "purpose": purpose})
         return {"task_id": task}
 
+    @consistent_read
     def get_operation(self, operation_id):
         row = self.store.db.execute("SELECT * FROM operations WHERE id=?", (operation_id,)).fetchone()
         if not row:
@@ -105,6 +106,7 @@ class Service:
         )
         return result
 
+    @consistent_read
     def find_operation(self, operation_key):
         """Recover the authoritative receipt even if the MCP response was lost."""
         row = self.store.db.execute(
@@ -116,6 +118,7 @@ class Service:
             "guidance": "Keep the original key and arguments. Absence is not permission to bypass a failed journal.",
         }
 
+    @consistent_read
     def get_task(self, task_id):
         task = self.store.db.execute("SELECT * FROM tasks WHERE id=?", (task_id,)).fetchone()
         if not task:
@@ -125,7 +128,9 @@ class Service:
             "operations": [
                 self.get_operation(r[0])
                 for r in self.store.db.execute(
-                    "SELECT id FROM operations WHERE task_id=? ORDER BY created,id", (task_id,)
+                    "SELECT o.id FROM operations o JOIN events e ON e.operation_id=o.id "
+                    "WHERE o.task_id=? AND e.kind='prepared' ORDER BY e.seq",
+                    (task_id,),
                 )
             ],
         }
@@ -575,6 +580,7 @@ class Service:
                 "atomic": False,
             }
 
+    @consistent_read
     def get_device_history(self, device_id):
         if device_id not in self.allowed:
             raise ValueError("Device is outside the configured allowlist")
@@ -588,6 +594,7 @@ class Service:
             "freshness": self.observability()["archive"],
         }
 
+    @consistent_read
     def observability(self):
         row = self.store.db.execute("SELECT value FROM metadata WHERE key='archive_health'").fetchone()
         health = json.loads(row[0]) if row else {"at": None, "missing_native_ids": []}
@@ -613,6 +620,7 @@ class Service:
             },
         }
 
+    @consistent_read
     def recovery_bundle(self, operation_id):
         self.store.verify()
         op = self.get_operation(operation_id)

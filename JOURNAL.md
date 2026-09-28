@@ -59,3 +59,15 @@ production maturity or safe arbitrary NetBox CRUD.
 All development remains on feat/auditable-write-recovery. Since this repository
 started empty, that feature branch is also its initial public default branch;
 no product work was committed to main.
+
+## Review remediation — consistent reads and durable order (R4, R5)
+
+Both findings are actionable in the documented shared-journal deployment.
+Evidence readers now use one SQLite read snapshot, reusing an enclosing
+transaction without committing it. This avoids introducing nested file-lock
+release hazards. Task order now uses the existing immutable prepared-event
+sequence, preserving compatibility with existing journals without a schema change.
+
+Nine focused regression cases passed: descending/equal clock timestamps with a
+reopened journal; observers, recovery bundles, and exports during concurrent
+inserts/state transitions; and nested transaction rollback.

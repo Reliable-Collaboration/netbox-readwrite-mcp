@@ -1,6 +1,7 @@
 """SQLite durability, append-only evidence, process lock, and verified backups."""
 
 from contextlib import closing, contextmanager
+from functools import wraps
 import fcntl
 import hashlib
 import json
@@ -16,6 +17,18 @@ def encode(value):
 
 def digest(value):
     return hashlib.sha256(encode(value).encode()).hexdigest()
+
+
+def consistent_read(method):
+    """Keep every query in a report on one snapshot, including nested helpers."""
+
+    @wraps(method)
+    def wrapped(self, *args, **kwargs):
+        store = getattr(self, "store", self)
+        with store.snapshot():
+            return method(self, *args, **kwargs)
+
+    return wrapped
 
 
 class Store:
@@ -73,6 +86,20 @@ class Store:
             fcntl.flock(self.lock_file, fcntl.LOCK_UN)
 
     @contextmanager
+    def snapshot(self):
+        # Reuse an enclosing read/write transaction; never commit its work.
+        if self.db.in_transaction:
+            yield
+            return
+        self.db.execute("BEGIN")
+        try:
+            yield
+            self.db.execute("COMMIT")
+        except BaseException:
+            self.db.execute("ROLLBACK")
+            raise
+
+    @contextmanager
     def transaction(self):
         self.db.execute("BEGIN IMMEDIATE")
         try:
@@ -111,6 +138,7 @@ class Store:
             self.db.execute(sql, (state, time.time(), *columns.values(), op_id))
             self.event("state", {"state": state, "receipt": receipt, "columns": columns}, op_id)
 
+    @consistent_read
     def verify(self):
         previous = "0" * 64
         projected = {}
@@ -145,6 +173,7 @@ class Store:
                 raise RuntimeError("Native archive integrity failure")
         return {"event_head": previous, "integrity": "verified"}
 
+    @consistent_read
     def export(self):
         self.verify()
         return {
