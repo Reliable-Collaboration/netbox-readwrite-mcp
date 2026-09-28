@@ -41,3 +41,21 @@ classification for proxy timeout/rate-limit responses: 408/429 remain uncertain,
 rather than claiming a definitive rejection. Integration artifacts stay in the
 private .lab directory; CI publishes only the synthetic JUnit result, not tokens
 or complete lab state. The upcoming final audit will include these changes.
+
+## Public guidance and independent CI validation
+
+The hardened offline suite passed 151 tests with 90.00% combined statement/branch
+coverage. GitHub Actions run 36439066279 independently passed Python 3.11–3.14
+and a fresh real-NetBox lab, including all 30 integration scenarios. The wheel
+and sdist built; an isolated wheel installation launched successfully.
+
+The README now leads with the problems solved and gives concrete installation,
+configuration, MCP calls, recovery, and audit commands. Separate documents cover
+operator permissions/retention/backups, agent behavior, tools/errors, architecture,
+the full supported/refused edit-category matrix, and measured validation limits.
+Version 0.1 remains explicitly bounded; passing tests is not evidence of established
+production maturity or safe arbitrary NetBox CRUD.
+
+All development remains on feat/auditable-write-recovery. Since this repository
+started empty, that feature branch is also its initial public default branch;
+no product work was committed to main.

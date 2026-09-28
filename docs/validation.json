@@ -1,0 +1,35 @@
+{
+  "date": "2026-09-28",
+  "tested_commit": "ac54426",
+  "unit_tests": 151,
+  "integration_tests": 30,
+  "coverage": {
+    "covered_lines": 580,
+    "num_statements": 630,
+    "percent_covered": 90.0,
+    "percent_covered_display": "90",
+    "missing_lines": 50,
+    "excluded_lines": 0,
+    "percent_statements_covered": 92.06349206349206,
+    "percent_statements_covered_display": "92",
+    "num_branches": 220,
+    "num_partial_branches": 25,
+    "covered_branches": 185,
+    "missing_branches": 35,
+    "percent_branches_covered": 84.0909090909091,
+    "percent_branches_covered_display": "84"
+  },
+  "ci_run": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36439066279",
+  "ci_conclusion": "success",
+  "netbox_version": "4.6.10",
+  "source_sha256": {
+    "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+    "src/netbox_readwrite_mcp/errors.py": "078793f3fd59ac62878fbb5c6f81ea61423e45041dfd25f2cb7a9f86a49bf6bf",
+    "src/netbox_readwrite_mcp/service.py": "3bee4f9ad890362201447dd5c2d8d95bb7bb91d2ddbd4e293ac46175275b25b1",
+    "src/netbox_readwrite_mcp/api.py": "c028bf9d639e965249248c0ae2f62e28c81998e410e8ce8b66c22851c275db7b",
+    "src/netbox_readwrite_mcp/__init__.py": "fa0fd900d5bfecb306568e01ca6d49848dd0964f679e5a7f4e17fe0c02de31db",
+    "src/netbox_readwrite_mcp/config.py": "06f899634dd383913f36bd131f632be62f02213a167526d5b2b6dd819842e2b9",
+    "src/netbox_readwrite_mcp/store.py": "c0ce9d78d2e3e0bbbb47b233485e09d1f396b22ab3657789f964a8c303ec1ca3",
+    "src/netbox_readwrite_mcp/server.py": "3f40138d87a6653661e2836c93e430709f574b09e0f07f1b9b76628f905340cb"
+  }
+}
