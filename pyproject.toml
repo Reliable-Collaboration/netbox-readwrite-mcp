@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-readwrite-mcp"
-version = "0.1.0"
+version = "0.1.1"
 description = "Auditable NetBox edits with durable history and optimistic recovery over MCP"
 readme = "README.md"
 requires-python = ">=3.11"

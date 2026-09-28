@@ -4,6 +4,11 @@ import sqlite3
 
 RULES = [
     (
+        "Unrestorable previous value",
+        "UNRESTORABLE_VALUE",
+        "Ask an operator to review the original values; REST normalization prevents exact restoration.",
+    ),
+    (
         "Stale",
         "STALE_STATE",
         "Read the device again. Compare current values before making a new deliberate edit.",

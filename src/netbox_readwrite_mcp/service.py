@@ -5,6 +5,7 @@ import re
 import time
 import uuid
 from .store import Store, encode, digest, consistent_read
+from .normalization import canonical_changes, exact_inverse, exact_correction
 
 FIELDS = {"description", "serial", "status"}
 PENDING = {"prepared", "dispatched", "uncertain", "applied_unverified"}
@@ -87,6 +88,13 @@ class Service:
         result = dict(row)
         for name in ["requested", "before_values", "after_values"]:
             result[name] = json.loads(result[name])
+        normalized = self.store.db.execute(
+            "SELECT payload FROM events WHERE operation_id=? AND kind='normalized_intent' ORDER BY seq LIMIT 1",
+            (operation_id,),
+        ).fetchone()
+        result["normalized_requested"] = (
+            json.loads(normalized[0])["values"] if normalized else canonical_changes(result["requested"])
+        )
         result["outcome"] = result["state"]
         result["guidance"] = {
             "uncertain": "Reconcile; never blindly repeat the write under a new key.",
@@ -187,11 +195,21 @@ class Service:
         ids = [
             r[0]
             for r in self.store.db.execute(
-                "SELECT id FROM operations WHERE state IN ('dispatched','uncertain','applied_unverified')"
+                "SELECT id FROM operations WHERE state IN ('dispatched','uncertain','applied_unverified') "
+                "OR (state='no_change' AND native_id IS NULL AND before_values != '{}')"
             )
         ]
         for op_id in ids:
             op = self.get_operation(op_id)
+            if op["state"] == "no_change":
+                # Older versions trusted response bodies after dispatch. Preserve
+                # that receipt, but require native evidence before trusting it.
+                self.store.set_state(
+                    op_id,
+                    "uncertain",
+                    receipt={"reason": "Legacy dispatched no_change requires native verification"},
+                )
+            expected = {key: op["normalized_requested"][key] for key in op["before_values"]}
             matches = [r for r in records if r["message"] == "netbox-rw:" + op_id]
             if not matches:
                 continue
@@ -211,7 +229,7 @@ class Service:
                 )
                 and all(
                     k in change["postchange_data"] and change["postchange_data"][k] == v
-                    for k, v in op["after_values"].items()
+                    for k, v in expected.items()
                 )
             )
             if not valid:
@@ -221,7 +239,14 @@ class Service:
                     op_id,
                 )
                 continue
-            self.store.set_state(op_id, "applied", request_id=change["request_id"], native_id=change["id"])
+            after = {key: change["postchange_data"][key] for key in expected}
+            self.store.set_state(
+                op_id,
+                "no_change" if after == op["before_values"] else "applied",
+                request_id=change["request_id"],
+                native_id=change["id"],
+                after_values=encode(after),
+            )
 
     def _preflight(self, device_id):
         self.store.verify()
@@ -278,8 +303,14 @@ class Service:
         if current["headers"].get("etag") != expected_etag:
             raise ValueError("Stale expected_etag: read current state; no write was dispatched")
         prior = values(current["body"])
-        actual = {k: v for k, v in changes.items() if prior[k] != v}
+        normalized = canonical_changes(changes)
+        actual = {k: v for k, v in normalized.items() if prior[k] != v}
         before = {k: prior[k] for k in actual}
+        if canonical_changes(before) != before:
+            raise ValueError(
+                "Unrestorable previous value: NetBox REST normalizes the existing text. "
+                "No write was dispatched; ask an operator to review the original values."
+            )
         now = time.time()
         op_id = str(uuid.uuid4())
         state = "prepared" if actual else "no_change"
@@ -305,6 +336,9 @@ class Service:
                 "INSERT INTO operations VALUES(" + ",".join("?" for _ in row) + ")", tuple(row.values())
             )
             self.store.event("prepared", row, op_id)
+            self.store.event(
+                "normalized_intent", {"profile": "netbox-4.6.10-device-v1", "values": normalized}, op_id
+            )
         if not actual:
             return self.get_operation(op_id)
         self.fault("after_prepare")
@@ -322,14 +356,11 @@ class Service:
             self.store.set_state(op_id, "uncertain", receipt={"error_type": type(exc).__name__})
             return self.get_operation(op_id)
         if response["status"] == 200:
-            after = {k: values(response["body"])[k] for k in actual}
-            state = "no_change" if after == before else "applied_unverified"
+            # NetBox re-queries after committing. The response representation can
+            # already contain another writer's edit: retain it as a receipt, not
+            # as our committed effect. Only correlated native history proves that.
             self.store.set_state(
-                op_id,
-                state,
-                response,
-                request_id=response["headers"].get("x-request-id"),
-                after_values=encode(after),
+                op_id, "applied_unverified", response, request_id=response["headers"].get("x-request-id")
             )
         elif response["status"] in {400, 401, 403, 404, 405, 409, 412, 422}:
             # Timeouts/rate limits can originate in a proxy after forwarding.
@@ -387,8 +418,20 @@ class Service:
                 "reason": "Undo of a correction (redo) is not supported",
                 "operation_id": operation_id,
             }
+        if op["state"] == "no_change" and op["before_values"] and op["native_id"] is None:
+            self._preflight(op["device_id"])
+            op = self.get_operation(operation_id)
         correction = self._correction(operation_id)
         if correction:
+            if correction["state"] in {"applied", "no_change"} and not exact_correction(op, correction):
+                return {
+                    "status": "incomplete_restore",
+                    "operation_id": operation_id,
+                    "correction": correction,
+                    "inverse": exact_inverse(op),
+                    "warning": "The recorded correction did not restore the exact previous values. "
+                    "Operator review is required; it is not a completed undo.",
+                }
             return {
                 "status": "already_undone"
                 if correction["state"] in {"applied", "no_change"}
@@ -404,6 +447,15 @@ class Service:
                 "operation_id": operation_id,
                 "reason": "Original operation is not verified as applied",
                 "state": op["state"],
+            }
+        inverse = exact_inverse(op)
+        if canonical_changes(inverse) != inverse:
+            return {
+                "status": "unsupported",
+                "operation_id": operation_id,
+                "inverse": inverse,
+                "warning": "The previous values cannot be restored exactly through NetBox REST "
+                "because it normalizes text. No correction was dispatched; ask an operator.",
             }
         self._preflight(op["device_id"])
         current = self._device(op["device_id"])
@@ -425,10 +477,13 @@ class Service:
         # same-field updates within a task to be undone in reverse order.
         ignored = set()
         for row in self.store.db.execute(
-            "SELECT a.native_id,b.native_id FROM operations a JOIN operations b ON b.reverses=a.id WHERE b.state='applied' AND a.device_id=?",
+            "SELECT a.id,b.id FROM operations a JOIN operations b ON b.reverses=a.id "
+            "WHERE b.state='applied' AND a.device_id=?",
             (op["device_id"],),
         ):
-            ignored.update(row)
+            original, correction = self.get_operation(row[0]), self.get_operation(row[1])
+            if exact_correction(original, correction):
+                ignored.update((original["native_id"], correction["native_id"]))
         for record in self._records():
             if (
                 record["changed_object_type"] != "dcim.device"
@@ -477,6 +532,9 @@ class Service:
             if previous["reverses"] != operation_id:
                 raise ValueError("Idempotency key belongs to another operation")
             receipt = self.get_operation(previous["id"])
+            original = self.get_operation(operation_id)
+            if receipt["state"] in {"applied", "no_change"} and not exact_correction(original, receipt):
+                return self._preview(operation_id)
             return {
                 "status": receipt["state"],
                 "original_operation_id": operation_id,
@@ -519,6 +577,10 @@ class Service:
             }
             self.store.event("undo_conflict", warning, operation_id)
             return warning
+        if result["state"] in {"applied", "no_change"} and not exact_correction(
+            self.get_operation(operation_id), result
+        ):
+            return self._preview(operation_id)
         return {
             "status": result["state"],
             "original_operation_id": operation_id,
@@ -555,7 +617,9 @@ class Service:
                     self.store.event("task_started", {"task_id": correction_task, "reverses_task": task_id})
             results = []
             for op in reversed(task["operations"]):
-                if op["state"] in {"failed", "rejected", "no_change"}:
+                if op["state"] in {"failed", "rejected"} or (
+                    op["state"] == "no_change" and (not op["before_values"] or op["native_id"] is not None)
+                ):
                     continue
                 failed_attempts = self.store.db.execute(
                     "SELECT count(*) FROM operations WHERE reverses=? AND state='failed'", (op["id"],)

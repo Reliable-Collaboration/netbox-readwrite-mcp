@@ -82,3 +82,28 @@ The initial nesting regression exposed Python-version differences in JSON decodi
 an explicit 64-level limit now makes the boundary consistent. The 60
 protocol/configuration boundary tests passed, including session continuation
 after malformed input and official SDK interoperability.
+
+## Review remediation — authoritative effects and exact recovery (R1, R2, R3)
+
+Confirmed NetBox 4.6.10 uses trim_whitespace=True CharFields for description and
+serial, and a ChoiceField for status. The three findings share a normalization
+and evidence-authority boundary and are fixed together.
+
+Raw intent remains immutable for audit/idempotency. Canonical intent and its
+qualified profile are committed in a separate immutable event in the same
+pre-dispatch transaction. Normalized no-ops do not dispatch. Native history,
+with all existing correlation checks retained, now establishes committed effects;
+HTTP response bodies remain receipts and never replace the intended post-image.
+
+Changes whose pre-images cannot round-trip exactly through REST are refused
+before dispatch. Historical unrepresentable inverses are refused, and historical
+inexact corrections are exposed as incomplete_restore rather than already_undone.
+Only exact correction pairs can be ignored as net-zero. Existing journals need
+no schema rewrite: reconciliation appends evidence-backed repairs for eligible
+legacy receipts; absent evidence remains uncertain. Task undo no longer skips
+legacy dispatched no_change records without verification.
+
+The expanded offline suite passed 188 tests. Live regressions exercise response
+loss, hard process exit, normalized no-ops, noncanonical baselines, the real NetBox
+post-commit response-query race (both A and C), and serializer normalization.
+The remediation release is 0.1.1; CI will independently rerun the complete suite.

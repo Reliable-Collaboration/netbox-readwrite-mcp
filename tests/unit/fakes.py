@@ -36,7 +36,10 @@ class NetBoxModel:
             return {"status": 412, "body": {"detail": "Object changed"}, "headers": {}}
         if data.get("status", "active") not in ("active", "planned", "offline", "failed"):
             return {"status": 400, "body": {"status": ["Invalid choice."]}, "headers": {}}
-        request_id = self.change(pk, data, actor="agent")
+        normalized = {
+            key: value.strip() if key in ("description", "serial") else value for key, value in data.items()
+        }
+        request_id = self.change(pk, normalized, actor="agent")
         result = self.get(path)
         result["headers"]["x-request-id"] = request_id
         return result

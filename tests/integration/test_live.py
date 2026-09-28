@@ -514,6 +514,161 @@ s.undo_task(sys.argv[2])
         corrections = self.service.get_task(result["correction_task_id"])["operations"]
         self.assertEqual([r["state"] for r in corrections], ["failed", "applied"])
 
+    def test_31_normalized_lost_responses_reconcile(self):
+        original = self.service.api.request
+        for field in ["description", "serial"]:
+            with self.subTest(field=field):
+
+                def dropped(method, *args, **kwargs):
+                    result = original(method, *args, **kwargs)
+                    if method == "PATCH":
+                        self.assertEqual(result["status"], 200)
+                        raise ConnectionResetError("Lost normalized response")
+                    return result
+
+                self.service.api.request = dropped
+                key = str(uuid.uuid4())
+                try:
+                    op = self.service.update_device(
+                        self.task,
+                        key,
+                        self.device,
+                        self.service.read_device(self.device)["etag"],
+                        {field: "  normalized  "},
+                    )
+                finally:
+                    self.service.api.request = original
+                self.assertEqual(op["state"], "uncertain")
+                self.service.reconcile()
+                op = self.service.get_operation(op["id"])
+                self.assertEqual(op["state"], "applied")
+                self.assertEqual(op["requested"], {field: "  normalized  "})
+                self.assertEqual(op["after_values"], {field: "normalized"})
+                self.assertEqual(
+                    self.service.undo_operation(op["id"], str(uuid.uuid4()))["status"], "applied"
+                )
+
+    def test_32_normalized_hard_crash_reconciles(self):
+        code = """import json,os,sys
+from netbox_readwrite_mcp.server import build_service
+s=build_service(json.load(open(sys.argv[1])))
+s.fault=lambda point: os._exit(93) if point=='after_response' else None
+r=s.read_device(int(sys.argv[3]))
+s.update_device(sys.argv[2],'normalized-crash-key',r['device_id'],r['etag'],{'description':'  B  '})
+"""
+        result = subprocess.run(
+            [sys.executable, "-c", code, str(self.cfg_path), self.task, str(self.device)], cwd=HERE
+        )
+        self.assertEqual(result.returncode, 93)
+        self.service.reconcile()
+        op = self.service.find_operation("normalized-crash-key")["operation"]
+        self.assertEqual(op["state"], "applied")
+        self.assertEqual(op["after_values"], {"description": "B"})
+        self.assertEqual(self.service.undo_operation(op["id"], "normalized-crash-undo")["status"], "applied")
+
+    def test_33_normalization_to_noop_avoids_patch(self):
+        original = self.service.api.request
+
+        def guarded(method, *args, **kwargs):
+            self.assertNotEqual(method, "PATCH")
+            return original(method, *args, **kwargs)
+
+        self.service.api.request = guarded
+        result = self.service.update_device(
+            self.task,
+            "normalized-noop-key",
+            self.device,
+            self.service.read_device(self.device)["etag"],
+            {"description": "  A  ", "serial": "   "},
+        )
+        self.assertEqual(result["state"], "no_change")
+        self.assertIsNone(result["native_id"])
+
+    def test_34_unrestorable_existing_values_block_before_write(self):
+        script = (
+            "from dcim.models import Device\n"
+            f"Device.objects.filter(pk={self.device}).update(description='  prior  ',serial='  prior  ')\n"
+        )
+        subprocess.run(
+            [
+                "podman",
+                "exec",
+                "-i",
+                "nbrw-audit-netbox",
+                "/opt/netbox/venv/bin/python",
+                "/opt/netbox/netbox/manage.py",
+                "shell",
+            ],
+            input=script,
+            text=True,
+            check=True,
+            capture_output=True,
+        )
+        original = self.service.api.request
+
+        def guarded(method, *args, **kwargs):
+            self.assertNotEqual(method, "PATCH")
+            return original(method, *args, **kwargs)
+
+        self.service.api.request = guarded
+        try:
+            for field in ["description", "serial"]:
+                with (
+                    self.subTest(field=field),
+                    self.assertRaisesRegex(ValueError, "Unrestorable previous value"),
+                ):
+                    self.service.update_device(
+                        self.task,
+                        str(uuid.uuid4()),
+                        self.device,
+                        self.service.read_device(self.device)["etag"],
+                        {field: "replacement"},
+                    )
+            self.assertEqual(self.service.read_device(self.device)["values"]["description"], "  prior  ")
+        finally:
+            self.service.api.request = original
+            self.external({"description": "A", "serial": ""})
+
+    def test_35_real_response_requery_preserves_original_effect(self):
+        from tests.integration.response_race import patch_with_intervening_writer
+
+        original = self.service.api.request
+        for newer in ["A", "C"]:
+            with self.subTest(newer=newer):
+                self.external({"description": "A"})
+
+                def raced(method, path, data=None, headers=None):
+                    if method != "PATCH":
+                        return original(method, path, data, headers)
+                    return patch_with_intervening_writer(
+                        path, data, headers["If-Match"], self.service.api.token, self.admin.token, newer
+                    )
+
+                self.service.api.request = raced
+                try:
+                    op = self.update({"description": "B"})
+                finally:
+                    self.service.api.request = original
+                self.assertEqual(op["after_values"], {"description": "B"})
+                self.assertIsNotNone(op["native_id"])
+                self.assertEqual(op["last_receipt"]["body"]["description"], newer)
+                self.assertEqual(self.service.preview_undo(op["id"])["status"], "conflicted")
+                self.assertEqual(
+                    self.service.undo_operation(op["id"], str(uuid.uuid4()))["status"], "conflicted"
+                )
+                self.assertEqual(self.service.read_device(self.device)["values"]["description"], newer)
+
+    def test_36_normalization_adapter_matches_real_serializer(self):
+        from netbox_readwrite_mcp.normalization import canonical_changes
+
+        for value in ["  B  ", "\tB\n", "\u00a0B\u2003", "   "]:
+            changes = {"description": value, "serial": value}
+            response = self.admin.request("PATCH", f"dcim/devices/{self.device}/", changes)
+            self.assertEqual(response["status"], 200)
+            self.assertEqual({key: response["body"][key] for key in changes}, canonical_changes(changes))
+        response = self.admin.request("PATCH", f"dcim/devices/{self.device}/", {"status": " active "})
+        self.assertEqual(response["status"], 400)
+
 
 if __name__ == "__main__":
     result = unittest.TextTestRunner(verbosity=2).run(
