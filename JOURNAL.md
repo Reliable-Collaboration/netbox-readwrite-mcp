@@ -26,3 +26,18 @@ Hypothesis, and the official MCP SDK to audit behavior independently.
 
 Support is intentionally limited to NetBox 4.6.10 until the new standalone suite
 qualifies additional versions. Recovery is compensation, not a database rollback.
+
+## Independent audit suites and fresh lab
+
+The first complete standalone run passed 138 offline tests and 30 integration
+tests against a fresh NetBox 4.6.10 database, using new nbrw-audit containers and
+a least-privilege API identity. Offline branch-aware coverage was 88%.
+Tests include official MCP SDK interoperability, real local HTTP transport,
+generated edit sequences, permissions, crash/restart, concurrent processes,
+ABA detection, recovery replay, and history-loss refusal.
+
+Fixed a SQLite backup connection leak found during testing. Added conservative
+classification for proxy timeout/rate-limit responses: 408/429 remain uncertain,
+rather than claiming a definitive rejection. Integration artifacts stay in the
+private .lab directory; CI publishes only the synthetic JUnit result, not tokens
+or complete lab state. The upcoming final audit will include these changes.

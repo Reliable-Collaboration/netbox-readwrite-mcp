@@ -1,0 +1,17 @@
+{
+  "netbox": {
+    "tag": "docker.io/netboxcommunity/netbox:v4.6.10-5.0.2",
+    "id": "23ffaca5cce9c7e14f74643bd7b6628676c34217892027afb14c9accec009d9c",
+    "digest": "docker.io/netboxcommunity/netbox@sha256:5ee780bdc63b5a5f7ad5073e05e265f74d1a1c52ca0057facc9e4279fcfdb8cc"
+  },
+  "postgres": {
+    "tag": "docker.io/library/postgres:18-alpine",
+    "id": "c293117fcecda7344b5480222e813b9f673d7abd69b1dd95eff239b768b04f59",
+    "digest": "docker.io/library/postgres@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873"
+  },
+  "valkey": {
+    "tag": "docker.io/valkey/valkey:9.1-alpine",
+    "id": "40ab224f823ae96d9d05adfbb31d7068cbf96708be5d8b2691621b703a02de3d",
+    "digest": "docker.io/valkey/valkey@sha256:3b83b0b6a598bb390c8186a408a69949772f439548a81c5ea0ab7ccf102c248d"
+  }
+}
