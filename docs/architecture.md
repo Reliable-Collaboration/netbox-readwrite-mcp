@@ -37,7 +37,7 @@ Native 400/401/403/404/405/409/412/422 responses are definitive rejection under 
 
 Undo checks current field values and intervening history, then builds an inverse containing only originally changed fields. Unrelated newer fields survive. Same-field differences or intervening changes, including ABA, produce conflicts.
 
-A fresh ETag guards inverse dispatch. NetBox 4.6 introduced conditional PATCH; the qualified version rechecks under its object lock. See [REST documentation](https://netbox.readthedocs.io/en/stable/integrations/rest-api/) and [release notes](https://netbox.readthedocs.io/en/stable/release-notes/version-4.6/).
+A fresh ETag guards inverse dispatch. NetBox 4.6 introduced conditional PATCH; the qualified 4.6.10, 4.7.0, and 4.7.1 versions recheck under its object lock. See [REST documentation](https://netbox.readthedocs.io/en/stable/integrations/rest-api/) and [release notes](https://netbox.readthedocs.io/en/stable/release-notes/version-4.6/).
 
 Only verified correction pairs whose actual post-image exactly equals the original inverse can be treated as net-zero while undoing earlier task operations. Corrections are observable writes. Task recovery follows the durable prepared-event sequence in reverse, independent of wall-clock time, stops on conflict or uncertainty, and resumes from persisted corrections. It offers neither cross-object atomicity nor redo.
 

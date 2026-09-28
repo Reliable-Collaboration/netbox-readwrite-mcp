@@ -1,39 +1,39 @@
 {
   "date": "2026-09-28",
-  "version": "0.1.1",
-  "tested_commit": "48e46fa3c35ec0ac98781e57cb8b448582dadc3a",
-  "unit_tests": 188,
+  "version": "0.2.0",
+  "tested_commit": "1ee9740c05785720d043908b309f822e3c28df19",
+  "unit_tests": 212,
   "integration_tests": 36,
   "integration_subtests": 6,
   "coverage": {
-    "covered_lines": 665,
-    "num_statements": 711,
-    "percent_covered": 91.74406604747162,
+    "covered_lines": 677,
+    "num_statements": 722,
+    "percent_covered": 91.95519348268839,
     "percent_covered_display": "92",
-    "missing_lines": 46,
+    "missing_lines": 45,
     "excluded_lines": 0,
-    "percent_statements_covered": 93.53023909985936,
+    "percent_statements_covered": 93.76731301939058,
     "percent_statements_covered_display": "94",
-    "num_branches": 258,
+    "num_branches": 260,
     "num_partial_branches": 26,
-    "covered_branches": 224,
+    "covered_branches": 226,
     "missing_branches": 34,
-    "percent_branches_covered": 86.82170542635659,
+    "percent_branches_covered": 86.92307692307692,
     "percent_branches_covered_display": "87"
   },
-  "ci_run": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36469085494",
-  "ci_conclusion": "success",
+  "ci_run": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36471841897",
+  "ci_conclusion": "failure",
   "ci_jobs": [
     {
-      "name": "netbox",
-      "conclusion": "success"
-    },
-    {
-      "name": "unit (3.11)",
-      "conclusion": "success"
+      "name": "netbox (4.6.10)",
+      "conclusion": "failure"
     },
     {
       "name": "unit (3.14)",
+      "conclusion": "success"
+    },
+    {
+      "name": "unit (3.12)",
       "conclusion": "success"
     },
     {
@@ -41,20 +41,38 @@
       "conclusion": "success"
     },
     {
-      "name": "unit (3.12)",
+      "name": "netbox (4.7.1)",
+      "conclusion": "success"
+    },
+    {
+      "name": "netbox (4.7.0)",
+      "conclusion": "success"
+    },
+    {
+      "name": "unit (3.11)",
       "conclusion": "success"
     }
   ],
-  "netbox_version": "4.6.10",
   "source_sha256": {
+    "src/netbox_readwrite_mcp/__init__.py": "556f96996e04a7c3cc0a1e64cb62a2610dbe40d434bc365b50803c5f2cbe0555",
     "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
-    "src/netbox_readwrite_mcp/normalization.py": "d4685ef1200a265e008b28b6a1c104f2a383fb169f65106643f90f8bc69114f0",
-    "src/netbox_readwrite_mcp/errors.py": "aba98a8cc388774be42988b03fc25628604b0aef3399b11ae4cd89439d6cca16",
-    "src/netbox_readwrite_mcp/service.py": "ce9c1a494a6598d24f1b0c9af304bebc72f8f09b693b9cf529f14a73976e9012",
     "src/netbox_readwrite_mcp/api.py": "c028bf9d639e965249248c0ae2f62e28c81998e410e8ce8b66c22851c275db7b",
-    "src/netbox_readwrite_mcp/__init__.py": "67a124e16ba55336df498e7586b202bcd37ac85b6f95b8798c735baf5c2f5a56",
+    "src/netbox_readwrite_mcp/compatibility.py": "34f1f66d4e3248c74a3255711b428ed42429874db955dcbbfa5b6bf1440815db",
     "src/netbox_readwrite_mcp/config.py": "06f899634dd383913f36bd131f632be62f02213a167526d5b2b6dd819842e2b9",
-    "src/netbox_readwrite_mcp/store.py": "4b95d045aed70b0b549fe46f6cc8dbe569e86455c58aafd9526fb9611f2cc189",
-    "src/netbox_readwrite_mcp/server.py": "9a011c0b507c15e2492daded40aa1b17dde6d81cde4a21ad0ef04af0d15a3668"
+    "src/netbox_readwrite_mcp/errors.py": "aba98a8cc388774be42988b03fc25628604b0aef3399b11ae4cd89439d6cca16",
+    "src/netbox_readwrite_mcp/normalization.py": "81f8208fc954c0c2c3bcd05d3faa6859843a911b2ff44015b4f6f448762cebfa",
+    "src/netbox_readwrite_mcp/server.py": "d68c15e95015c76234b1bde909de618c5f748f35cd68e0fb188049b99be28834",
+    "src/netbox_readwrite_mcp/service.py": "8aaa439cbccd3ea0968c470f0939f1274ce1a748843ad03e83707a5f1807fc73",
+    "src/netbox_readwrite_mcp/store.py": "4b95d045aed70b0b549fe46f6cc8dbe569e86455c58aafd9526fb9611f2cc189"
+  },
+  "netbox_versions": [
+    "4.7.0",
+    "4.7.1"
+  ],
+  "ci_followup": {
+    "run": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36472610494",
+    "commit": "8ca543298312f367780bf298d491868df88e5d6a",
+    "status_at_recording": "pending",
+    "reason": "Legacy 4.6.10 fixture setup timed out on its first GET; bounded lab-only timeout increased."
   }
 }

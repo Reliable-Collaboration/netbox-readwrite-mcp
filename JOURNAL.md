@@ -158,3 +158,9 @@ read-only sites query timed out at 20 seconds immediately after bootstrap,
 before any fixture write or integration test. Fixture setup now has a bounded
 120-second request timeout for cold API initialization on small runners. Runtime
 and contract-test timeouts remain unchanged, and no write retries were added.
+
+Independent CI completed the requested target qualification: both 4.7.0 and
+4.7.1 passed, as did Python 3.11–3.14. The overall first run is recorded as failed
+because of the legacy fixture timeout, not described as a full green matrix.
+A fresh full matrix for the seeding fix is run 36472610494; pending at this entry.
+Local 4.7 labs are stopped with all volumes, journals and evidence retained.

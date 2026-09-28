@@ -2,7 +2,7 @@
 
 ## Prerequisites and permissions
 
-Use the qualified NetBox version (4.6.10), unmodified native change logging, a dedicated token identity, and durable local storage. NetBox 4.5 lacks the required conditional-update contract and is refused.
+Use a qualified NetBox version (4.7.1 recommended; 4.7.0 and legacy 4.6.10 also qualified), unmodified native change logging, a dedicated token identity, and durable local storage. NetBox 4.5 lacks the required conditional-update contract and is refused.
 
 In NetBox's permission administration, create:
 
@@ -82,10 +82,37 @@ Full archive scans and hash verification grow with retained history. Measure lat
 5. Inspect unresolved operations and preview any prior undo. A previously applied correction whose actual value differs from the original inverse now reports incomplete_restore. It does not authorize another automatic correction.
 6. Resume only when outcomes have been reviewed. If native evidence cannot prove a legacy dispatch, it remains uncertain and blocks that device; do not delete it or retry with a new key.
 
-Description and serial normalization is qualified against NetBox 4.6.10's serializer.
+Description and serial normalization is qualified against NetBox 4.6.10, 4.7.0, and 4.7.1 serializers.
 Raw and normalized intent are both retained for new operations. Older records without
 a normalization event use that same qualified profile when correlating native evidence.
 A stored previous value with surrounding whitespace cannot be recreated exactly through
 this REST serializer. New edits affecting such a value are blocked with UNRESTORABLE_VALUE;
 historical inverses are refused with their previous values and an operator warning.
 This is an explicit limitation, not a silently approximate undo.
+
+## Targeting NetBox 4.7 with MCP 0.2.0
+
+Stable 4.7.x versions are accepted; the live contract suite qualifies 4.7.0 and
+4.7.1 individually. Future patches require qualification in your environment.
+Prereleases, development builds, and other minor versions are refused. Legacy
+4.6.10 remains accepted. The capabilities tool reports this distinction.
+
+Updating this MCP server requires no configuration or journal schema change.
+Stop writer processes, retain a verified backup, update all clients sharing the
+journal, then reconcile before resuming. New intent events record the actual
+NetBox version and normalization profile; previous events remain immutable.
+The server continues using synchronous detail PATCH with If-Match; it does not
+request NetBox 4.7 background REST execution or bulk operations.
+
+**Upgrading the NetBox database is a separate operation.** These tests use fresh
+databases and do not certify a 4.6-to-4.7 migration with an existing journal.
+Follow the [NetBox 4.7 release notes](https://netbox.readthedocs.io/en/stable/release-notes/version-4.7/)
+and upgrade procedure. First stop writers and preserve paired NetBox and journal
+backups plus an evidence export. Test the upgrade on isolated copies with the
+complete historical data. NetBox schema migrations can alter historical data;
+reconciliation must still reject a native record that differs from its archived
+copy. Inspect those differences before resuming. Do not remove journal records,
+rewrite archived evidence, or start an empty journal to bypass a mismatch.
+Retain the original evidence and restore the paired backups if the upgrade
+cannot preserve the recovery contract. Production plugins and validators also
+require deployment-specific qualification.
