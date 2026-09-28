@@ -71,3 +71,14 @@ sequence, preserving compatibility with existing journals without a schema chang
 Nine focused regression cases passed: descending/equal clock timestamps with a
 reopened journal; observers, recovery bundles, and exports during concurrent
 inserts/state transitions; and nested transaction rollback.
+
+## Review remediation — protocol boundary (R6)
+
+The malformed initialize crash is actionable as a local stdio robustness issue.
+Initialization now rejects non-string/empty protocol versions with -32602, and
+excessive JSON recursion returns a parse error without killing the next request.
+Malformed tool arguments also no longer falsely report that storage is unavailable.
+The initial nesting regression exposed Python-version differences in JSON decoding;
+an explicit 64-level limit now makes the boundary consistent. The 60
+protocol/configuration boundary tests passed, including session continuation
+after malformed input and official SDK interoperability.

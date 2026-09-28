@@ -225,3 +225,32 @@ def test_cli_backup_export_and_no_overwrite(config, tmp_path):
         subprocess.run(command + ["--export", str(tmp_path / "export.json")], capture_output=True).returncode
         != 0
     )
+
+
+@pytest.mark.parametrize("version", [{}, [], None, True, 1, ""])
+def test_bad_initialize_does_not_crash_or_initialize(config, tmp_path, version):
+    requests = [
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": version}},
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
+        {"jsonrpc": "2.0", "id": 3, "method": "initialize", "params": {"protocolVersion": "2025-11-25"}},
+        {"jsonrpc": "2.0", "id": 4, "method": "tools/list"},
+    ]
+    rows = run_protocol(config, tmp_path, "".join(json.dumps(row) + "\n" for row in requests))
+    assert rows[0]["error"]["code"] == -32602
+    assert rows[1]["error"]["code"] == -32000
+    assert rows[2]["result"]["protocolVersion"] == "2025-11-25"
+    assert rows[3]["result"]["tools"]
+
+
+def test_excessive_nesting_returns_error_and_allows_next_request(config, tmp_path):
+    wire = "[" * 2000 + "0" + "]" * 2000 + "\n"
+    wire += json.dumps({"jsonrpc": "2.0", "id": 2, "method": "ping"}) + "\n"
+    rows = run_protocol(config, tmp_path, wire)
+    assert rows[0]["error"]["code"] == -32700
+    assert rows[1]["result"] == {}
+
+
+def test_bad_tool_arguments_do_not_claim_storage_outage(service):
+    result = error_result(service, {"name": "read_device", "arguments": []}, ValueError("Invalid arguments"))
+    assert "journal_available" not in result["structuredContent"]
+    assert service.observability()["event_counts"]["tool_refused"] == 1

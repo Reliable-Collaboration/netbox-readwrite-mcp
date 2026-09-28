@@ -184,12 +184,35 @@ def error_result(service, params, exc):
             service.store.event(
                 "tool_refused", {"tool": params.get("name"), "code": out["code"], "reason": out["warning"]}
             )
-        key = params.get("arguments", {}).get("operation_key")
+        arguments = params.get("arguments", {})
+        key = arguments.get("operation_key") if isinstance(arguments, dict) else None
         if key:
             out["receipt_lookup"] = service.find_operation(key)
     except Exception:
         out["journal_available"] = False
     return {"isError": True, "content": [{"type": "text", "text": json.dumps(out)}], "structuredContent": out}
+
+
+def parse_request(raw):
+    """Apply a version-independent nesting bound before the JSON decoder."""
+    depth, quoted, escaped = 0, False, False
+    for byte in raw:
+        if quoted:
+            if escaped:
+                escaped = False
+            elif byte == 92:
+                escaped = True
+            elif byte == 34:
+                quoted = False
+        elif byte == 34:
+            quoted = True
+        elif byte in (91, 123):
+            depth += 1
+            if depth > 64:
+                raise ValueError("JSON nesting exceeds 64 levels")
+        elif byte in (93, 125):
+            depth -= 1
+    return json.loads(raw)
 
 
 def serve(service):
@@ -207,8 +230,8 @@ def serve(service):
             send(None, error={"code": -32600, "message": "Request exceeds 1 MiB; connection closed"})
             return  # Never interpret a trailing fragment as another command.
         try:
-            req = json.loads(raw)
-        except (ValueError, UnicodeDecodeError):
+            req = parse_request(raw)
+        except (ValueError, UnicodeDecodeError, RecursionError):
             send(None, error={"code": -32700, "message": "Invalid JSON"})
             continue
         if (
@@ -228,6 +251,11 @@ def serve(service):
         method = req["method"]
         if method == "initialize":
             requested = params.get("protocolVersion")
+            if not isinstance(requested, str) or not requested:
+                send(
+                    req["id"], error={"code": -32602, "message": "protocolVersion must be a non-empty string"}
+                )
+                continue
             version = (
                 requested
                 if requested in {"2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25"}
