@@ -1,0 +1,491 @@
+{
+  "netbox_version": "4.7.1-Docker-5.1.1",
+  "scope": "Read-only route discovery on the stock lab; not an implementation or parity certification. Format-suffix aliases excluded. Non-viewset API routes also require review.",
+  "route_count": 1890,
+  "rest_viewset_route_count": 312,
+  "rest_models": [
+    "circuits.circuit",
+    "circuits.circuitgroup",
+    "circuits.circuitgroupassignment",
+    "circuits.circuittermination",
+    "circuits.circuittype",
+    "circuits.provider",
+    "circuits.provideraccount",
+    "circuits.providernetwork",
+    "circuits.virtualcircuit",
+    "circuits.virtualcircuittermination",
+    "circuits.virtualcircuittype",
+    "core.datafile",
+    "core.datasource",
+    "core.job",
+    "core.objectchange",
+    "core.objecttype",
+    "dcim.cable",
+    "dcim.cablebundle",
+    "dcim.cabletermination",
+    "dcim.consoleport",
+    "dcim.consoleporttemplate",
+    "dcim.consoleserverport",
+    "dcim.consoleserverporttemplate",
+    "dcim.coolingfeed",
+    "dcim.coolingintake",
+    "dcim.coolingintaketemplate",
+    "dcim.coolingoutflow",
+    "dcim.coolingoutflowtemplate",
+    "dcim.coolingsource",
+    "dcim.device",
+    "dcim.devicebay",
+    "dcim.devicebaytemplate",
+    "dcim.devicerole",
+    "dcim.devicetype",
+    "dcim.frontport",
+    "dcim.frontporttemplate",
+    "dcim.interface",
+    "dcim.interfacetemplate",
+    "dcim.inventoryitem",
+    "dcim.inventoryitemrole",
+    "dcim.inventoryitemtemplate",
+    "dcim.location",
+    "dcim.macaddress",
+    "dcim.manufacturer",
+    "dcim.module",
+    "dcim.modulebay",
+    "dcim.modulebaytemplate",
+    "dcim.modulebaytype",
+    "dcim.moduletype",
+    "dcim.moduletypeprofile",
+    "dcim.platform",
+    "dcim.powerfeed",
+    "dcim.poweroutlet",
+    "dcim.poweroutlettemplate",
+    "dcim.powerpanel",
+    "dcim.powerport",
+    "dcim.powerporttemplate",
+    "dcim.rack",
+    "dcim.rackgroup",
+    "dcim.rackreservation",
+    "dcim.rackrole",
+    "dcim.racktype",
+    "dcim.rearport",
+    "dcim.rearporttemplate",
+    "dcim.region",
+    "dcim.site",
+    "dcim.sitegroup",
+    "dcim.virtualchassis",
+    "dcim.virtualdevicecontext",
+    "extras.bookmark",
+    "extras.configcontext",
+    "extras.configcontextprofile",
+    "extras.configtemplate",
+    "extras.customfield",
+    "extras.customfieldchoiceset",
+    "extras.customlink",
+    "extras.eventrule",
+    "extras.exporttemplate",
+    "extras.imageattachment",
+    "extras.journalentry",
+    "extras.notification",
+    "extras.notificationgroup",
+    "extras.savedfilter",
+    "extras.script",
+    "extras.scriptmodule",
+    "extras.subscription",
+    "extras.tableconfig",
+    "extras.tag",
+    "extras.taggeditem",
+    "extras.webhook",
+    "ipam.aggregate",
+    "ipam.asn",
+    "ipam.asnrange",
+    "ipam.fhrpgroup",
+    "ipam.fhrpgroupassignment",
+    "ipam.ipaddress",
+    "ipam.iprange",
+    "ipam.prefix",
+    "ipam.rir",
+    "ipam.role",
+    "ipam.routetarget",
+    "ipam.service",
+    "ipam.servicetemplate",
+    "ipam.vlan",
+    "ipam.vlangroup",
+    "ipam.vlantranslationpolicy",
+    "ipam.vlantranslationrule",
+    "ipam.vrf",
+    "tenancy.contact",
+    "tenancy.contactassignment",
+    "tenancy.contactgroup",
+    "tenancy.contactrole",
+    "tenancy.tenant",
+    "tenancy.tenantgroup",
+    "users.group",
+    "users.objectpermission",
+    "users.owner",
+    "users.ownergroup",
+    "users.token",
+    "users.user",
+    "virtualization.cluster",
+    "virtualization.clustergroup",
+    "virtualization.clustertype",
+    "virtualization.virtualdisk",
+    "virtualization.virtualmachine",
+    "virtualization.virtualmachinetype",
+    "virtualization.vminterface",
+    "vpn.ikepolicy",
+    "vpn.ikeproposal",
+    "vpn.ipsecpolicy",
+    "vpn.ipsecprofile",
+    "vpn.ipsecproposal",
+    "vpn.l2vpn",
+    "vpn.l2vpntermination",
+    "vpn.tunnel",
+    "vpn.tunnelgroup",
+    "vpn.tunneltermination",
+    "wireless.wirelesslan",
+    "wireless.wirelesslangroup",
+    "wireless.wirelesslink"
+  ],
+  "rest_action_counts": {
+    "bulk_destroy": 132,
+    "bulk_partial_update": 132,
+    "bulk_update": 132,
+    "choices": 1,
+    "create": 133,
+    "delete": 1,
+    "destroy": 132,
+    "elevation": 1,
+    "enqueue": 1,
+    "list": 144,
+    "partial_update": 133,
+    "paths": 4,
+    "render": 1,
+    "render_config": 2,
+    "requeue": 1,
+    "retrieve": 142,
+    "run": 1,
+    "stop": 1,
+    "sync": 5,
+    "trace": 6,
+    "update": 133
+  },
+  "special_rest_actions": [
+    {
+      "route": "api/circuits/^circuit-terminations/(?P<pk>[^/.]+)/paths/$",
+      "model": "circuits.circuittermination",
+      "actions": {
+        "get": "paths"
+      }
+    },
+    {
+      "route": "api/circuits/^virtual-circuit-terminations/(?P<pk>[^/.]+)/paths/$",
+      "model": "circuits.virtualcircuittermination",
+      "actions": {
+        "get": "paths"
+      }
+    },
+    {
+      "route": "api/core/^background-tasks/(?P<id>[^/.]+)/delete/$",
+      "model": null,
+      "actions": {
+        "post": "delete"
+      }
+    },
+    {
+      "route": "api/core/^background-tasks/(?P<id>[^/.]+)/enqueue/$",
+      "model": null,
+      "actions": {
+        "post": "enqueue"
+      }
+    },
+    {
+      "route": "api/core/^background-tasks/(?P<id>[^/.]+)/requeue/$",
+      "model": null,
+      "actions": {
+        "post": "requeue"
+      }
+    },
+    {
+      "route": "api/core/^background-tasks/(?P<id>[^/.]+)/stop/$",
+      "model": null,
+      "actions": {
+        "post": "stop"
+      }
+    },
+    {
+      "route": "api/core/^data-sources/(?P<pk>[^/.]+)/sync/$",
+      "model": "core.datasource",
+      "actions": {
+        "post": "sync"
+      }
+    },
+    {
+      "route": "api/dcim/^console-ports/(?P<pk>[^/.]+)/trace/$",
+      "model": "dcim.consoleport",
+      "actions": {
+        "get": "trace"
+      }
+    },
+    {
+      "route": "api/dcim/^console-server-ports/(?P<pk>[^/.]+)/trace/$",
+      "model": "dcim.consoleserverport",
+      "actions": {
+        "get": "trace"
+      }
+    },
+    {
+      "route": "api/dcim/^devices/(?P<pk>[^/.]+)/render-config/$",
+      "model": "dcim.device",
+      "actions": {
+        "post": "render_config"
+      }
+    },
+    {
+      "route": "api/dcim/^front-ports/(?P<pk>[^/.]+)/paths/$",
+      "model": "dcim.frontport",
+      "actions": {
+        "get": "paths"
+      }
+    },
+    {
+      "route": "api/dcim/^interfaces/(?P<pk>[^/.]+)/trace/$",
+      "model": "dcim.interface",
+      "actions": {
+        "get": "trace"
+      }
+    },
+    {
+      "route": "api/dcim/^power-feeds/(?P<pk>[^/.]+)/trace/$",
+      "model": "dcim.powerfeed",
+      "actions": {
+        "get": "trace"
+      }
+    },
+    {
+      "route": "api/dcim/^power-outlets/(?P<pk>[^/.]+)/trace/$",
+      "model": "dcim.poweroutlet",
+      "actions": {
+        "get": "trace"
+      }
+    },
+    {
+      "route": "api/dcim/^power-ports/(?P<pk>[^/.]+)/trace/$",
+      "model": "dcim.powerport",
+      "actions": {
+        "get": "trace"
+      }
+    },
+    {
+      "route": "api/dcim/^racks/(?P<pk>[^/.]+)/elevation/$",
+      "model": "dcim.rack",
+      "actions": {
+        "get": "elevation"
+      }
+    },
+    {
+      "route": "api/dcim/^rear-ports/(?P<pk>[^/.]+)/paths/$",
+      "model": "dcim.rearport",
+      "actions": {
+        "get": "paths"
+      }
+    },
+    {
+      "route": "api/extras/^config-context-profiles/(?P<pk>[^/.]+)/sync/$",
+      "model": "extras.configcontextprofile",
+      "actions": {
+        "post": "sync"
+      }
+    },
+    {
+      "route": "api/extras/^config-contexts/(?P<pk>[^/.]+)/sync/$",
+      "model": "extras.configcontext",
+      "actions": {
+        "post": "sync"
+      }
+    },
+    {
+      "route": "api/extras/^config-templates/(?P<pk>[^/.]+)/render/$",
+      "model": "extras.configtemplate",
+      "actions": {
+        "post": "render"
+      }
+    },
+    {
+      "route": "api/extras/^config-templates/(?P<pk>[^/.]+)/sync/$",
+      "model": "extras.configtemplate",
+      "actions": {
+        "post": "sync"
+      }
+    },
+    {
+      "route": "api/extras/^custom-field-choice-sets/(?P<pk>[^/.]+)/choices/$",
+      "model": "extras.customfieldchoiceset",
+      "actions": {
+        "get": "choices"
+      }
+    },
+    {
+      "route": "api/extras/^export-templates/(?P<pk>[^/.]+)/sync/$",
+      "model": "extras.exporttemplate",
+      "actions": {
+        "post": "sync"
+      }
+    },
+    {
+      "route": "api/extras/^scripts/(?P<pk>[^/]+)/$",
+      "model": "extras.script",
+      "actions": {
+        "get": "retrieve",
+        "post": "run"
+      }
+    },
+    {
+      "route": "api/virtualization/^virtual-machines/(?P<pk>[^/.]+)/render-config/$",
+      "model": "virtualization.virtualmachine",
+      "actions": {
+        "post": "render_config"
+      }
+    }
+  ],
+  "api_views_without_viewset_actions": [
+    {
+      "route": "api/",
+      "view": "netbox.api.views.APIRootView"
+    },
+    {
+      "route": "api/authentication-check/",
+      "view": "netbox.api.views.AuthenticationCheckView"
+    },
+    {
+      "route": "api/circuits/",
+      "view": "circuits.api.views.CircuitsRootView"
+    },
+    {
+      "route": "api/circuits/<drf_format_suffix:format>",
+      "view": "circuits.api.views.CircuitsRootView"
+    },
+    {
+      "route": "api/core/",
+      "view": "core.api.views.CoreRootView"
+    },
+    {
+      "route": "api/core/<drf_format_suffix:format>",
+      "view": "core.api.views.CoreRootView"
+    },
+    {
+      "route": "api/dcim/",
+      "view": "dcim.api.views.DCIMRootView"
+    },
+    {
+      "route": "api/dcim/<drf_format_suffix:format>",
+      "view": "dcim.api.views.DCIMRootView"
+    },
+    {
+      "route": "api/extras/",
+      "view": "extras.api.views.ExtrasRootView"
+    },
+    {
+      "route": "api/extras/<drf_format_suffix:format>",
+      "view": "extras.api.views.ExtrasRootView"
+    },
+    {
+      "route": "api/extras/dashboard/",
+      "view": "extras.api.views.DashboardView"
+    },
+    {
+      "route": "api/ipam/",
+      "view": "ipam.api.views.IPAMRootView"
+    },
+    {
+      "route": "api/ipam/<drf_format_suffix:format>",
+      "view": "ipam.api.views.IPAMRootView"
+    },
+    {
+      "route": "api/ipam/asn-ranges/<int:pk>/available-asns/",
+      "view": "ipam.api.views.AvailableASNsView"
+    },
+    {
+      "route": "api/ipam/ip-ranges/<int:pk>/available-ips/",
+      "view": "ipam.api.views.IPRangeAvailableIPAddressesView"
+    },
+    {
+      "route": "api/ipam/prefixes/<int:pk>/available-ips/",
+      "view": "ipam.api.views.PrefixAvailableIPAddressesView"
+    },
+    {
+      "route": "api/ipam/prefixes/<int:pk>/available-prefixes/",
+      "view": "ipam.api.views.AvailablePrefixesView"
+    },
+    {
+      "route": "api/ipam/vlan-groups/<int:pk>/available-vlans/",
+      "view": "ipam.api.views.AvailableVLANsView"
+    },
+    {
+      "route": "api/plugins/",
+      "view": "netbox.plugins.views.PluginsAPIRootView"
+    },
+    {
+      "route": "api/plugins/installed-plugins/",
+      "view": "netbox.plugins.views.InstalledPluginsAPIView"
+    },
+    {
+      "route": "api/schema/",
+      "view": "drf_spectacular.views.SpectacularAPIView"
+    },
+    {
+      "route": "api/schema/redoc/",
+      "view": "drf_spectacular.views.SpectacularRedocView"
+    },
+    {
+      "route": "api/schema/swagger-ui/",
+      "view": "drf_spectacular.views.SpectacularSwaggerView"
+    },
+    {
+      "route": "api/status/",
+      "view": "netbox.api.views.StatusView"
+    },
+    {
+      "route": "api/tenancy/",
+      "view": "tenancy.api.views.TenancyRootView"
+    },
+    {
+      "route": "api/tenancy/<drf_format_suffix:format>",
+      "view": "tenancy.api.views.TenancyRootView"
+    },
+    {
+      "route": "api/users/",
+      "view": "users.api.views.UsersRootView"
+    },
+    {
+      "route": "api/users/<drf_format_suffix:format>",
+      "view": "users.api.views.UsersRootView"
+    },
+    {
+      "route": "api/users/tokens/provision/",
+      "view": "users.api.views.TokenProvisionView"
+    },
+    {
+      "route": "api/virtualization/",
+      "view": "virtualization.api.views.VirtualizationRootView"
+    },
+    {
+      "route": "api/virtualization/<drf_format_suffix:format>",
+      "view": "virtualization.api.views.VirtualizationRootView"
+    },
+    {
+      "route": "api/vpn/",
+      "view": "vpn.api.views.VPNRootView"
+    },
+    {
+      "route": "api/vpn/<drf_format_suffix:format>",
+      "view": "vpn.api.views.VPNRootView"
+    },
+    {
+      "route": "api/wireless/",
+      "view": "wireless.api.views.WirelessRootView"
+    },
+    {
+      "route": "api/wireless/<drf_format_suffix:format>",
+      "view": "wireless.api.views.WirelessRootView"
+    }
+  ]
+}

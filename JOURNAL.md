@@ -164,3 +164,25 @@ Independent CI completed the requested target qualification: both 4.7.0 and
 because of the legacy fixture timeout, not described as a full green matrix.
 A fresh full matrix for the seeding fix is run 36472610494; pending at this entry.
 Local 4.7 labs are stopped with all volumes, journals and evidence retained.
+
+## Correcting the product scope to human-equivalent NetBox operations
+
+The user clarified that all creates, updates, deletions, and GUI-equivalent
+operations are required. The three-device-field implementation does not meet
+that objective. Recorded a NetBox-wide design and acceptance criteria without
+claiming those capabilities already exist or widening permissions prematurely.
+
+A read-only registered-route inventory on the stock 4.7.1 lab found 312 REST
+viewset routes (format aliases excluded), 140 queryset models and 35 additional
+non-viewset API routes. Special actions include jobs, synchronization and scripts.
+Saved a reproducible inventory script and a compact public baseline containing
+route/schema metadata only, not inventory objects or credentials.
+
+Asked for the recovery contract on deletions/non-reversible actions: broad
+execution with explicit guided recovery versus exact identity-preserving
+restoration. This determines the need and scope of a server-side extension;
+HTTP CRUD alone cannot guarantee exact undo of every GUI action.
+
+Lab restart also exposed an existing harness bug: volume creation is not
+idempotent on this Podman version. Started the existing named containers directly,
+without deleting any volume. No product write behavior was changed in this stage.
