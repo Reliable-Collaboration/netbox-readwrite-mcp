@@ -107,3 +107,18 @@ The expanded offline suite passed 188 tests. Live regressions exercise response
 loss, hard process exit, normalized no-ops, noncanonical baselines, the real NetBox
 post-commit response-query race (both A and C), and serializer normalization.
 The remediation release is 0.1.1; CI will independently rerun the complete suite.
+
+## Remediation validation and publication
+
+GitHub Actions run 36469085494 passed all five jobs for code commit 48e46fa:
+Python 3.11–3.14 and an independently seeded NetBox 4.6.10 lab. Final measurements:
+188 offline tests, 36 live integration tests plus 6 subtests, 91.74% combined
+statement/branch coverage. The 0.1.1 wheel installed and launched with site
+packages disabled; source/wheel archives include required notices, audit inputs,
+and regressions without private lab state.
+
+Published explicit decisions for all six findings and instructions for upgrading
+existing journals. The code changes are three descriptive commits: consistent
+reads/order, protocol boundaries, and native-evidence/normalization recovery.
+Documentation and validation records form the final commit. No force-undo path,
+automatic uncertain-write retry, or silent approximate restoration was introduced.

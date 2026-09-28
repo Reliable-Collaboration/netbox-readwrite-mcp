@@ -14,7 +14,7 @@ pytest --cov=netbox_readwrite_mcp --cov-fail-under=85
 python -m build
 ~~~
 
-The suite does not contact a real NetBox. HTTP transport tests use a loopback server; protocol tests launch subprocesses and an official MCP SDK client. Hypothesis generates edit sequences and verifies that reverse task compensation restores initial values. Other tests cover scope, malformed/unsupported edits, native error receipts, ambiguous outcomes, corruption, archive loss, idempotency, and recovery conflicts.
+The suite does not contact a real NetBox. HTTP transport tests use a loopback server; protocol tests launch subprocesses and an official MCP SDK client. Hypothesis generates edit sequences and verifies that reverse task compensation restores initial values. Additional regressions cover consistent observer/export snapshots during concurrent commits, descending/equal clocks, legacy receipt reconciliation, inexact historical corrections, and malformed initialization/nested JSON. Other tests cover scope, malformed/unsupported edits, native error receipts, ambiguous outcomes, corruption, archive loss, idempotency, and recovery conflicts.
 
 The small independent NetBox model is deliberately not the authority for server semantics. Live tests establish those separately.
 
@@ -40,6 +40,9 @@ Each run retains journal exports and checksums under .lab/evidence. Tokens/confi
 Covered live scenarios include:
 
 - Actual MCP edit/undo, native snapshots, and idempotent replay after restart.
+- Qualified serializer normalization, normalized no-ops, and refusal of noncanonical pre-images.
+- Normalized writes surviving response loss and hard exit.
+- A real second HTTP writer between NetBox commit and response re-query; committed effects stay accurate.
 - No-op with no PATCH, stale preconditions, last-moment server 412, unrelated-field preservation, ABA conflicts.
 - Real commit followed by injected response loss; hard process exit before dispatch and after commit.
 - Archive outage before/after commit, missing archived row, wrong correlation actor.

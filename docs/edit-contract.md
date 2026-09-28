@@ -4,7 +4,7 @@ Considering each edit category means defining a recovery contract or refusing it
 
 | Category | Examples | Policy / recovery concern |
 | --- | --- | --- |
-| Scalar text | Device description, serial; Unicode, multiline, empty | Supported; previous values retained, NetBox validates. |
+| Scalar text | Device description, serial; Unicode, multiline, empty | Supported; qualified whitespace normalization is retained alongside raw intent. Unrestorable pre-images are refused. |
 | Choice | Device status | Supported strings; invalid choices yield durable validation receipts. |
 | Multiple fields | Description + serial + status | One supported detail PATCH; inverse includes only effective changes. |
 | No-op / replay | Same value / key | Retained no-op / original receipt. |

@@ -1,22 +1,24 @@
 # Validation record
 
-Validated on 2026-09-28. This records observed results, not a production certification.
+Version **0.1.1**, validated on 2026-09-28. This records observed results, not a production certification.
 
 | Check | Observed result |
 | --- | --- |
-| Local offline suite | 151 passed on Python 3.14.4 |
-| Offline coverage | 90.00% combined statement/branch coverage; CI minimum 85% |
-| Local fresh-NetBox integration | 30 passed; NetBox 4.6.10, restricted actor, new database |
+| Local offline suite | 188 passed on Python 3.14.4 |
+| Offline coverage | 91.74% combined statement/branch coverage; CI minimum 85% |
+| Local fresh-NetBox integration | 36 passed, plus 6 subtests; NetBox 4.6.10, restricted actor, new database |
 | Independent GitHub CI | All five jobs passed: Python 3.11, 3.12, 3.13, 3.14 and fresh NetBox integration |
 | Protocol interoperability | Official Python MCP SDK 1.30.0 client initialized, listed/called tools, read structured results and refusals |
 | Packaging | sdist and wheel built; wheel installed into an isolated target and CLI launched |
 | Lint and format | Ruff checks passed |
 | Licensing | Runtime has no third-party Python dependencies; Apache-2.0 product with retained MIT research notice |
 
-Executable code and tests were validated at commit **ac54426**:
-[GitHub Actions run 36439066279](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36439066279).
+Executable code and tests were independently validated at commit **48e46fa**:
+[GitHub Actions run 36469085494](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36469085494).
 
-The local original integration run occurred just before the conservative HTTP 408/429 classification change; the independent CI run at ac54426 validates the final classification and guarded loopback test configuration. Offline tests explicitly cover 408/429 as uncertain.
+All five GitHub CI jobs passed for the remediation code. New regression tests cover all six review findings, including actual NetBox serializer normalization and the post-commit response re-query race. See [review decisions and resolution](review-remediation.md).
+
+The 0.1.1 wheel was installed into a separate target and launched with Python site packages disabled. The source archive includes the audit dependency snapshot and regression tests; private lab state is excluded. The source-distribution manifest was also corrected to include the dependency snapshot linked from this document.
 
 Pinned container digests are in [scripts/images.lock.json](../scripts/images.lock.json).
 The exact local test/development dependency snapshot is in [test-dependencies.txt](test-dependencies.txt). These are audit inputs; no paid product or hosted AI service participates in testing.

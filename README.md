@@ -4,7 +4,7 @@ Give an AI agent permission to edit NetBox **and keep the evidence needed to und
 
 This Apache-2.0 MCP server writes directly to the NetBox Community REST API. It records the intended change and previous values before dispatch, correlates the result with native change history, and provides optimistic undo. If someone has since changed an affected field, undo explains the conflict and leaves their work intact. Ordinary writes do not require approval.
 
-**Release scope:** initial 0.1 implementation, qualified against NetBox **4.6.10**, with Python **3.11+ on POSIX** and stdio MCP. Device **description, serial, and status** updates are supported. This is a tested, bounded implementation, not a claim of established production maturity or universal CRUD support. See [validation](docs/validation.md) for what was actually run.
+**Release scope:** 0.1.1 implementation, qualified against NetBox **4.6.10**, with Python **3.11+ on POSIX** and stdio MCP. Device **description, serial, and status** updates are supported. This is a tested, bounded implementation, not a claim of established production maturity or universal CRUD support. See [validation](docs/validation.md) for what was actually run.
 
 ## Problems this solves
 
@@ -69,6 +69,8 @@ python -c 'import uuid; print(uuid.uuid4())'
 
 Preserve it with backups. The actor must exactly match the token owner's NetBox username. Paths are relative to the configuration file. Use the NetBox base URL **without /api**. HTTPS is required except for a loopback lab.
 
+Upgrading from the initial implementation? Follow the [existing-journal upgrade steps](docs/operations.md#upgrading-from-010-to-011) before resuming edits.
+
 Keep the journal on durable local storage. Every server process in this deployment must share the same journal; copies must not become independent active writers. Identity and scope are bound to the journal. Read the [operator guide](docs/operations.md) before changing them.
 
 ## Connect an MCP client
@@ -105,10 +107,12 @@ A normal tool sequence:
 }
 ~~~
 
-5. Inspect state, id, before_values, after_values, native_id, last_receipt, and guidance. Display the authoritative receipt to the person supervising the agent.
+5. Inspect state, id, requested, normalized_requested, before_values, after_values, native_id, last_receipt, and guidance. Display the authoritative receipt to the person supervising the agent.
 6. If a response was lost, use **find_operation** with the same operation key. If uncertain, call **reconcile** and inspect again.
 
 To correct a verified edit, call **preview_undo** with its operation_id, then **undo_operation** with that ID and a stable correction operation_key. Safety checks run again during application; a preview is not a reservation.
+
+Description and serial input are normalized using the qualified NetBox serializer's whitespace rules. Both raw and normalized intent are retained. An existing value that cannot be restored exactly through REST is refused before editing. A legacy correction that restored a different value is reported as **incomplete_restore**, never as completed undo.
 
 A conflict returns previous values, conflicting current values, evidence IDs, and a warning. There is no force flag. A person can investigate and authorize a **new forward edit against fresh state**, producing a separately observable operation.
 
@@ -164,6 +168,7 @@ This creates isolated **nbrw-audit-*** containers, pinned NetBox/PostgreSQL/Valk
 ## Related work and project information
 
 - [Operator guide](docs/operations.md), [architecture](docs/architecture.md), [agent instructions](docs/agent-guide.md).
+- [Review findings and their resolution](docs/review-remediation.md).
 - [Development journal](JOURNAL.md), [contributing](CONTRIBUTING.md), [security policy](SECURITY.md).
 - [Related preliminary research spikes](https://github.com/reliable-collaboration/netbox-write-research), including candidate comparisons and evidence behind this contract.
 

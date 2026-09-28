@@ -71,3 +71,21 @@ Journal identity binds URL, lineage ID, actor, device scope, and policy version.
 Qualify upgrades and planned scope/identity migrations in a copied isolated lab first. Preserve the previous journal and native history. Do not point a new empty journal at an existing deployment to evade pending operations. A restored NetBox database can reuse IDs or change history snapshots; preserve lineage and investigate mismatches before writing.
 
 Full archive scans and hash verification grow with retained history. Measure latency and storage on your estate before rollout. Large-scale performance and high availability have not been qualified.
+
+
+## Upgrading from 0.1.0 to 0.1.1
+
+1. Stop all writer clients and retain a verified journal backup and export. Preserve the original evidence.
+2. Upgrade every process that shares the journal; do not mix old and new binaries.
+3. Keep the same configuration identity and journal path. No schema rewrite or new empty journal is required.
+4. Call reconcile before resuming edits. It can append evidence-backed repairs for old dispatched no_change, uncertain, and applied_unverified receipts whose recorded post-image came from raw input or a later response representation. Previously appended events are preserved.
+5. Inspect unresolved operations and preview any prior undo. A previously applied correction whose actual value differs from the original inverse now reports incomplete_restore. It does not authorize another automatic correction.
+6. Resume only when outcomes have been reviewed. If native evidence cannot prove a legacy dispatch, it remains uncertain and blocks that device; do not delete it or retry with a new key.
+
+Description and serial normalization is qualified against NetBox 4.6.10's serializer.
+Raw and normalized intent are both retained for new operations. Older records without
+a normalization event use that same qualified profile when correlating native evidence.
+A stored previous value with surrounding whitespace cannot be recreated exactly through
+this REST serializer. New edits affecting such a value are blocked with UNRESTORABLE_VALUE;
+historical inverses are refused with their previous values and an operator warning.
+This is an explicit limitation, not a silently approximate undo.

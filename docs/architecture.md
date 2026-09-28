@@ -10,10 +10,10 @@ For a supported edit:
 2. Verify local evidence and refresh the full native ObjectChange archive. Missing or altered previously archived rows block mutation.
 3. Resolve outstanding writes only when native evidence proves their result; otherwise block further writes to that device.
 4. Read current values and compare the ETag with the caller's precondition.
-5. Commit intent, requested/previous values, inverse field scope, and operation key with SQLite synchronous FULL.
+5. Commit raw intent, version-qualified normalized intent, previous values, inverse field scope, and operation key with SQLite synchronous FULL. Refuse edits whose previous values cannot round-trip exactly through REST.
 6. Durably record dispatch before sending PATCH.
 7. Send one PATCH with If-Match and a unique netbox-rw operation UUID marker.
-8. Record the receipt and correlate native history by marker, actor, model, object ID, action, request ID when available, and before/after values.
+8. Retain the HTTP response as a receipt, then correlate native history by marker, actor, model, object ID, action, request ID when available, pre-image, and normalized expected effect. The matched native record supplies the committed post-image. NetBox can re-query after commit, so a response body can already show another writer's values.
 
 Same-key/same-argument requests retrieve the original operation. Different arguments with the same key are refused. This is **local idempotency**, not exactly-once remote execution.
 
@@ -39,11 +39,11 @@ Undo checks current field values and intervening history, then builds an inverse
 
 A fresh ETag guards inverse dispatch. NetBox 4.6 introduced conditional PATCH; the qualified version rechecks under its object lock. See [REST documentation](https://netbox.readthedocs.io/en/stable/integrations/rest-api/) and [release notes](https://netbox.readthedocs.io/en/stable/release-notes/version-4.6/).
 
-Verified original/correction pairs can be treated as net-zero while undoing earlier task operations. Corrections are observable writes. Task recovery runs in reverse order, stops on conflict or uncertainty, and resumes from persisted corrections. It offers neither cross-object atomicity nor redo.
+Only verified correction pairs whose actual post-image exactly equals the original inverse can be treated as net-zero while undoing earlier task operations. Corrections are observable writes. Task recovery follows the durable prepared-event sequence in reverse, independent of wall-clock time, stops on conflict or uncertainty, and resumes from persisted corrections. It offers neither cross-object atomicity nor redo.
 
 ## Durability and limits
 
-SQLite uses WAL, synchronous FULL, foreign keys, append-only triggers, a hash chain, and operation-projection verification. POSIX file locks serialize writers sharing a journal. Network filesystems and distributed journal replicas are unsupported.
+SQLite uses WAL, synchronous FULL, foreign keys, append-only triggers, a hash chain, and operation-projection verification. POSIX file locks serialize writers sharing a journal. Evidence readers use a single SQLite snapshot, including nested verification, so legitimate concurrent commits cannot produce a mixed report or false corruption finding. Network filesystems and distributed journal replicas are unsupported.
 
 Hashes have no external trust anchor. A privileged administrator can rewrite the archive; independent backups/checkpoints and OS controls are required for stronger audit assurance.
 
