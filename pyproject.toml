@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netbox-readwrite-mcp"
+version = "0.1.0"
+description = "Auditable NetBox edits with durable history and optimistic recovery over MCP"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE", "third_party/*.txt"]
+authors = [{name = "Reliable Collaboration contributors"}]
+dependencies = []
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Operating System :: POSIX",
+  "Programming Language :: Python :: 3",
+  "Topic :: System :: Networking",
+]
+
+[project.urls]
+Repository = "https://github.com/reliable-collaboration/netbox-readwrite-mcp"
+Issues = "https://github.com/reliable-collaboration/netbox-readwrite-mcp/issues"
+
+[project.scripts]
+netbox-readwrite-mcp = "netbox_readwrite_mcp.server:main"
+
+[project.optional-dependencies]
+test = ["pytest>=8,<10", "pytest-cov>=6,<8", "hypothesis>=6,<7", "mcp>=1.20,<2"]
+dev = ["ruff>=0.12,<1", "build>=1,<2"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
+addopts = "-ra"
+markers = ["integration: requires the isolated Podman lab"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+[tool.coverage.run]
+source = ["netbox_readwrite_mcp"]
+branch = true

@@ -1,0 +1,6 @@
+NetBox Read/Write MCP
+Copyright 2026 Reliable Collaboration contributors
+
+Derived from the MIT-licensed netbox-write-research direct-write spike.
+See third_party/research-MIT.txt for its original notice.
+NetBox is a separate Apache-2.0 project; this project is not affiliated with its maintainers.
