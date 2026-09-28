@@ -81,9 +81,11 @@ shortcut to GUI parity. A plugin must enforce the same permissions and validatio
 Even a plugin cannot reverse external deliveries, recover unknown original
 secrets, or promise exact rollback of arbitrary script effects.
 
-## Recovery decision needed before implementing destructive operations
+## Recovery alternatives and subsequent investigation
 
-Two materially different contracts are possible:
+The [deeper deletion investigation](deletion-recovery.md) now recommends original-ID, graph-aware restoration through a focused NetBox plugin. Fourteen lab tests establish feasibility and important hazards; the plugin is not yet implemented. This supersedes asking the user to accept new IDs before investigating the existing core helpers.
+
+Two materially different contracts remain relevant for exceptional actions:
 
 - **Broad execution with guided recovery:** allow authorized operations, retain
   durable evidence, and classify recovery as automatic compensation, guided

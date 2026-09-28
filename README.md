@@ -173,3 +173,5 @@ This creates isolated **nbrw-audit-*** containers, pinned NetBox/PostgreSQL/Valk
 - [Related preliminary research spikes](https://github.com/reliable-collaboration/netbox-write-research), including candidate comparisons and evidence behind this contract.
 
 Licensed under [Apache-2.0](LICENSE), with the [original research notice](third_party/research-MIT.txt) retained for derived code. NetBox is a separate project; this server is not affiliated with or endorsed by its maintainers.
+
+Deletion recovery research: [original-ID restoration findings and proposed plugin](docs/deletion-recovery.md). This is follow-up research, not an additional supported write capability.

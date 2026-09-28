@@ -186,3 +186,19 @@ HTTP CRUD alone cannot guarantee exact undo of every GUI action.
 Lab restart also exposed an existing harness bug: volume creation is not
 idempotent on this Podman version. Started the existing named containers directly,
 without deleting any volume. No product write behavior was changed in this stage.
+
+## Original-ID deletion recovery investigation
+
+Completed the user's requested deeper investigation in the related research repo.
+NetBox 4.7.1 contains an internal deserializer accepting the original PK, although
+ordinary REST creates allocate new IDs. Fourteen rollback-only real-NetBox tests
+passed: same-ID reconstruction, native correction history, tags/custom fields,
+interface/IP/device side effects, cable terminations, tree paths, uniqueness/ID
+collisions, transaction rollback and stale DELETE preconditions.
+
+Recommendation: a focused Apache-2.0 recovery plugin using core NetBox internals,
+with graph planning, conflict refusal, raw evidence capture and durable operation
+receipts. Restricted Branching was inspected as comparative prior art only.
+Updated the design to replace the premature new-ID-versus-exact-restore decision
+with the findings. No runtime scope was broadened or plugin maturity claimed.
+The research report and executable spike are linked from docs/deletion-recovery.md.
