@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import os
 from pathlib import Path
 import secrets
 import subprocess
@@ -10,14 +11,15 @@ import time
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-STATE = ROOT / ".lab"
-PREFIX = "nbrw-audit"
-LABEL = "io.netbox-readwrite-mcp.project=nbrw-audit"
-IMAGES = {
-    "netbox": "docker.io/netboxcommunity/netbox:v4.6.10-5.0.2",
-    "postgres": "docker.io/library/postgres:18-alpine",
-    "valkey": "docker.io/valkey/valkey:9.1-alpine",
-}
+VERSION = os.environ.get("NETBOX_RW_TEST_VERSION", "4.7.1")
+PORTS = {"4.6.10": 18860, "4.7.0": 18870, "4.7.1": 18871}
+if VERSION not in PORTS:
+    raise ValueError("NETBOX_RW_TEST_VERSION must select a pinned lab version: " + ", ".join(PORTS))
+PORT = PORTS[VERSION]
+URL = f"http://127.0.0.1:{PORT}"
+STATE = ROOT / ".lab" / VERSION
+PREFIX = "nbrw-audit-" + VERSION.replace(".", "-")
+LABEL = "io.netbox-readwrite-mcp.project=" + PREFIX
 
 
 def cmd(*args, **kw):
@@ -33,6 +35,7 @@ def config():
 
 
 def setup():
+    (ROOT / ".lab").mkdir(mode=0o700, exist_ok=True)
     STATE.mkdir(mode=0o700, exist_ok=True)
     if not (STATE / "secrets.json").exists():
         data = {k: secrets.token_hex(32) for k in ["db_password", "secret_key", "pepper"]}
@@ -63,16 +66,17 @@ def setup():
         f"POSTGRES_DB=netbox\nPOSTGRES_USER=netbox\nPOSTGRES_PASSWORD={c['db_password']}\n"
     )
     (STATE / "postgres.env").chmod(0o600)
+    lock = json.loads((ROOT / "scripts/images.lock.json").read_text())
+    selected = {key: lock[key] for key in ("postgres", "valkey")}
+    selected["netbox"] = lock["netbox"][VERSION]
     manifest = {}
-    lock_path = ROOT / "scripts/images.lock.json"
-    existing = json.loads(lock_path.read_text()) if lock_path.exists() else {}
-    for key, tag in IMAGES.items():
-        image = existing.get(key, {}).get("digest", tag)
+    for key, spec in selected.items():
+        image = spec["digest"]
         if subprocess.run(["podman", "image", "exists", image]).returncode:
             pod("pull", image)
         info = json.loads(pod("image", "inspect", image, capture_output=True, text=True).stdout)[0]
-        manifest[key] = {"tag": tag, "id": info["Id"], "digest": info["RepoDigests"][0]}
-    lock_path.write_text(json.dumps(manifest, indent=2) + "\n")
+        manifest[key] = {**spec, "id": info["Id"]}
+    (STATE / "runtime-images.json").write_text(json.dumps(manifest, indent=2) + "\n")
     return manifest
 
 
@@ -110,7 +114,7 @@ def start():
     run(
         "netbox",
         "netbox",
-        ["--env-file", str(STATE / "netbox.env"), "-p", "127.0.0.1:18790:8080", "--memory", "2g"],
+        ["--env-file", str(STATE / "netbox.env"), "-p", f"127.0.0.1:{PORT}:8080", "--memory", "2g"],
     )
     print("Started. Run python3 scripts/lab.py ready, then bootstrap.", flush=True)
 
@@ -118,7 +122,7 @@ def start():
 def ready():
     for _ in range(180):
         try:
-            with urllib.request.urlopen("http://127.0.0.1:18790/login/", timeout=3) as r:
+            with urllib.request.urlopen(URL + "/login/", timeout=3) as r:
                 if r.status == 200:
                     print("NetBox ready")
                     return
@@ -152,7 +156,7 @@ print('Lab API identity ready')
         input=source,
         text=True,
     )
-    image = json.loads((ROOT / "scripts/images.lock.json").read_text())["netbox"]["digest"]
+    image = json.loads((ROOT / "scripts/images.lock.json").read_text())["netbox"][VERSION]["digest"]
     if subprocess.run(["podman", "container", "exists", PREFIX + "-worker"]).returncode:
         pod(
             "run",

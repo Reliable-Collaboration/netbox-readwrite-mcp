@@ -16,6 +16,7 @@ from netbox_readwrite_mcp.api import NetBox
 from netbox_readwrite_mcp.server import build_service
 from netbox_readwrite_mcp.store import encode
 from tests.integration.mcp_client import Client
+from scripts.lab import STATE, PREFIX, URL, VERSION
 
 HERE = Path(__file__).resolve().parents[2]
 
@@ -27,19 +28,19 @@ class Contract(unittest.TestCase):
             raise unittest.SkipTest(
                 "Run scripts/lab.py and seed.py; set NETBOX_RW_LIVE=1 to test the disposable lab"
             )
-        cls.config = json.loads((HERE / ".lab/config.json").read_text())
-        if cls.config["netbox_url"] != "http://127.0.0.1:18790":
+        cls.config = json.loads((STATE / "config.json").read_text())
+        if cls.config["netbox_url"] != URL:
             raise RuntimeError("Integration tests only run against the disposable loopback lab")
         cls.device = cls.config["allowed_device_ids"][0]
         cls.other = cls.config["allowed_device_ids"][1]
-        root = HERE
         cls.admin = NetBox(
-            cls.config["netbox_url"], json.loads((root / ".lab/secrets.json").read_text())["token"]
+            cls.config["netbox_url"], json.loads((STATE / "secrets.json").read_text())["token"]
         )
+        assert cls.admin.get("status/")["body"]["netbox-version"] == VERSION
         cls.run_label = "run-" + time.strftime("%Y%m%dT%H%M%S")
-        cls.evidence = HERE / ".lab" / "evidence" / cls.run_label
+        cls.evidence = STATE / "evidence" / cls.run_label
         cls.evidence.mkdir(parents=True)
-        cls.state_dir = HERE / ".lab" / cls.run_label
+        cls.state_dir = STATE / cls.run_label
         cls.state_dir.mkdir(mode=0o700)
 
     def setUp(self):
@@ -399,7 +400,7 @@ print(json.dumps({'id':r['id'],'state':r['state']}))
         self.assertEqual(len(self.service.get_task(self.task)["operations"]), 1)
 
     def test_23_native_permissions_restrict_scope_and_deletion(self):
-        outside = int((HERE / ".lab/outside-id").read_text())
+        outside = int((STATE / "outside-id").read_text())
         self.assertNotIn(outside, self.service.allowed)
         response = self.service.api.request("PATCH", f"dcim/devices/{outside}/", {"description": "forbidden"})
         self.assertIn(response["status"], (403, 404))
@@ -594,7 +595,7 @@ s.update_device(sys.argv[2],'normalized-crash-key',r['device_id'],r['etag'],{'de
                 "podman",
                 "exec",
                 "-i",
-                "nbrw-audit-netbox",
+                PREFIX + "-netbox",
                 "/opt/netbox/venv/bin/python",
                 "/opt/netbox/netbox/manage.py",
                 "shell",

@@ -5,6 +5,7 @@ import re
 import time
 import uuid
 from .store import Store, encode, digest, consistent_read
+from .compatibility import normalization_profile
 from .normalization import canonical_changes, exact_inverse, exact_correction
 
 FIELDS = {"description", "serial", "status"}
@@ -252,10 +253,7 @@ class Service:
         self.store.verify()
         status = self.api.get("status/")["body"]
         self.version = status["netbox-version"]
-        if self.version not in {"4.6.10"}:
-            raise RuntimeError(
-                "Unsupported NetBox version; this release requires 4.6.10. Run the contract suite before upgrading"
-            )
+        self.profile = normalization_profile(self.version)
         self._sync()
         self._reconcile()
         outstanding = self.store.db.execute(
@@ -337,7 +335,9 @@ class Service:
             )
             self.store.event("prepared", row, op_id)
             self.store.event(
-                "normalized_intent", {"profile": "netbox-4.6.10-device-v1", "values": normalized}, op_id
+                "normalized_intent",
+                {"profile": self.profile, "netbox_version": self.version, "values": normalized},
+                op_id,
             )
         if not actual:
             return self.get_operation(op_id)

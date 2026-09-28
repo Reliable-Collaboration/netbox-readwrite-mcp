@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import sys
 from . import __version__
+from .compatibility import QUALIFIED_VERSIONS, SUPPORTED_VERSIONS
 from .api import NetBox
 from .service import Service
 
@@ -121,6 +122,7 @@ for descriptor in TOOLS:
 def capabilities():
     return {
         "transport": "stdio",
+        "netbox_versions": {"accepted": SUPPORTED_VERSIONS, "qualified": list(QUALIFIED_VERSIONS)},
         "write_path": "direct NetBox REST API",
         "approval_required": False,
         "supported_model": "dcim.device",

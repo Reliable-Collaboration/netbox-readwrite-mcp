@@ -2,6 +2,7 @@
 
 import json
 import subprocess
+from scripts.lab import PREFIX
 
 
 def patch_with_intervening_writer(path, data, etag, agent_token, admin_token, newer):
@@ -43,7 +44,7 @@ print('RACE_RESULT:'+json.dumps(result))
             "podman",
             "exec",
             "-i",
-            "nbrw-audit-netbox",
+            PREFIX + "-netbox",
             "/opt/netbox/venv/bin/python",
             "/opt/netbox/netbox/manage.py",
             "shell",

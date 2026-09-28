@@ -1,4 +1,4 @@
-"""Write normalization qualified against NetBox 4.6.10 DeviceSerializer.
+"""Write normalization qualified against NetBox 4.6.10, 4.7.0, and 4.7.1 DeviceSerializer.
 
 description/serial use DRF CharField(trim_whitespace=True); status is a ChoiceField.
 Keep raw input separately for audit and idempotency. Never normalize a pre-image

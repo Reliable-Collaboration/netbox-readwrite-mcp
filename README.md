@@ -4,7 +4,7 @@ Give an AI agent permission to edit NetBox **and keep the evidence needed to und
 
 This Apache-2.0 MCP server writes directly to the NetBox Community REST API. It records the intended change and previous values before dispatch, correlates the result with native change history, and provides optimistic undo. If someone has since changed an affected field, undo explains the conflict and leaves their work intact. Ordinary writes do not require approval.
 
-**Release scope:** 0.1.1 implementation, qualified against NetBox **4.6.10**, with Python **3.11+ on POSIX** and stdio MCP. Device **description, serial, and status** updates are supported. This is a tested, bounded implementation, not a claim of established production maturity or universal CRUD support. See [validation](docs/validation.md) for what was actually run.
+**Release scope:** 0.2.0 implementation targeting stable NetBox **4.7.x** (qualified: **4.7.0 and 4.7.1**), retaining **4.6.10** compatibility, with Python **3.11+ on POSIX** and stdio MCP. Device **description, serial, and status** updates are supported. This is a tested, bounded implementation, not a claim of established production maturity or universal CRUD support. Later stable 4.7 patches are accepted, but must pass the live contract suite in your deployment before upgrading. Prereleases and other versions are refused. See [validation](docs/validation.md) for what was actually run.
 
 ## Problems this solves
 
@@ -45,7 +45,7 @@ Check out the commit your organization audited before installing. This project h
 
 ## Configure NetBox and the server
 
-1. Use NetBox 4.6.10. Configure **CHANGELOG_RETENTION = 0** and ensure no other process deletes history.
+1. Use NetBox 4.7.1 (4.7.0 and legacy 4.6.10 are also qualified). Configure **CHANGELOG_RETENTION = 0** and ensure no other process deletes history.
 2. Create a dedicated non-superuser identity, such as **netbox-agent**. Grant **view/change on dcim.device**, constrained to intended device IDs, and **view on core.objectchange** with complete history visibility. Do not grant add/delete. See [permissions and operations](docs/operations.md).
 3. Create a write-enabled API token. Put only the token in a file readable by the server's OS account (mode 600). Both v1 tokens and v2 tokens beginning with nbt_ are accepted.
 4. Copy [examples/config.json](examples/config.json) to a protected configuration directory:
@@ -163,7 +163,7 @@ NETBOX_RW_LIVE=1 pytest tests/integration -v
 python scripts/lab.py stop
 ~~~
 
-This creates isolated **nbrw-audit-*** containers, pinned NetBox/PostgreSQL/Valkey images, synthetic inventory, and a restricted agent identity. NetBox binds to **127.0.0.1:18790**. The lab does not reuse the research spikes. Allow 6–10 minutes for first startup and downloads. See [testing](docs/testing.md) for resources, evidence, cleanup, and fault-injection limits.
+This creates isolated **nbrw-audit-*** containers, pinned NetBox/PostgreSQL/Valkey images, synthetic inventory, and a restricted agent identity. NetBox binds to **127.0.0.1:18871** by default (NetBox 4.7.1). The lab does not reuse the research spikes. Allow 6–10 minutes for first startup and downloads. See [testing](docs/testing.md) for resources, evidence, cleanup, and fault-injection limits.
 
 ## Related work and project information
 

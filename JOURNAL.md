@@ -122,3 +122,19 @@ existing journals. The code changes are three descriptive commits: consistent
 reads/order, protocol boundaries, and native-evidence/normalization recovery.
 Documentation and validation records form the final commit. No force-undo path,
 automatic uncertain-write retry, or silent approximate restoration was introduced.
+
+## NetBox 4.7 target: compatibility policy and isolated qualification
+
+The requested target is stable 4.7.x. Upstream currently publishes 4.7.0 and
+4.7.1; both receive digest-pinned, independently seeded Podman labs. The default
+is 4.7.1. Existing 4.6.10 compatibility remains explicit. Prereleases, malformed
+versions and other minor versions are refused before any dispatch. Acceptance
+of a future stable patch is distinct from qualification of that release.
+
+New normalization events record the actual server version and a 4.7 profile;
+existing immutable events are preserved. The capabilities tool exposes the
+policy and qualified versions. CI now tests all three pinned NetBox versions.
+Versioned ports, containers, credentials and evidence keep prior labs intact.
+The offline suite passes 212 tests with 91.96% combined coverage. Real-server
+qualification is running against both 4.7 releases, including the response-query
+race, crash recovery, native audit correlation and optimistic undo contracts.

@@ -28,6 +28,12 @@ jobs:
   netbox:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        netbox: ['4.6.10', '4.7.0', '4.7.1']
+    env:
+      NETBOX_RW_TEST_VERSION: ${{ matrix.netbox }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -38,12 +44,12 @@ jobs:
       - run: python scripts/lab.py up
       - run: python scripts/lab.py ready
       - run: python scripts/lab.py bootstrap && python scripts/seed.py
-      - run: NETBOX_RW_LIVE=1 pytest tests/integration -v --junitxml=.lab/integration-results.xml
+      - run: NETBOX_RW_LIVE=1 pytest tests/integration -v --junitxml=.lab/${{ matrix.netbox }}/integration-results.xml
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
-          name: integration-results
-          path: .lab/integration-results.xml
+          name: integration-${{ matrix.netbox }}
+          path: .lab/${{ matrix.netbox }}/integration-results.xml
           include-hidden-files: true
       - if: always()
         run: python scripts/lab.py stop

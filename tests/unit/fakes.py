@@ -15,7 +15,7 @@ class NetBoxModel:
         self.revisions = {1: 1, 2: 1}
         self.rows = []
         self.patches = 0
-        self.version = "4.6.10"
+        self.version = "4.7.1"
 
     def etag(self, pk):
         return f'W/"revision-{self.revisions[pk]}"'

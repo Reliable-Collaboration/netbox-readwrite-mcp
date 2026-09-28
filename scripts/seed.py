@@ -2,18 +2,16 @@
 
 import json
 import os
-from pathlib import Path
 import secrets
 import subprocess
 import uuid
 from netbox_readwrite_mcp.api import NetBox
+from lab import STATE, PREFIX, URL
 
-ROOT = Path(__file__).resolve().parents[1]
-STATE = ROOT / ".lab"
 os.umask(0o077)
 STATE.mkdir(mode=0o700, exist_ok=True)
-admin = json.loads((ROOT / ".lab/secrets.json").read_text())["token"]
-api = NetBox("http://127.0.0.1:18790", admin)
+admin = json.loads((STATE / "secrets.json").read_text())["token"]
+api = NetBox(URL, admin)
 
 
 def ensure(path, name, data):
@@ -88,7 +86,7 @@ subprocess.run(
         "podman",
         "exec",
         "-i",
-        "nbrw-audit-netbox",
+        PREFIX + "-netbox",
         "/opt/netbox/venv/bin/python",
         "/opt/netbox/netbox/manage.py",
         "shell",
