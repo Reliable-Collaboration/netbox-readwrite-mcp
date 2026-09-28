@@ -138,3 +138,23 @@ Versioned ports, containers, credentials and evidence keep prior labs intact.
 The offline suite passes 212 tests with 91.96% combined coverage. Real-server
 qualification is running against both 4.7 releases, including the response-query
 race, crash recovery, native audit correlation and optimistic undo contracts.
+
+## NetBox 4.7 local results
+
+Both 4.7.0 and 4.7.1 passed all 36 live integration tests and six subtests each
+on independent databases. No server-contract relaxation was needed. The 0.2.0
+wheel and sdist build successfully; the installed wheel launches with site
+packages disabled. Archives include the compatibility tests and pinned images,
+exclude private lab state, and tracked files pass the local credential scan.
+
+The operations guide distinguishes updating the MCP binary (no schema rewrite)
+from migrating the NetBox database (not certified by fresh-database tests).
+Preserve paired backups and immutable evidence; do not bypass archive mismatches.
+GitHub Actions run 36471841897 independently exercises all three NetBox targets
+and four Python versions for code commit 1ee9740.
+
+The first expanded CI run exposed a lab startup issue: the 4.6.10 seeder's first
+read-only sites query timed out at 20 seconds immediately after bootstrap,
+before any fixture write or integration test. Fixture setup now has a bounded
+120-second request timeout for cold API initialization on small runners. Runtime
+and contract-test timeouts remain unchanged, and no write retries were added.

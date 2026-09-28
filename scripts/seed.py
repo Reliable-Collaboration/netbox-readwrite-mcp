@@ -11,7 +11,9 @@ from lab import STATE, PREFIX, URL
 os.umask(0o077)
 STATE.mkdir(mode=0o700, exist_ok=True)
 admin = json.loads((STATE / "secrets.json").read_text())["token"]
-api = NetBox(URL, admin)
+# Cold API initialization on small CI runners can exceed the runtime timeout.
+# This longer bound is only for disposable fixture setup; writes are never retried.
+api = NetBox(URL, admin, timeout=120)
 
 
 def ensure(path, name, data):
