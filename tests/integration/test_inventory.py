@@ -55,6 +55,17 @@ def create(client, task, resource, data):
     return result["last_receipt"]["body"]
 
 
+def test_companion_preserves_cold_openapi_generation(service):
+    # NetBox caches schema responses for a day. A unique URL must exercise actual
+    # generation, even when an old schema was cached before a plugin was installed.
+    response = service.api.request("GET", "schema/?format=json&qualification=" + uuid.uuid4().hex)
+    assert response["status"] == 200, response["body"]
+    paths = response["body"]["paths"]
+    assert "/api/dcim/devices/" in paths
+    metadata = paths["/api/plugins/agent-support/filter-schema/"]["get"]
+    assert any(p["name"] == "resource" and p["required"] for p in metadata["parameters"])
+
+
 def test_greenfield_physical_and_virtual_inventory(client):
     """No existing object IDs: discover, create dependencies, cable/IP/VM, find by name, edit."""
     suffix = uuid.uuid4().hex[:10]

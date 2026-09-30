@@ -159,3 +159,12 @@ state passed independently; the model's history claim did not. Receipts and
 state checks remain authoritative. Website and conflict explanations correctly
 described their outcomes. This evidence qualifies the tested inventory workflows,
 not flawless model narration or all-feature website parity.
+
+Fresh-database CI after this run exposed a companion schema-generation failure
+masked locally by NetBox's one-day OpenAPI cache. Its model-aware schema generator
+attempted to read a queryset for the metadata APIView. Explicit view descriptions
+and exclusion of the discovery-only root from OpenAPI correct that integration.
+A unique-URL live test now forces cold schema generation and checks that both
+native resources and the companion filter endpoint are present. The recorded
+earlier GLM results remain state evidence; the cold-cache correction receives
+separate regression and consuming-agent confirmation.

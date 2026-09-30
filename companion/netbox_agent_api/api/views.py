@@ -11,7 +11,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 
+@extend_schema(exclude=True)
 class RootView(APIView):
+    """Discover the companion's read-only metadata endpoints."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -19,6 +22,8 @@ class RootView(APIView):
 
 
 class FilterSchemaView(APIView):
+    """Return live filter definitions under the target API resource's permissions."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
