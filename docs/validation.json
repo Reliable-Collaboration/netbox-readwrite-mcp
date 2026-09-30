@@ -6,45 +6,45 @@
   ],
   "python": "3.14.4",
   "official_mcp_sdk": "1.30.0",
-  "unit_tests": 329,
-  "integration_tests": 90,
-  "combined_tests": 419,
+  "unit_tests": 334,
+  "integration_tests": 91,
+  "combined_tests": 425,
   "coverage": {
-    "covered_lines": 1686,
-    "num_statements": 1784,
-    "percent_covered": 92.62295081967213,
+    "covered_lines": 1699,
+    "num_statements": 1797,
+    "percent_covered": 92.67725687717939,
     "percent_covered_display": "93",
     "missing_lines": 98,
     "excluded_lines": 0,
-    "percent_statements_covered": 94.5067264573991,
+    "percent_statements_covered": 94.54646633277684,
     "percent_statements_covered_display": "95",
-    "num_branches": 778,
+    "num_branches": 784,
     "num_partial_branches": 85,
-    "covered_branches": 687,
+    "covered_branches": 693,
     "missing_branches": 91,
-    "percent_branches_covered": 88.30334190231362,
+    "percent_branches_covered": 88.39285714285714,
     "percent_branches_covered_display": "88"
   },
   "offline_coverage": {
-    "covered_lines": 1590,
-    "num_statements": 1784,
-    "percent_covered": 86.72911787665886,
+    "covered_lines": 1603,
+    "num_statements": 1797,
+    "percent_covered": 86.8268113134444,
     "percent_covered_display": "87",
     "missing_lines": 194,
     "excluded_lines": 0,
-    "percent_statements_covered": 89.12556053811659,
+    "percent_statements_covered": 89.20422927100724,
     "percent_statements_covered_display": "89",
-    "num_branches": 778,
+    "num_branches": 784,
     "num_partial_branches": 100,
-    "covered_branches": 632,
+    "covered_branches": 638,
     "missing_branches": 146,
-    "percent_branches_covered": 81.23393316195373,
+    "percent_branches_covered": 81.37755102040816,
     "percent_branches_covered_display": "81"
   },
   "lab": "Digest-pinned disposable NetBox 4.7.2 lab, reused with uniquely named evaluation fixtures; native non-superuser roles. Earlier 390-case qualification used a freshly recreated database.",
   "discovered_endpoints": 147,
   "successful_collection_or_action_gets": 135,
-  "ci_status": "Previous 5ba824a checks passed on Python 3.11\u20133.14 and real NetBox. Follow-up CI is recorded separately.",
+  "ci_status": "Code commit 5a953b6458c0002978f770d46649d39b30a276fc passed push and PR workflows: Python 3.11\u20133.14 and 425 cases against fresh NetBox.",
   "issue_feedback_test": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/issues/1",
   "source_sha256": {
     "src/netbox_readwrite_mcp/__init__.py": "cad430435741be9f74ef01978773af3e8d97be9ee74aae954630a042153d4e4b",
@@ -57,7 +57,7 @@
     "src/netbox_readwrite_mcp/http_server.py": "f9b1bc2fe6e17e6c42e1b1d0650caef41cc2d3225a000e97345eeecd91246904",
     "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
     "src/netbox_readwrite_mcp/recovery.py": "a786c7077cb8344deb64ceff9e285e6cea2c236977a2275610c6557235520c0d",
-    "src/netbox_readwrite_mcp/server.py": "03685f1ffb4d031c100a0221a5d93b04def55f0da06e23b7c1b9d3b276f5b7d5",
+    "src/netbox_readwrite_mcp/server.py": "eb3c1b21047cbb9e3eb1aaf5d787e9de168fa3bfc908583bb9b9c6d7143e8622",
     "src/netbox_readwrite_mcp/service.py": "4620c2d0624c786cb2d87562221614cc0a1743908f5c8cfd25c161c89f1254ff",
     "src/netbox_readwrite_mcp/store.py": "87776573cd99fb23282e2ba7ee4fc3b8259a0f80a2e9aa91c4780bad764956ab",
     "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
@@ -66,14 +66,14 @@
     "companion/netbox_agent_api/__init__.py": "b5b0af742f011c8e3017ff82aa08e4499e0b98961a7db8578a35350059e55c94",
     "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "companion/netbox_agent_api/api/urls.py": "3fb865255196ca5de4bff29075280888bb3f1eaf51cebcfc6df34e152c09ffdd",
-    "companion/netbox_agent_api/api/views.py": "37dcb6bf37e7f6c26ccec470d799fb0c766e0ddcd3d7c0d5b32fcb43e5a08f28"
+    "companion/netbox_agent_api/api/views.py": "f429b78011ebccd22d5443e11c7d4b7fed90a96eebc494bdaffac6c84572dfea"
   },
   "test_sha256": {
     "tests/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "tests/integration/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "tests/integration/mcp_client.py": "06e400ad51cb2023ca041fc7186c2ac6030f7a4d784e2e5f09e4fc1c584a1cd5",
     "tests/integration/response_race.py": "b1fa1d4ef085571345b2f3758b46e92f8c6c74cda96d206478913fceb722ce2b",
-    "tests/integration/test_inventory.py": "8d8cb40956745ec8522879a7f7557bdf1bdab38bf23239ec5bc8df20d2379c35",
+    "tests/integration/test_inventory.py": "502abf036b72d8b286595665f0379cf315c7be1c425858683bd1537d79b7881f",
     "tests/integration/test_live.py": "459ae567b7c3fa182045a1a3fcfb9463ee5fcf04513c6d16f69008342edec2a3",
     "tests/unit/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "tests/unit/conftest.py": "4bb982977ff3d57963427dffb50afd639ef6764efb465d01e9da275aa2d25775",
@@ -86,7 +86,7 @@
     "tests/unit/test_review_regressions.py": "c04dd7388d46c0cc9781c8464bdb1560a1dcb8fd42d49985f2a7f033cf30f411",
     "tests/unit/test_streamable_http.py": "ac1651d3f637c9349d4f0de07814e459720cad62526818b1b2c5ee5b5cfe1149",
     "tests/unit/test_workflow.py": "d88bacb5b0d55418a98f5b63192da182d5b9f0b92dd4f0d78ee5901815400668",
-    "tests/unit/test_workspace.py": "abe759b6d8aee9851a24ccab640a1e5de368d5bba0ccbd5b9a9f26d37f7d8911"
+    "tests/unit/test_workspace.py": "5a14f893c428858abf13838df5275f1eab7bf62557a07d6f53c64811e1d61662"
   },
   "limits": [
     "Representative native CRUD/action and website scenarios; route reachability is not universal model/GUI semantic qualification",
@@ -101,11 +101,16 @@
     "license": "Apache-2.0",
     "netbox": "4.7.2",
     "line_coverage_measured": false,
-    "live_scenarios": "Native and dynamic filter definitions, enable/disable, wrong model, permissions, invalid paths, unsupported methods, API root discovery"
+    "live_scenarios": "Native and dynamic filter definitions, enable/disable, wrong model, permissions, invalid paths, unsupported methods, API root discovery, cold OpenAPI generation"
   },
-  "post_suite_validation": {
-    "tests": 3,
-    "passed": true,
-    "reason": "Corrected companion api-root registration after the 419-case run; reran companion permissions/discovery, dynamic custom fields and the complete GET/OPTIONS sweep."
+  "ci_runs": [
+    "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36781045301",
+    "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36781039517"
+  ],
+  "prior_ci_failure": {
+    "commit": "6b133d3",
+    "failed": 18,
+    "passed": 401,
+    "reason": "Companion APIViews broke cold OpenAPI generation; old locally cached schema masked the defect. Corrected in 0647005 with a unique-URL cold schema regression."
   }
 }

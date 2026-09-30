@@ -15,6 +15,7 @@ The table maps capabilities, not identical tool signatures.
 | Object queries, filters and field selection | get_objects, get_object_by_id | Real core reads, pagination and greenfield discovery |
 | Changelogs | get_changelogs, get_device_history | Native history plus durable local evidence |
 | Core/plugin model discovery | discover_models, get_schema(refresh via discover_models) | Stock roots and schema; plugin behavior requires that plugin's lab |
+| Native dynamic filter definitions | Optional Apache-2.0 companion filter-schema API | Real custom-field changes, target permissions, discovery and cold OpenAPI generation; unknown filters rejected before inventory queries |
 | GraphQL | graphql | Real query; no GraphQL mutation bypass |
 | Single CRUD | create_object, update_object, delete_object | Real lifecycle fixtures across inventory domains |
 | Native bulk requests | execute_action | Real list POST; records all correlated native rows |
@@ -30,6 +31,7 @@ The table maps capabilities, not identical tool signatures.
 | Read-only connections | read_only configuration | Enforced across mutation paths |
 | stdio and Streamable HTTP | CLI transports | Official SDK interoperability; HTTP bearer auth and origin checks |
 | Issue feedback | diagnostic_report, GitHub connector or scripts/issues.py | Inventory-free attachment and issue template |
+| Task progress and audit lookup | get_task, get_operation, observability | Compact paginated task receipts with whole-task state counts; full evidence retained for lookup and recovery |
 
 A transport capable of submitting an action does not prove every model, GUI view,
 plugin or action's semantics. The stock route inventory is the denominator for

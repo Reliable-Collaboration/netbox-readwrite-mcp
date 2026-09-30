@@ -176,3 +176,33 @@ receipts and whole-task state counts; full receipts remain available by operatio
 ID or an explicitly expanded page. Internal recovery retains its complete task
 view. The next acceptance run also requires the agent to inspect task history
 before reporting write completion, without a truncated task response.
+
+## Final qualification on the corrected implementation
+
+Run `34e446a10a` passed with unchanged source, harness and agent-guide hashes:
+
+| Phase | Seconds | Result |
+| --- | ---: | --- |
+| Greenfield | 472.40 | Inventory, relationships and pre-existing final state correct; compact task history inspected without truncation |
+| Repeat | 175.92 | Zero mutations; same target state |
+| Website fallback | 144.31 | Invalid and valid submissions correctly distinguished; exactly one site verified; diagnostics produced |
+| Conflicted undo | 37.71 | Newer value preserved; guarded preview and diagnostic produced |
+
+All four phases had zero truncated tool outputs. The final journal has 23 applied
+operations (including the conflict fixture), one completed invalid form exchange,
+and one historical failed cable request. No operations are uncertain. GLM's
+greenfield report correctly distinguished the rejection from unresolved work.
+
+This was still a recovery exercise, not flawless execution. GLM temporarily
+allocated an IP from a prefix in the wrong VRF, recognized the mismatch, deleted
+its own stray IP and allocated from the intended prefix. The independent oracle
+confirmed the requested state and unchanged pre-existing final inventory. That
+does not establish absence of transient mistakes or reverse external webhook
+effects. Its conflict prose also grouped original and intervening changelog IDs
+together; authoritative receipts retain their precise attribution.
+
+No human completed or corrected the inventory. The same implementation passed
+425 deterministic tests, including 91 live cases and fresh-database CI. Detailed
+counts, rejected attempts, previous runs and exact hashes remain in the results
+JSON. The evidence supports this controlled greenfield handoff; universal GUI
+parity, all-feature lifecycle coverage and a reliability rate remain unestablished.
