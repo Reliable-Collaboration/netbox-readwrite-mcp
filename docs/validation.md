@@ -6,23 +6,29 @@ Exact source/test hashes and numeric coverage are in [validation.json](validatio
 
 | Check | Observed result |
 | --- | --- |
-| Offline suite | 315 passed on Python 3.14.4 |
-| Offline statement/branch coverage | 86.65% (minimum 85%) |
-| Combined offline + real NetBox suite | 399 passed |
-| Live integration cases in that run | 84, using unique fixtures in the disposable lab |
-| Combined statement/branch coverage | 92.54% |
-| API discovery sweep | 146 endpoints; 135 GET successes, with expected permission denials/action-only responses separately classified |
+| Offline suite | 329 passed on Python 3.14.4 |
+| Offline statement/branch coverage | 86.73% (minimum 85%) |
+| Combined offline + real NetBox suite | 419 passed |
+| Live integration cases in that run | 90, using unique fixtures in the disposable lab |
+| Combined statement/branch coverage | 92.62% |
+| API discovery sweep | 147 endpoints; 135 GET successes, with expected permission denials/action-only responses separately classified |
 | Protocol interoperability | Official MCP SDK 1.30.0 over stdio and authenticated Streamable HTTP; concurrent HTTP clients tested |
-| Packaging | sdist/wheel built; isolated wheel import and CLI launch checked |
+| Packaging | MCP and companion sdist/wheel built; isolated MCP wheel install and CLI launch checked |
 | Lint and format | Ruff checks passed |
 | GitHub issue workflow | Synthetic issue submitted, read, answered and closed: [issue #1](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/issues/1) |
 
 The lab uses digest-pinned images from scripts/images.lock.json, a real NetBox
 web process, PostgreSQL, Valkey and a worker. The original 390-case qualification
-used a newly recreated database. The 399-case follow-up reused that disposable
+used a newly recreated database. The 419-case follow-up reused that disposable
 lab with uniquely named fixtures, alongside the consuming-agent evaluation. The inventory identity is not a superuser;
 a separate restricted actor exercises permission boundaries. No hosted AI
 provider, Branching plugin or commercial integration participates in these tests.
+
+After the combined run, the companion's API root registration was corrected.
+Three targeted live cases then passed again: companion discovery/permissions,
+dynamic custom-field filters and the complete endpoint sweep. The plugin has no
+inventory mutation endpoint. Coverage percentages measure the MCP package, not
+plugin Python execution inside the NetBox container or the evaluation harness.
 
 The suite exercises greenfield dependency discovery/creation, physical and virtual
 inventory, cables, IP/VLAN/prefix/ASN allocation, custom fields and tags, native
@@ -42,7 +48,7 @@ this local record. Prior PR checks passed; follow-up checks are reported separat
 
 ## Qualification limits
 
-- The 146-endpoint GET/OPTIONS sweep establishes discovery and reachability,
+- The 147-endpoint GET/OPTIONS sweep establishes discovery and reachability,
   not successful CRUD semantics for every NetBox model or every website view.
 - General REST and website transports expose native authorized actions. Detailed
   lifecycle tests cover representative resources/workflows, not universal GUI parity.
@@ -66,3 +72,11 @@ greenfield inventory, repeat-without-mutations, website validation, and conflict
 undo with zero truncated tool outputs. It recovered from one invalid read filter
 during the repeat phase. Supplemental checks verified all requested dependency
 relationships.
+
+The later GLM final-source confirmation also passed all four phases with expanded
+relationship and pre-existing-inventory preservation checks, zero truncated
+outputs and no human completion of the task. A preceding monitored GLM run also
+passed, including self-correction of an extra IP allocation. Final-source GLM
+narration incorrectly claimed no failed operations remained: three rejected
+attempts remain in the journal, while desired state is correct and no operations
+are uncertain. The evaluation record preserves that limitation explicitly.

@@ -11,6 +11,21 @@ from tests.unit.fakes import NetBoxModel
 
 class API(NetBoxModel):
     def get(self, path):
+        if path.startswith("plugins/agent-support/"):
+            return {"status": 404, "body": {"detail": "Not installed"}}
+        if path.startswith("schema/"):
+            return {
+                "status": 200,
+                "body": {
+                    "paths": {
+                        "/api/dcim/devices/": {
+                            "get": {
+                                "parameters": [{"in": "query", "name": "q"}, {"in": "query", "name": "name"}]
+                            }
+                        }
+                    }
+                },
+            }
         if path == "":
             return {"body": {"dcim": self.url + "/api/dcim/", "status": self.url + "/api/status/"}}
         if path == "dcim/":
@@ -384,3 +399,59 @@ def test_schema_default_excludes_response_graph_and_preserves_write_contract(bro
     assert "LargeResponse" not in compact["schemas"]
     full = call(broad, "get_schema", {"object_type": "dcim/devices/", "full": True})
     assert len(full["schemas"]["LargeResponse"]["description"]) == 100000
+
+
+def test_misspelled_resource_reports_path_correction_without_querying_inventory(broad):
+    broad.catalog.load_schema()["paths"]["/api/dcim/device-roles/"] = {"get": {}}
+    calls = []
+    original = broad.api.get
+    broad.api.get = lambda path: (calls.append(path), original(path))[1]
+    with pytest.raises(ValueError, match="Did you mean dcim/device-roles/"):
+        broad.get_objects("dcim/device_roles/", {"name": "intended"})
+    assert not any(path.startswith("dcim/device_roles/") for path in calls)
+
+
+def test_unknown_filter_never_becomes_an_unfiltered_inventory_query(broad):
+    broad.catalog.load_schema()
+    calls = []
+    original = broad.api.get
+    broad.api.get = lambda path: (calls.append(path), original(path))[1]
+    with pytest.raises(ValueError, match="Unknown filters.*slug"):
+        broad.get_objects("dcim/devices/", {"slug": "a-device-that-does-not-exist"})
+    assert not any(path.startswith("dcim/devices/") for path in calls)
+    with pytest.raises(ValueError, match="Unknown filters"):
+        broad.query("dcim/devices/", {"slug": "same-invalid-filter"})
+    assert not any(path.startswith("dcim/devices/") for path in calls)
+
+
+@pytest.mark.parametrize(
+    "status,metadata",
+    [
+        (500, {}),
+        (200, {"schema_version": 2, "resource": "dcim/devices/", "filters": {"slug": {}}}),
+        (200, {"schema_version": 1, "resource": "dcim/sites/", "filters": {"slug": {}}}),
+        (200, {"schema_version": 1, "resource": "dcim/devices/", "filters": []}),
+    ],
+)
+def test_bad_companion_metadata_never_authorizes_an_unknown_filter(broad, status, metadata):
+    broad.catalog.load_schema()
+    original = broad.api.request
+    broad.api.request = lambda method, path, *args, **kwargs: (
+        {"status": status, "body": metadata}
+        if path.startswith("plugins/agent-support/")
+        else original(method, path, *args, **kwargs)
+    )
+    with pytest.raises(RuntimeError, match="Companion filter metadata"):
+        broad.get_objects("dcim/devices/", {"slug": "not-a-real-filter"})
+
+
+def test_bulk_invalid_later_action_is_rejected_before_any_mutation(broad):
+    before = len(broad.api.devices)
+    operations = [
+        {"action": "create_object", "arguments": {"object_type": "dcim/devices/", "data": {}}},
+        {"action": "create", "arguments": {"object_type": "dcim/devices/", "data": {}}},
+    ]
+    with pytest.raises(ValueError, match="action must be create_object"):
+        broad.bulk(broad.task, key(), operations)
+    assert len(broad.api.devices) == before
+    assert broad.store.db.execute("SELECT count(*) FROM resource_operations").fetchone()[0] == 0

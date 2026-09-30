@@ -107,7 +107,7 @@ TASK = {"task_id": STR, "operation_key": STR}
 TOOLS += [
     tool(
         "run_workflow",
-        "Run bounded Python syntax: simple variable assignment, for/if, JSON, tool(name, keyword=value). No imports, unpacking, item assignment or host access. Never pass task_id/operation_key to inner tool calls: workflow supplies them. Assign final result. Stops on failure/uncertainty; not atomic.",
+        "Run bounded Python syntax: simple variable assignment, for/if, JSON, tool(name, keyword=value). No function definitions, imports, unpacking, item assignment or host access. Never pass task_id/operation_key to inner tool calls: workflow supplies them. Assign final result. Stops on failure/uncertainty; not atomic.",
         {**TASK, "code": STR},
     ),
     tool(
@@ -124,7 +124,7 @@ TOOLS += [
     ),
     tool(
         "get_objects",
-        "Search any resource by native filters (including q), with pagination and field selection.",
+        "Search with supported native filters, pagination and field selection. Unknown filters are rejected; inspect get_schema.filters. Do not drop a failed filter and take the first result. Device names use name, not slug.",
         {
             "object_type": STR,
             "filters": OBJ,
@@ -176,13 +176,45 @@ TOOLS += [
     tool(
         "execute_action",
         "Execute native API actions: allocation, rendering, scripts, plugin workflows, bulk or uploads. Use get_schema first. A 202 is acceptance, not completion. files contains field, filename, base64 and optional content_type.",
-        {**TASK, "method": STR, "path": STR, "data": {}, "expected_etag": STR, "files": ARRAY},
+        {
+            **TASK,
+            "method": {"type": "string", "enum": ["POST", "PUT", "PATCH", "DELETE"]},
+            "path": {
+                "type": "string",
+                "description": "Relative to /api/, e.g. ipam/prefixes/123/available-ips/. No leading /api/ or api/.",
+            },
+            "data": {},
+            "expected_etag": STR,
+            "files": ARRAY,
+        },
         ["task_id", "operation_key", "method", "path"],
     ),
     tool(
         "bulk",
-        "Run resumable ordered CRUD/action steps. Each step has action and arguments. Stops on failure/uncertainty; not atomic.",
-        {**TASK, "operations": ARRAY},
+        "Run ordered steps with action=create_object/update_object/delete_object/execute_action. arguments are that tool's inputs EXCLUDING task_id and operation_key; bulk supplies them. Stops on failure/uncertainty; resumable, not atomic.",
+        {
+            **TASK,
+            "operations": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 1000,
+                "items": {
+                    "type": "object",
+                    "required": ["action", "arguments"],
+                    "additionalProperties": False,
+                    "properties": {
+                        "action": {
+                            "type": "string",
+                            "enum": ["create_object", "update_object", "delete_object", "execute_action"],
+                        },
+                        "arguments": {
+                            "type": "object",
+                            "description": "Inputs for the named tool except task_id/operation_key. Example: {object_type: dcim/sites/, data: {name: Home, slug: home}}",
+                        },
+                    },
+                },
+            },
+        },
     ),
     tool(
         "web_read",

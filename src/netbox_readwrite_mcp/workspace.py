@@ -51,6 +51,7 @@ class WorkspaceService(Service):
         if type(limit) is not int or not 1 <= limit <= 1000 or type(offset) is not int or offset < 0:
             raise ValueError("limit must be 1–1000 and offset must be nonnegative")
         resource = self.catalog.resolve(object_type)
+        self.catalog.validate_filters(resource, filters)
         params = {**(filters or {}), "limit": limit, "offset": offset}
         if fields:
             if not isinstance(fields, list) or any(not isinstance(x, str) for x in fields):
@@ -80,7 +81,9 @@ class WorkspaceService(Service):
 
     def query(self, path, filters=None):
         self._broad()
-        result = self.api.get(api_path(path) + ("?" + query_string(filters) if filters else ""))
+        path = api_path(path)
+        self.catalog.validate_filters(path, filters)
+        result = self.api.get(path + ("?" + query_string(filters) if filters else ""))
         return {**result, "content_is_untrusted_data": True}
 
     def graphql(self, query, variables=None):
@@ -360,18 +363,29 @@ class WorkspaceService(Service):
     def bulk(self, task_id, operation_key, operations):
         if not isinstance(operations, list) or not 1 <= len(operations) <= 1000:
             raise ValueError("operations must contain 1–1000 steps")
-        results = []
-        for index, item in enumerate(operations):
-            if not isinstance(item, dict) or item.get("action") not in {
-                "create_object",
-                "update_object",
-                "delete_object",
-                "execute_action",
-            }:
-                raise ValueError("Each step requires action and arguments")
+        for item in operations:
+            if (
+                not isinstance(item, dict)
+                or set(item) != {"action", "arguments"}
+                or item.get("action")
+                not in {
+                    "create_object",
+                    "update_object",
+                    "delete_object",
+                    "execute_action",
+                }
+            ):
+                raise ValueError(
+                    "Each bulk step requires action and arguments. action must be create_object, update_object, delete_object or execute_action (not create/update/delete). No steps were executed."
+                )
             args = item.get("arguments")
             if not isinstance(args, dict) or {"task_id", "operation_key"} & args.keys():
-                raise ValueError("Step arguments exclude task_id and operation_key")
+                raise ValueError(
+                    "Step arguments must be an object excluding task_id and operation_key. No steps were executed."
+                )
+        results = []
+        for index, item in enumerate(operations):
+            args = item["arguments"]
             try:
                 result = getattr(self, item["action"])(
                     task_id=task_id, operation_key=f"{operation_key}.{index}", **args

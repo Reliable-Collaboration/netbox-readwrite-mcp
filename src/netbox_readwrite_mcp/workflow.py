@@ -7,6 +7,16 @@ This is a small language, not a Python process with a blacklist.
 import ast
 import operator
 
+FUNCTIONS = {
+    "len": len,
+    "str": str,
+    "int": int,
+    "sum": sum,
+    "min": min,
+    "max": max,
+    "sorted": sorted,
+}
+
 
 class Workflow:
     def __init__(self, call):
@@ -55,6 +65,8 @@ class Workflow:
             functions = {ast.Not: operator.not_, ast.USub: operator.neg, ast.UAdd: operator.pos}
             if type(node.op) in functions:
                 return functions[type(node.op)](self.expression(node.operand))
+        if isinstance(node, ast.IfExp):
+            return self.expression(node.body if self.expression(node.test) else node.orelse)
         if isinstance(node, ast.BoolOp):
             result = self.expression(node.values[0])
             for child in node.values[1:]:
@@ -107,16 +119,7 @@ class Workflow:
                 raise ValueError("Workflow does not support argument unpacking")
             kwargs = {k.arg: self.expression(k.value) for k in node.keywords}
             if isinstance(node.func, ast.Name):
-                functions = {
-                    "tool": self.call,
-                    "len": len,
-                    "str": str,
-                    "int": int,
-                    "sum": sum,
-                    "min": min,
-                    "max": max,
-                    "sorted": sorted,
-                }
+                functions = {"tool": self.call, **FUNCTIONS}
                 if node.func.id in functions:
                     return functions[node.func.id](*args, **kwargs)
                 if node.func.id == "range":
@@ -190,9 +193,26 @@ class Workflow:
             ast.SetComp,
             ast.GeneratorExp,
         )
-        if any(isinstance(n, forbidden) for n in ast.walk(tree)):
-            raise ValueError("Workflow permits assignments, for/if, JSON expressions and tool calls only")
+        unsupported = next((n for n in ast.walk(tree) if isinstance(n, forbidden)), None)
+        if unsupported is not None:
+            raise ValueError(
+                "Unsupported workflow syntax: "
+                + type(unsupported).__name__
+                + ". Use simple assignments, for/if and tool calls; no helper functions, imports or comprehensions. Nothing was executed. Use bulk or individual tools for a simpler sequence."
+            )
         for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Name)
+                and node.func.id not in {"tool", "range", *FUNCTIONS}
+            ):
+                raise ValueError(
+                    "Unsupported workflow function: "
+                    + node.func.id
+                    + ". Available functions: tool, range, "
+                    + ", ".join(sorted(FUNCTIONS))
+                    + ". Nothing was executed. Inspect response shapes with individual tools before composing a workflow."
+                )
             if isinstance(node, ast.Assign) and not (
                 len(node.targets) == 1
                 and isinstance(node.targets[0], ast.Name)

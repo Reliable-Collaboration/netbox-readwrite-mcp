@@ -669,3 +669,78 @@ def test_agent_can_inspect_allocation_action_without_full_schema(service):
     assert {"assigned_object_type", "assigned_object_id"} <= ip_fields
     with pytest.raises(ValueError, match="not found"):
         service.get_schema("ipam/prefixes/", action="not-an-action")
+
+
+@pytest.mark.parametrize(
+    "resource", ["dcim/devices/", "ipam/vrfs/", "ipam/prefixes/", "virtualization/clusters/"]
+)
+def test_unknown_slug_filter_cannot_select_unrelated_live_objects(service, resource):
+    with pytest.raises(ValueError, match="Unknown filters.*slug"):
+        service.get_objects(resource, {"slug": "agent-must-never-match-this"})
+    with pytest.raises(ValueError, match="Unknown filters"):
+        service.query(resource, {"slug": "agent-must-never-match-this"})
+
+
+def test_companion_uses_native_filters_and_target_permissions(service):
+    path = "plugins/agent-support/filter-schema/"
+    assert path in {entry["resource"] for entry in service.discover_models(refresh=True)["models"]}
+    metadata = service.api.get(path + "?resource=dcim/devices/")["body"]
+    assert metadata["schema_version"] == 1
+    assert "name" in metadata["filters"] and "slug" not in metadata["filters"]
+    restricted = build_service(json.loads((STATE / "config.json").read_text()))
+    try:
+        assert restricted.api.request("GET", path + "?resource=dcim/devices/")["status"] == 200
+        for resource in ["dcim/sites/", "users/users/"]:
+            assert restricted.api.request("GET", resource)["status"] == 403
+            assert restricted.api.request("GET", path + "?resource=" + resource)["status"] == 403
+    finally:
+        restricted.store.close()
+    for resource in ["../users/users/", "https://example.com/api/", "api/dcim/devices/"]:
+        from urllib.parse import urlencode
+
+        assert (
+            service.api._send(
+                "GET", service.api.url + "/api/" + path + "?" + urlencode({"resource": resource})
+            )["status"]
+            == 400
+        )
+    assert service.api.request("POST", path, {"resource": "dcim/devices/"})["status"] == 405
+    assert service.api.request("GET", path + "?resource=missing/resources/")["status"] == 404
+
+
+def test_custom_field_filters_are_discovered_validated_and_refreshed(service):
+    suffix = "cf" + uuid.uuid4().hex[:12]
+    filter_name = "cf_" + suffix
+    assert filter_name not in service.get_schema("dcim/sites/")["filters"]
+    task = service.begin_task("Native dynamic filter metadata")["task_id"]
+    cf = service.create_object(
+        task,
+        key(),
+        "extras/custom-fields/",
+        {"name": suffix, "type": "text", "object_types": ["dcim.site"], "filter_logic": "exact"},
+    )["last_receipt"]["body"]
+    for color in ["red", "blue"]:
+        assert (
+            service.create_object(
+                task,
+                key(),
+                "dcim/sites/",
+                {"name": suffix + color, "slug": suffix + color, "custom_fields": {suffix: color}},
+            )["state"]
+            == "applied"
+        )
+    assert filter_name in service.get_schema("dcim/sites/")["filters"]
+    rows = service.get_objects("dcim/sites/", {filter_name: "red"})["data"]["results"]
+    assert [row["name"] for row in rows] == [suffix + "red"]
+    with pytest.raises(ValueError, match="Unknown filters"):
+        service.get_objects("dcim/devices/", {filter_name: "red"})
+    current = service.get_object_by_id("extras/custom-fields/", cf["id"])
+    assert (
+        service.update_object(
+            task, key(), "extras/custom-fields/", cf["id"], current["etag"], {"filter_logic": "disabled"}
+        )["state"]
+        == "applied"
+    )
+    assert filter_name not in service.get_schema("dcim/sites/")["filters"]
+    with pytest.raises(ValueError, match="Unknown filters"):
+        service.get_objects("dcim/sites/", {filter_name: "red"})

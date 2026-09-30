@@ -43,6 +43,7 @@ def setup():
         (STATE / "secrets.json").write_text(json.dumps(data))
         (STATE / "secrets.json").chmod(0o600)
     c = config()
+    (STATE / "plugins.py").write_text("PLUGINS = ['netbox_agent_api']\n")
     env = {
         "DB_HOST": PREFIX + "-postgres",
         "DB_NAME": "netbox",
@@ -124,6 +125,10 @@ def start():
             "2g",
             "-v",
             PREFIX + "-scripts:/opt/netbox/netbox/scripts",
+            "-v",
+            str(ROOT / "companion/netbox_agent_api") + ":/opt/netbox/netbox/netbox_agent_api:ro",
+            "-v",
+            str(STATE / "plugins.py") + ":/etc/netbox/config/plugins.py:ro",
         ],
     )
     print("Started. Run python3 scripts/lab.py ready, then bootstrap.", flush=True)
@@ -183,6 +188,10 @@ print('Lab API identity ready')
             "1g",
             "-v",
             PREFIX + "-scripts:/opt/netbox/netbox/scripts",
+            "-v",
+            str(ROOT / "companion/netbox_agent_api") + ":/opt/netbox/netbox/netbox_agent_api:ro",
+            "-v",
+            str(STATE / "plugins.py") + ":/etc/netbox/config/plugins.py:ro",
             image,
             "/opt/netbox/venv/bin/python",
             "/opt/netbox/netbox/manage.py",

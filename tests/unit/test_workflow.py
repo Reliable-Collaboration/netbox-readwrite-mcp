@@ -61,6 +61,14 @@ def test_static_rejection_before_any_tool_call():
     assert calls == []
 
 
+@pytest.mark.parametrize("function", ["isinstance(value, list)", "unknown()", "open('file')"])
+def test_unknown_function_is_rejected_before_earlier_write(function):
+    calls = []
+    with pytest.raises(ValueError, match="Unsupported workflow function.*Nothing was executed"):
+        Workflow(lambda *args: calls.append(args)).run('tool("write")\nresult = ' + function)
+    assert calls == []
+
+
 @pytest.mark.parametrize(
     "expression,expected",
     [
@@ -156,3 +164,13 @@ def test_unsupported_assignment_rejected_before_tool_side_effects(bad):
     with pytest.raises(ValueError):
         workflow.run('tool("create_object")\n' + bad)
     assert calls == []
+
+
+@pytest.mark.parametrize("condition", [True, False])
+def test_conditional_expression_only_executes_selected_tool_branch(condition):
+    calls = []
+    workflow = Workflow(lambda name: calls.append(name) or name)
+    assert workflow.run(f'result = tool("create") if {condition} else tool("read")') == (
+        "create" if condition else "read"
+    )
+    assert calls == ["create" if condition else "read"]

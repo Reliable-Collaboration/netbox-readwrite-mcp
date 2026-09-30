@@ -4,8 +4,8 @@ Use Python 3.11+ and install `.[test,dev]`. Runtime uses the standard library;
 tests use pytest, Hypothesis and the official MCP SDK.
 
 ```sh
-ruff check src tests scripts
-ruff format --check src tests scripts
+ruff check src tests scripts companion/netbox_agent_api
+ruff format --check src tests scripts companion/netbox_agent_api
 pytest tests/unit
 ```
 
@@ -66,3 +66,8 @@ podman network rm nbrw-audit-4-7-2
 The optional [OpenCode/LiteLLM/DeepInfra evaluation](agent-evaluation.md) exercises
 natural-language tasks through MCP and independently verifies NetBox state. It
 incurs provider usage and is not part of unauthenticated CI.
+
+The lab includes the companion filter-metadata plugin. Its integration tests run
+inside real NetBox through HTTP and check native permissions and dynamic filters.
+The pytest percentage measures MCP package coverage; it does not measure Python
+line coverage inside the NetBox container.

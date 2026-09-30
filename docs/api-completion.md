@@ -26,7 +26,9 @@ should not have to understand a Django form or import internal Python classes.
 NetBox Community supports [plugin REST endpoints](https://netboxlabs.com/docs/netbox/plugins/development/rest-api/).
 The tradeoff is one additional installed component and compatibility testing
 against the pinned NetBox version. Branching and commercial extensions remain
-outside scope. No API-completion plugin is implemented in this change.
+outside scope. The first [companion plugin](../companion/README.md) now implements
+native filter metadata, a gap demonstrated by the consuming-agent evaluation.
+Other missing operations still need action-specific implementation and qualification.
 
 ## Initial audit against the actual 4.7.2 source
 
@@ -36,6 +38,7 @@ of the running pinned image established these examples:
 
 | Workflow | Existing interface | Consequence |
 | --- | --- | --- |
+| Dynamic custom-field filter metadata | Companion `filter-schema` endpoint reads the native FilterSet | OpenAPI omits these fields; accurate metadata prevents silently broadened queries |
 | Inventory CRUD and relationships | Native model REST endpoints | No HTML or new plugin required for the evaluated greenfield task |
 | Data-source synchronization | `POST /api/core/data-sources/{id}/sync/` | Existing custom action checks `core.sync_datasource`; do not duplicate it |
 | Current user's dashboard | `/api/extras/dashboard/`, a custom RetrieveUpdateDestroyAPIView | A model/ViewSet-only inventory falsely suggests an API gap |

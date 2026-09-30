@@ -15,7 +15,7 @@ persistent inventory and journal:
 
 | Phase | Independent checks |
 | --- | --- |
-| Greenfield | Site, 12U rack, two devices at correct positions, serial/description, connected interfaces/cable, first allocated IP assigned, VM/interface, no uncertain operations |
+| Greenfield | Pre-existing inventory unchanged; site, 12U rack, two devices at correct positions, serial/description, connected interfaces/cable, first allocated IP assigned, VM/interface, no uncertain operations |
 | Repeat | Same target state and zero additional mutation operations |
 | Website fallback | Invalid and valid form submissions, one verified new site, diagnostics produced; final explanation reviewed separately |
 | Conflicted undo | A fixture introduces a newer field edit; the agent previews undo, preserves the newer value and produces diagnostics |
@@ -46,15 +46,22 @@ NETBOX_RW_AGENT_EVAL=1 .venv/bin/python scripts/agent_eval.py \
 ```
 
 The runner starts/stops its own loopback proxy. Use `--port` to choose a free port.
-`--timeout` bounds each phase (default 900 seconds); the agent also has an 80-step
-limit. The runner now also stops a client that emits no event for `--idle-timeout`
-seconds (default 300); this watchdog was added after the initial model runs. The lab is intentionally preserved. Only the proxy receives the DeepInfra
+`--timeout` bounds each phase (default four hours); the agent also has a 160-step
+limit. Idle termination is disabled by default (`--idle-timeout 0`). Quiet client
+output alone is not treated as a stall. A loopback observation gateway records
+stream byte/chunk counts, reasoning/content/tool fragment counts, active request
+ages, and completed MCP calls once a minute in `progress.json`/`progress.jsonl`.
+It forwards the model response unchanged and retains no prompts or generated
+content in these activity counters. Keepalives are distinguished from generation.
+Slow progress can continue; repeated errors and unchanged inventory require
+inspection. A nonzero idle timeout is optional and includes wire activity. The lab is intentionally preserved. Only the proxy receives the DeepInfra
 credential. The client receives a separate ephemeral proxy credential, and its
 local permissions deny filesystem and shell tools. This is client policy, not an
 OS sandbox. Proxy logs are redacted while streaming, and text artifacts are
 checked/redacted before the run exits. Keep all raw evidence private regardless.
 
-Each run writes `.lab/agent-e2e/<run-id>/report.json`, per-phase prompts, JSONL
+Each run writes `.lab/agent-e2e/<run-id>/report.json`, before-inventory snapshots,
+activity counters, per-phase prompts, JSONL
 client events, a durable MCP journal and redacted proxy logs. Reports include
 source hashes, tool counts/errors, truncations, duration and client-reported token
 usage. Token totals are cumulative across turns and can include cached input;
@@ -95,7 +102,60 @@ The preliminary GLM-5.3-Flash greenfield run exceeded its 900-second limit and
 failed the serial/description check. It supplied malformed action paths and
 misreported a resulting 404 as an unavailable allocation capability, then created
 an address directly. Its repeat phase was skipped. The subsequent website trial
-was stopped without grading, and conflict was not run; this model is unqualified.
+was stopped without grading, and conflict was not run; that run did not qualify the model.
 This failure occurred on the intermediate source/instructions, not the final
-DeepSeek-qualified source. A fresh GLM run would be needed to qualify it after
-these changes.
+DeepSeek-qualified source. The extended evaluations below supersede that timeout.
+
+## Extended GLM delivery evaluation
+
+The user requested hours-long GLM trials with progress inspection. A monitored
+trial exposed silently ignored unknown NetBox filters selecting unrelated objects.
+The MCP now rejects unknown filters; the Apache-2.0 companion exposes native
+custom-field filters missing from OpenAPI. The oracle now compares all pre-existing
+objects in the evaluated inventory domains before and after every phase.
+
+A subsequent trial exposed ambiguous bulk action names. The tool schema now lists
+exact actions, and structural validation completes before any step writes. The
+bounded workflow interpreter also supports short-circuit conditional expressions
+and identifies unsupported syntax explicitly. These development attempts remain
+private evidence; an interrupted run is never counted as a passing qualification.
+
+Monitored run `0a0ef2e4dc` passed all four phases: greenfield 304.38s, repeat
+196.43s, website 342.67s, conflict 41.39s. GLM recovered from a workflow failure
+after an allocation, inspected the receipts, assigned the first IP and deleted its
+extra allocation. The independent oracle verified no extra IP remained and no
+pre-existing inventory changed. Repeat made no mutations. Website and conflict
+narration acknowledged the relevant limits. No tool output was truncated.
+
+This was not an error-free run: five workflows returned `partial_or_blocked`, and
+the repeat session made 17 invalid read calls while using underscores instead of
+hyphens in resource paths. These observations led to accurate resource-path
+diagnostics and preflight rejection of unsupported named workflow functions before
+any earlier write. The interpreter's available functions are now explicit in the
+agent guide. The final confirmation uses these changes without relaxing the oracle.
+
+## Final-source GLM confirmation
+
+Run `3959a7a3c7` passed all four phases against unchanged source, harness and
+agent instructions (hashes recorded in the results JSON):
+
+| Phase | Seconds | Result |
+| --- | ---: | --- |
+| Greenfield | 509.92 | All inventory, relationship and preservation checks passed |
+| Repeat | 68.43 | Same state; zero mutations |
+| Website fallback | 41.37 | Invalid form correctly interpreted; valid site created once; diagnostic produced |
+| Conflicted undo | 22.05 | Newer value preserved; preview and diagnostic produced |
+
+No tool outputs were truncated. No human completed or corrected the target
+inventory. The run recovered from invalid filters, unsupported workflow syntax,
+key reuse and native validation failures. Its final journal retains three
+definite failed attempts, 19 applied operations (including the conflict fixture),
+and one completed invalid form exchange. There are no uncertain operations.
+
+Manual narration review found one incorrect statement: the greenfield summary
+claimed no failed operations remained. Failed attempts correctly remain in the
+immutable audit history even after successful correction. The desired final
+state passed independently; the model's history claim did not. Receipts and
+state checks remain authoritative. Website and conflict explanations correctly
+described their outcomes. This evidence qualifies the tested inventory workflows,
+not flawless model narration or all-feature website parity.

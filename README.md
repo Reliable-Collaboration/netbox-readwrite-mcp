@@ -123,3 +123,8 @@ failover and large-estate performance are outside this release.
 
 Licensed Apache-2.0. Runtime Python code uses the standard library. The NetBox
 project is separate and this server is not endorsed by its maintainers.
+
+For complete native filter discovery, install the optional Apache-2.0
+[companion plugin](companion/README.md) in NetBox. It supplies custom-field filter
+metadata omitted by OpenAPI. Unknown filters are rejected to prevent accidental
+unfiltered inventory lookups. The disposable lab includes the plugin.

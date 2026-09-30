@@ -1,0 +1,18 @@
+"""Apache-2.0 companion metadata API for NetBox Community 4.7.2."""
+
+from netbox.plugins import PluginConfig
+
+
+class AgentAPIConfig(PluginConfig):
+    name = "netbox_agent_api"
+    verbose_name = "Agent API Support"
+    description = "Native filter metadata for safe inventory queries"
+    version = "0.1.0"
+    author = "Reliable Collaboration contributors"
+    base_url = "agent-support"
+    min_version = "4.7.2"
+    max_version = "4.7.2"
+    default_settings = {}
+
+
+config = AgentAPIConfig

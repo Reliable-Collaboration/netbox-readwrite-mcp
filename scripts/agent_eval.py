@@ -21,6 +21,11 @@ import time
 import urllib.request
 import uuid
 
+if __package__:
+    from .agent_gateway import Gateway
+else:
+    from agent_gateway import Gateway
+
 from netbox_readwrite_mcp.config import load_config
 from netbox_readwrite_mcp.server import build_service
 
@@ -40,6 +45,15 @@ def tool_events(journal):
             json.loads(r[0])
             for r in db.execute("SELECT payload FROM events WHERE kind='tool_call' ORDER BY seq")
         ]
+
+
+def operation_states(journal):
+    with sqlite3.connect(journal) as db:
+        states = Counter()
+        for table in ("operations", "resource_operations"):
+            for state, count in db.execute(f"SELECT state, count(*) FROM {table} GROUP BY state"):
+                states[state] += count
+        return dict(states)
 
 
 def stop(process):
@@ -94,15 +108,53 @@ def verify_relationships(service, prefix):
     }
 
 
+INVENTORY_RESOURCES = (
+    "dcim/sites/",
+    "dcim/racks/",
+    "dcim/manufacturers/",
+    "dcim/device-roles/",
+    "dcim/device-types/",
+    "dcim/devices/",
+    "dcim/interfaces/",
+    "dcim/cables/",
+    "ipam/vrfs/",
+    "ipam/prefixes/",
+    "ipam/ip-addresses/",
+    "virtualization/cluster-types/",
+    "virtualization/clusters/",
+    "virtualization/virtual-machines/",
+    "virtualization/interfaces/",
+)
+
+
+def snapshot_inventory(service):
+    result = {}
+    for resource in INVENTORY_RESOURCES:
+        page = service.get_objects(resource, limit=1000)["data"]
+        if page.get("next"):
+            raise ValueError("Evaluation fixture exceeds 1000 rows in one resource")
+        result[resource] = {str(row["id"]): row for row in page["results"]}
+    return result
+
+
+def changed_existing(before, after):
+    return [
+        {"resource": resource, "id": ident}
+        for resource, rows in before.items()
+        for ident, row in rows.items()
+        if row != after.get(resource, {}).get(ident)
+    ]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--opencode", type=Path, required=True)
     parser.add_argument("--litellm", type=Path, required=True)
     parser.add_argument("--key-file", type=Path, required=True)
-    parser.add_argument("--model", default="deepseek-ai/DeepSeek-V4-Flash")
+    parser.add_argument("--model", default="zai-org/GLM-5.3-Flash")
     parser.add_argument("--port", type=int, default=14001)
-    parser.add_argument("--timeout", type=int, default=900)
-    parser.add_argument("--idle-timeout", type=int, default=300)
+    parser.add_argument("--timeout", type=int, default=14400)
+    parser.add_argument("--idle-timeout", type=int, default=0)
     args = parser.parse_args()
     if os.environ.get("NETBOX_RW_AGENT_EVAL") != "1":
         parser.error("Set NETBOX_RW_AGENT_EVAL=1: incurs provider charges and writes disposable lab data")
@@ -127,7 +179,8 @@ def main():
                     "model": "deepinfra/" + args.model,
                     "api_key": "os.environ/DEEPINFRA_API_KEY",
                     "max_tokens": 8192,
-                    "timeout": 180,
+                    "timeout": args.timeout,
+                    "stream_timeout": args.timeout,
                 },
             }
         ],
@@ -162,9 +215,16 @@ def main():
     logger = threading.Thread(target=proxy_log, daemon=True)
     logger.start()
     report = {
+        "harness_sha256": {
+            str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in (Path(__file__), ROOT / "scripts/agent_gateway.py")
+        },
+        "instructions_sha256": hashlib.sha256((ROOT / "docs/agent-guide.md").read_bytes()).hexdigest(),
         "source_sha256": {
             str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in sorted((ROOT / "src").rglob("*.py"))
+            for p in sorted(
+                [*(ROOT / "src").rglob("*.py"), *(ROOT / "companion/netbox_agent_api").rglob("*.py")]
+            )
         },
         "model": args.model,
         "run": stamp,
@@ -172,6 +232,9 @@ def main():
         "phases": [],
         "opencode": subprocess.check_output([str(args.opencode.resolve()), "--version"], text=True).strip(),
     }
+    gateway = None
+    print("Run: " + str(run), flush=True)
+    report["limits"] = {"phase_seconds": args.timeout, "idle_seconds": args.idle_timeout, "agent_steps": 160}
     try:
         for _ in range(120):
             try:
@@ -187,6 +250,7 @@ def main():
                 time.sleep(1)
         else:
             raise RuntimeError("LiteLLM not ready")
+        gateway = Gateway(args.port, timeout=args.timeout)
         agent_dir = run / "agent"
         agent_dir.mkdir()
         agent_cfg = {
@@ -201,7 +265,7 @@ def main():
                     "npm": "@ai-sdk/openai-compatible",
                     "name": "Lab LiteLLM",
                     "options": {
-                        "baseURL": f"http://127.0.0.1:{args.port}/v1",
+                        "baseURL": f"http://127.0.0.1:{gateway.port}/v1",
                         "apiKey": "{env:LAB_PROXY_KEY}",
                     },
                     "models": {
@@ -227,7 +291,7 @@ def main():
             "agent": {
                 "inventory": {
                     "mode": "primary",
-                    "steps": 80,
+                    "steps": 160,
                     "prompt": (ROOT / "docs/agent-guide.md").read_text() + "\n"
                     "Complete the requested inventory task using ONLY netbox MCP tools. "
                     "Do not use shell, file, web fetch, delegation or other host tools. "
@@ -256,6 +320,8 @@ def main():
         def phase(name, prompt, oracle):
             (run / (name + "-prompt.txt")).write_text(prompt)
             before = len(tool_events(Path(cfg["journal"])))
+            baseline = snapshot_inventory(svc)
+            write_json(run / (name + "-before-inventory.json"), baseline)
             started = time.monotonic()
             with (
                 (run / (name + "-events.jsonl")).open("w") as out,
@@ -282,16 +348,37 @@ def main():
                 )
                 interruption = None
                 last_size, last_progress = 0, time.monotonic()
+                heartbeat = 0
+                last_wire_bytes = 0
                 try:
                     while process.poll() is None:
                         now = time.monotonic()
                         size = (run / (name + "-events.jsonl")).stat().st_size
                         if size != last_size:
                             last_size, last_progress = size, now
+                        activity = gateway.activity.snapshot()
+                        wire_bytes = activity.get("response_bytes", 0)
+                        if wire_bytes != last_wire_bytes:
+                            last_wire_bytes, last_progress = wire_bytes, now
+                        if now - heartbeat >= 60:
+                            calls = tool_events(Path(cfg["journal"]))[before:]
+                            progress = {
+                                "phase": name,
+                                "elapsed_seconds": round(now - started),
+                                "llm": activity,
+                                "tool_calls": len(calls),
+                                "operation_states": operation_states(Path(cfg["journal"])),
+                                "last_tool": calls[-1] if calls else None,
+                            }
+                            write_json(run / "progress.json", progress)
+                            with (run / "progress.jsonl").open("a") as progress_log:
+                                progress_log.write(json.dumps(progress) + "\n")
+                            print(json.dumps(progress), flush=True)
+                            heartbeat = now
                         if now - started > args.timeout:
                             interruption = "phase_timeout"
                             break
-                        if now - last_progress > args.idle_timeout:
+                        if args.idle_timeout and now - last_progress > args.idle_timeout:
                             interruption = "no_client_progress"
                             break
                         time.sleep(1)
@@ -299,6 +386,10 @@ def main():
                     stop(process)
             events = tool_events(Path(cfg["journal"]))[before:]
             checks = oracle(events)
+            unexpected = changed_existing(baseline, snapshot_inventory(svc))
+            checks["preexisting_inventory_unchanged"] = not unexpected
+            if unexpected:
+                write_json(run / (name + "-unexpected-changes.json"), unexpected)
             if name in {"greenfield", "repeat"}:
                 checks.update(verify_relationships(svc, prefix))
             checks["client_exit_zero"] = process.returncode == 0
@@ -317,11 +408,13 @@ def main():
             item = {
                 "name": name,
                 "interruption": interruption,
+                "llm_activity_cumulative": gateway.activity.snapshot(),
                 "seconds": round(time.monotonic() - started, 2),
                 "checks": checks,
                 "passed": all(checks.values()),
                 "tool_calls": dict(Counter(e["tool"] for e in events)),
                 "tool_errors": sum(e["is_error"] for e in events),
+                "tool_states": dict(Counter(e["state"] for e in events if e.get("state") is not None)),
                 "truncated_tool_outputs": sum(
                     bool(e.get("part", {}).get("state", {}).get("metadata", {}).get("truncated"))
                     for e in transcript
@@ -456,6 +549,8 @@ If another change conflicts, preserve the newer value, explain the conflict and 
         report["passed"] = len(report["phases"]) == 4 and all(p["passed"] for p in report["phases"])
         print("Report: " + str(run / "report.json"), flush=True)
     finally:
+        if gateway is not None:
+            gateway.close()
         stop(proxy)
         logger.join(timeout=10)
         svc.store.close()
