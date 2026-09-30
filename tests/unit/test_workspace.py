@@ -82,6 +82,41 @@ def key():
     return str(uuid.uuid4())
 
 
+def test_task_tool_pages_compact_receipts_without_losing_history(broad):
+    for _ in range(2):
+        broad.create_object(broad.task, key(), "devices", {"description": "x" * 100000})
+    original = broad.api.request
+    broad.api.request = lambda method, path, *args, **kwargs: (
+        {"status": 400, "body": {"name": ["Invalid"]}, "headers": {}}
+        if method == "POST"
+        else original(method, path, *args, **kwargs)
+    )
+    rejected = broad.create_object(broad.task, key(), "devices", {"name": "invalid"})
+    assert rejected["state"] == "failed"
+    complete = broad.get_task(broad.task)
+    assert len(json.dumps(complete)) > 200000
+    summary = call(broad, "get_task", {"task_id": broad.task, "limit": 1})
+    assert summary["operation_count"] == 3
+    assert summary["state_counts"] == {"applied": 2, "failed": 1}
+    assert summary["next_offset"] == 1
+    assert len(json.dumps(summary)) < 3000
+    assert "requested" not in summary["operations"][0]
+    last = call(broad, "get_task", {"task_id": broad.task, "offset": 2})
+    assert last["next_offset"] is None
+    assert last["operations"][0]["id"] == rejected["id"]
+    assert last["operations"][0]["http_status"] == 400
+    assert last["state_counts"] == summary["state_counts"]
+    full = call(broad, "get_task", {"task_id": broad.task, "full": True, "limit": 1})
+    assert full["operations"] == complete["operations"][:1]
+    assert broad.get_task(broad.task) == complete
+
+
+@pytest.mark.parametrize("arguments", [{"limit": 0}, {"limit": 101}, {"offset": -1}, {"full": 1}])
+def test_task_tool_rejects_invalid_pagination(broad, arguments):
+    with pytest.raises(ValueError):
+        call(broad, "get_task", {"task_id": broad.task, **arguments})
+
+
 def test_crud_discovery_reads_schema_aliases_and_recovery(broad):
     assert broad.discover_models()["models"][0]["resource"] == "dcim/devices/"
     assert broad.discover_models(True)["models"]

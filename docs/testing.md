@@ -71,3 +71,5 @@ The lab includes the companion filter-metadata plugin. Its integration tests run
 inside real NetBox through HTTP and check native permissions and dynamic filters.
 The pytest percentage measures MCP package coverage; it does not measure Python
 line coverage inside the NetBox container.
+The companion schema test uses a unique schema URL to force cold OpenAPI
+generation despite NetBox's one-day response cache.

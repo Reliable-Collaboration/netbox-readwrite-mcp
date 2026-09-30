@@ -162,7 +162,14 @@ def test_greenfield_physical_and_virtual_inventory(client):
     assert found["data"]["count"] == 2 and len(found["data"]["results"]) == 1
     assert client.tool("get_changelogs", filters={"changed_object_id": devices[0]["id"]})["data"]["count"] > 0
     assert client.tool("observability")["unresolved"] == []
-    assert len(client.tool("get_task", task_id=task)["operations"]) >= 15
+    summary = client.tool("get_task", task_id=task)
+    assert len(summary["operations"]) >= 15
+    assert summary["full"] is False and summary["state_counts"]["applied"] >= 15
+    assert len(json.dumps(summary)) < 25000
+    assert all("native_changes" not in operation for operation in summary["operations"])
+    detail = client.tool("get_task", task_id=task, full=True, limit=1)
+    assert len(detail["operations"]) == 1 and detail["next_offset"] == 1
+    assert "native_changes" in detail["operations"][0]
 
 
 @pytest.mark.parametrize(

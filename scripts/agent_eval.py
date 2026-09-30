@@ -400,6 +400,15 @@ def main():
                 if line.startswith("{")
             ]
             checks["no_client_error"] = not any(e.get("type") == "error" for e in transcript)
+            if name == "greenfield":
+                checks["task_summary_read"] = any(
+                    e["tool"] == "get_task" and not e.get("is_error") for e in events
+                )
+                checks["task_summary_not_truncated"] = not any(
+                    e.get("part", {}).get("tool") == "netbox_get_task"
+                    and e.get("part", {}).get("state", {}).get("metadata", {}).get("truncated")
+                    for e in transcript
+                )
             usage = Counter()
             for event in transcript:
                 if event.get("type") == "step_finish":
@@ -438,7 +447,8 @@ Site {prefix}, slug {prefix}; rack {prefix}-rack, 12U. Manufacturer {prefix}-ven
 Two active devices {prefix}-01 and {prefix}-02 at rack positions 1 and 2, front. Each has a 1000base-t interface eth0. Connect the interfaces with one connected cable labeled {prefix}-link.
 Create VRF {prefix}, prefix 192.0.2.0/24 in that VRF, and allocate the first available IP from that prefix to the first device's eth0.
 Create cluster type {prefix}-hypervisor, cluster {prefix}-cluster, VM {prefix}-vm with 2 vCPUs and 1024 MB RAM, and VM interface eth0.
-Device {prefix}-01 serial must be SYNTHETIC-001, description 'Initial survey'. Verify final relationships and report actual completion with operation receipts."""
+Device {prefix}-01 serial must be SYNTHETIC-001, description 'Initial survey'. Verify final relationships and report actual completion with operation receipts.
+If you performed writes, inspect the compact get_task summary before reporting completion and distinguish historical rejected attempts from unresolved outcomes."""
 
         def inventory_oracle(events):
             site = one("dcim/sites/", slug=prefix)

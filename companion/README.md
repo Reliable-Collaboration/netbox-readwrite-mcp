@@ -52,3 +52,5 @@ Real-NetBox tests check native and custom-field discovery, enable/disable change
 wrong-model rejection, restricted-user permission equivalence, invalid paths and
 unsupported mutation methods. Both the MCP and this plugin pin the same NetBox
 release. Changes to NetBox internals require renewed qualification.
+Qualification also forces a fresh OpenAPI response: NetBox caches schema URLs for
+a day, so testing only a previously cached response can hide plugin schema errors.

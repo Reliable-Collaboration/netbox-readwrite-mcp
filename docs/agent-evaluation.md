@@ -134,7 +134,7 @@ diagnostics and preflight rejection of unsupported named workflow functions befo
 any earlier write. The interpreter's available functions are now explicit in the
 agent guide. The final confirmation uses these changes without relaxing the oracle.
 
-## Final-source GLM confirmation
+## GLM confirmation before the cold-cache correction
 
 Run `3959a7a3c7` passed all four phases against unchanged source, harness and
 agent instructions (hashes recorded in the results JSON):
@@ -168,3 +168,11 @@ A unique-URL live test now forces cold schema generation and checks that both
 native resources and the companion filter endpoint are present. The recorded
 earlier GLM results remain state evidence; the cold-cache correction receives
 separate regression and consuming-agent confirmation.
+
+Cold-schema-corrected run `c212535640` passed the four state checks (412.06s,
+101.64s, 71.57s and 43.79s), but requesting the complete task history caused one
+OpenCode output truncation. The MCP task view now defaults to compact, paginated
+receipts and whole-task state counts; full receipts remain available by operation
+ID or an explicitly expanded page. Internal recovery retains its complete task
+view. The next acceptance run also requires the agent to inspect task history
+before reporting write completion, without a truncated task response.

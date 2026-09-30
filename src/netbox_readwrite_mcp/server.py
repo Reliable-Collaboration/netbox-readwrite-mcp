@@ -1,6 +1,7 @@
 """Single-user MCP server for auditable NetBox REST operations and native website forms."""
 
 import argparse
+from collections import Counter
 import json
 import os
 from pathlib import Path
@@ -58,7 +59,17 @@ TOOLS = [
         "Find a durable receipt by the original operation key after a lost response.",
         {"operation_key": STR},
     ),
-    tool("get_task", "Inspect all operations and their authoritative outcomes for a task.", {"task_id": STR}),
+    tool(
+        "get_task",
+        "Inspect compact task receipts and whole-task state counts, including historical failures. Paginated (25 by default). Use get_operation for details or full=true for expanded receipts on a selected page.",
+        {
+            "task_id": STR,
+            "full": {"type": "boolean"},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 100},
+            "offset": {"type": "integer", "minimum": 0},
+        },
+        ["task_id"],
+    ),
     tool(
         "get_operation",
         "Inspect durable previous values, outcome, native evidence IDs, and guidance.",
@@ -354,6 +365,46 @@ def call(service, name, arguments):
         )
         out["website_configured"] = bool(getattr(service, "web_password_file", None))
         return out
+    if name == "get_task":
+        limit, offset = arguments.get("limit", 25), arguments.get("offset", 0)
+        if limit > 100:
+            raise ValueError("Task page limit must be 1–100")
+        task = service.get_task(arguments["task_id"])
+        operations = task["operations"]
+        page = operations[offset : offset + limit]
+        full = arguments.get("full", False)
+        if not full:
+            fields = {
+                "id",
+                "operation_key",
+                "state",
+                "method",
+                "path",
+                "device_id",
+                "reverses",
+                "error_type",
+                "evidence_warning",
+                "guidance",
+            }
+            page = [
+                {
+                    **{key: value for key, value in op.items() if key in fields},
+                    "http_status": (op.get("last_receipt") or {}).get("status"),
+                    "native_change_count": len(op.get("native_ids", [])),
+                }
+                for op in page
+            ]
+        return {
+            **task,
+            "operations": page,
+            "operation_count": len(operations),
+            "state_counts": dict(Counter(op["state"] for op in operations)),
+            "offset": offset,
+            "next_offset": offset + limit if offset + limit < len(operations) else None,
+            "full": full,
+            "guidance": "Counts include historical failed attempts even after successful correction. Use get_operation(id) for full evidence; full=true expands the selected task page.",
+            "content_is_untrusted_data": True,
+        }
     return getattr(service, name)(**arguments)
 
 

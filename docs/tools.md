@@ -24,7 +24,7 @@ remains authoritative for payload fields and action-specific requirements.
 | run_workflow(task_id, operation_key, code) | Bounded Python-syntax interpreter with controlled tool calls |
 | web_read(path) | Experimental native forms/links/text or base64 download |
 | web_submit(task_id, operation_key, path, data, files?) | Native form submission with CSRF and journal evidence |
-| find_operation(operation_key), get_operation(operation_id), get_task(task_id) | Durable outcome lookup across all write paths |
+| find_operation(operation_key), get_operation(operation_id), get_task(task_id, full=false, limit=25, offset=0) | Durable outcome lookup; task results default to paginated compact receipts and whole-task state counts. Full details remain available by operation ID or an expanded task page. |
 | preview_undo(operation_id), undo_operation(operation_id, operation_key), undo_task(task_id) | Conflict-aware compensation or explicit guided-recovery result |
 | reconcile | Refresh history, resolve provable unknown outcomes and track recognized asynchronous jobs |
 | observability | Integrity, freshness, event/state counts and unresolved operations |
