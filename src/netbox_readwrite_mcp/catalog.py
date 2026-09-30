@@ -87,7 +87,7 @@ class Catalog:
             )
         return matches[0]
 
-    def describe(self, resource):
+    def describe(self, resource, full=False, action=None):
         resource = self.resolve(resource)
         options = self.api.request("OPTIONS", resource)
         if self.schema is None:
@@ -98,6 +98,12 @@ class Catalog:
         paths = {
             p: value for p, value in self.schema.get("paths", {}).items() if p.startswith("/api/" + resource)
         }
+        if action is not None:
+            if not isinstance(action, str) or not re.fullmatch(r"[a-zA-Z0-9_-]+", action):
+                raise ValueError("action must be a single action name, such as available-ips")
+            paths = {p: value for p, value in paths.items() if p.endswith("/" + action + "/")}
+            if not paths:
+                raise ValueError("Action not found in this resource's schema")
         refs = set()
         schemas = {}
 
@@ -116,5 +122,54 @@ class Catalog:
                 for v in value:
                     collect(v)
 
-        collect(paths)
-        return {"resource": resource, "options": options, "paths": paths, "schemas": schemas}
+        if full:
+            collect(paths)
+            return {"resource": resource, "options": options, "paths": paths, "schemas": schemas}
+        # Response schemas recursively expand many unrelated models. Agents need the
+        # actual writable request types, not the whole serializer dependency graph.
+        compact_paths = {}
+        filters = {}
+        for path, methods in paths.items():
+            compact_paths[path] = {}
+            for method, spec in methods.items():
+                if method not in {"get", "post", "put", "patch", "delete", "head", "options"}:
+                    continue
+                entry = {}
+                request = spec.get("requestBody", {})
+                content = request.get("content", {})
+                request_schema = content.get("application/json", {}).get("schema")
+                if request_schema is None and content:
+                    request_schema = next(iter(content.values())).get("schema")
+                if request_schema is None:
+                    request_schema = request.get("schema")
+                if request_schema:
+                    entry["request"] = request_schema
+                    if (action is not None or path == "/api/" + resource) and method == "post":
+                        collect(request_schema)
+                compact_paths[path][method] = entry
+                if path == "/api/" + resource and method == "get":
+                    for parameter in spec.get("parameters", []):
+                        if parameter.get("in") == "query":
+                            filters[parameter["name"]] = parameter.get("schema", {}).get(
+                                "type", "see full schema"
+                            )
+
+        def compact(value):
+            if isinstance(value, list):
+                return [compact(v) for v in value]
+            if isinstance(value, dict):
+                return {
+                    k: compact(v)
+                    for k, v in value.items()
+                    if k not in {"description", "title", "example", "examples", "externalDocs"}
+                }
+            return value
+
+        return {
+            "resource": resource,
+            "options_status": options["status"],
+            "paths": compact_paths,
+            "schemas": compact(schemas),
+            "filters": filters,
+            "guidance": "Schemas expand POST inputs (including bulk alternatives). Use action='available-ips', for example, to focus on a named action without a large response. Updates use writable fields with a fresh ETag. full=true includes full OPTIONS, filter choices, descriptions and response schemas.",
+        }

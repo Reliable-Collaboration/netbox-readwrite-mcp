@@ -26,7 +26,7 @@ The table maps capabilities, not identical tool signatures.
 | Script upload/execution and jobs | execute_action, query, reconcile | Real multipart upload, worker execution, acceptance/completion distinction |
 | Open-source plugin/custom models | discovered resource/action paths and website forms | Native discovery; each installed open-source plugin needs its own qualification |
 | Branching and commercial products | Excluded | Explicitly outside product scope; no dependencies or dedicated endpoints |
-| Website-only actions | web_read, web_submit | Native session/CSRF forms, including file uploads; representative create/validation tests |
+| Experimental HTML fallback | web_read, web_submit | Native session/CSRF forms; representative tests only, no JavaScript, conditional writes or automatic undo |
 | Read-only connections | read_only configuration | Enforced across mutation paths |
 | stdio and Streamable HTTP | CLI transports | Official SDK interoperability; HTTP bearer auth and origin checks |
 | Issue feedback | diagnostic_report, GitHub connector or scripts/issues.py | Inventory-free attachment and issue template |
@@ -36,3 +36,6 @@ plugin or action's semantics. The stock route inventory is the denominator for
 coverage review; collection GET/OPTIONS sweeps are explicitly separate from
 successful lifecycle tests. Full GUI parity and universal recovery must not be
 claimed from representative tests.
+
+The completion direction is [API-first](api-completion.md): existing endpoints,
+then composed workflows, then typed plugin endpoints for confirmed gaps.

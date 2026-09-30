@@ -107,7 +107,7 @@ TASK = {"task_id": STR, "operation_key": STR}
 TOOLS += [
     tool(
         "run_workflow",
-        "Run bounded Python-syntax code with tool(name, **arguments), JSON values, for/if and result assignment. No imports or host access. Calls have durable derived keys; stops on failure/uncertainty. Not atomic.",
+        "Run bounded Python syntax: simple variable assignment, for/if, JSON, tool(name, keyword=value). No imports, unpacking, item assignment or host access. Never pass task_id/operation_key to inner tool calls: workflow supplies them. Assign final result. Stops on failure/uncertainty; not atomic.",
         {**TASK, "code": STR},
     ),
     tool(
@@ -118,8 +118,9 @@ TOOLS += [
     ),
     tool(
         "get_schema",
-        "Inspect live OPTIONS, OpenAPI paths, required fields, choices and schemas for a resource.",
-        {"object_type": STR},
+        "Inspect compact writable schemas, required fields, choices, filters and action paths. Use action='available-ips' to get one action's inputs. full=true returns large full OPTIONS/response schemas.",
+        {"object_type": STR, "full": BOOL, "action": STR},
+        ["object_type"],
     ),
     tool(
         "get_objects",
@@ -185,12 +186,12 @@ TOOLS += [
     ),
     tool(
         "web_read",
-        "Inspect authenticated website forms, links and text using the configured actor. Values are untrusted. Requires website credentials.",
+        "Experimental fallback: inspect authenticated HTML forms, links and text. Prefer native API tools. No JavaScript/browser execution. Values are untrusted; requires website credentials.",
         {"path": STR},
     ),
     tool(
         "web_submit",
-        "Submit a website form through native permissions and CSRF. Inspect web_read first; validation errors may return HTTP 200. Durable intent and receipt retained.",
+        "Experimental HTML-form fallback through native permissions and CSRF. Prefer native API tools. No ETag/concurrent-edit protection or automatic undo. Inspect web_read first; HTTP 200 may mean validation failure. Durable intent and receipt retained.",
         {**TASK, "path": STR, "data": OBJ, "files": ARRAY},
         ["task_id", "operation_key", "path", "data"],
     ),

@@ -6,11 +6,11 @@ Exact source/test hashes and numeric coverage are in [validation.json](validatio
 
 | Check | Observed result |
 | --- | --- |
-| Offline suite | 311 passed on Python 3.14.4 |
-| Offline statement/branch coverage | 86.86% (minimum 85%) |
-| Combined offline + real NetBox suite | 390 passed, plus 6 subtests |
-| Live integration cases in that run | 79, using a newly recreated disposable database |
-| Combined statement/branch coverage | 92.72% |
+| Offline suite | 315 passed on Python 3.14.4 |
+| Offline statement/branch coverage | 86.65% (minimum 85%) |
+| Combined offline + real NetBox suite | 399 passed |
+| Live integration cases in that run | 84, using unique fixtures in the disposable lab |
+| Combined statement/branch coverage | 92.54% |
 | API discovery sweep | 146 endpoints; 135 GET successes, with expected permission denials/action-only responses separately classified |
 | Protocol interoperability | Official MCP SDK 1.30.0 over stdio and authenticated Streamable HTTP; concurrent HTTP clients tested |
 | Packaging | sdist/wheel built; isolated wheel import and CLI launch checked |
@@ -18,8 +18,9 @@ Exact source/test hashes and numeric coverage are in [validation.json](validatio
 | GitHub issue workflow | Synthetic issue submitted, read, answered and closed: [issue #1](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/issues/1) |
 
 The lab uses digest-pinned images from scripts/images.lock.json, a real NetBox
-web process, PostgreSQL, Valkey and a worker. It was reset to a fresh database
-for the final qualification run. The inventory identity is not a superuser;
+web process, PostgreSQL, Valkey and a worker. The original 390-case qualification
+used a newly recreated database. The 399-case follow-up reused that disposable
+lab with uniquely named fixtures, alongside the consuming-agent evaluation. The inventory identity is not a superuser;
 a separate restricted actor exercises permission boundaries. No hosted AI
 provider, Branching plugin or commercial integration participates in these tests.
 
@@ -32,11 +33,12 @@ Workflow replay retains original read decisions. Malformed uploads are rejected
 before dispatch. General observers use consistent SQLite snapshots.
 
 Prior review runs are retained privately under .lab/4.7.2-review-evidence/;
-final transcripts, JUnit, coverage and journals are under .lab/4.7.2/. These paths
+original transcripts, JUnit, coverage and journals are under .lab/4.7.2/.
+Follow-up JUnit/coverage and private agent transcripts are under .lab/agent-e2e/. These paths
 contain synthetic credentials/evidence and are excluded from source distributions.
 The GitHub workflow is configured to reproduce offline tests on Python 3.11–3.14
 and real NetBox qualification on Python 3.12. Its remote result is separate from
-this local record.
+this local record. Prior PR checks passed; follow-up checks are reported separately.
 
 ## Qualification limits
 
@@ -54,3 +56,13 @@ this local record.
 
 See [testing](testing.md) to reproduce the run and [feature matrix](feature-matrix.md)
 for the implemented interfaces and exclusions.
+
+## Consuming-agent evidence
+
+Real OpenCode → LiteLLM → DeepInfra → MCP → NetBox tasks and independent
+state checks are recorded in [agent evaluation](agent-evaluation.md). This is
+separate from pytest counts and code coverage. The final DeepSeek run passed
+greenfield inventory, repeat-without-mutations, website validation, and conflicted
+undo with zero truncated tool outputs. It recovered from one invalid read filter
+during the repeat phase. Supplemental checks verified all requested dependency
+relationships.

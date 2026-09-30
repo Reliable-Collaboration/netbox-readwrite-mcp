@@ -42,9 +42,9 @@ class WorkspaceService(Service):
             "content_is_untrusted_data": True,
         }
 
-    def get_schema(self, object_type):
+    def get_schema(self, object_type, full=False, action=None):
         self._broad()
-        return self.catalog.describe(object_type)
+        return self.catalog.describe(object_type, full=full, action=action)
 
     def get_objects(self, object_type, filters=None, fields=None, limit=100, offset=0):
         self._broad()
@@ -247,6 +247,13 @@ class WorkspaceService(Service):
                 "native_ids": [],
                 "guidance": "Not dispatched",
             }
+            if transport == "website":
+                op["guarantee_limits"] = {
+                    "conditional_write": False,
+                    "pre_write_snapshot": False,
+                    "automatic_undo": False,
+                    "validation": "Inspect returned HTML text and verify authoritative state. HTTP 200 is not proof of success.",
+                }
             self._save(op, initial=True)
             self.fault("after_prepare")
             op["state"] = "dispatched"

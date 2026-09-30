@@ -230,6 +230,9 @@ def test_website_native_form_create_and_validation(service):
         task, key(), "/dcim/sites/add/", {"name": suffix, "slug": suffix, "status": "active", "_create": ""}
     )
     assert op["state"] == "applied", op
+    assert op["guarantee_limits"]["conditional_write"] is False
+    assert op["guarantee_limits"]["automatic_undo"] is False
+    assert service.get_operation(op["id"])["guarantee_limits"] == op["guarantee_limits"]
     assert service.get_objects("dcim/sites/", {"name": suffix})["data"]["count"] == 1
     invalid = service.web_submit(
         task, key(), "/dcim/sites/add/", {"name": "", "slug": "", "status": "active"}
@@ -638,3 +641,31 @@ else:
     assert first["status"] == "completed", first
     assert service.run_workflow(task, operation_key, code)["result"] == first["result"]
     assert service.get_objects("dcim/sites/", {"slug": suffix})["data"]["count"] == 1
+
+
+@pytest.mark.parametrize("resource", ["dcim/sites/", "dcim/devices/", "dcim/interfaces/", "dcim/cables/"])
+def test_agent_schema_response_fits_client_context(service, resource):
+    compact = service.get_schema(resource)
+    full = service.get_schema(resource, full=True)
+    assert len(json.dumps(compact).encode()) < 30000
+    assert len(json.dumps(compact)) < len(json.dumps(full))
+    assert compact["schemas"]
+    assert (
+        compact["paths"]["/api/" + resource]["post"]["request"]
+        == (full["paths"]["/api/" + resource]["post"]["requestBody"]["content"]["application/json"]["schema"])
+    )
+
+
+def test_agent_can_inspect_allocation_action_without_full_schema(service):
+    compact = service.get_schema("ipam/prefixes/", action="available-ips")
+    assert len(json.dumps(compact)) < 15000
+    assert compact["schemas"]
+    assert all(path.endswith("/available-ips/") for path in compact["paths"])
+    fields = {key for schema in compact["schemas"].values() for key in schema.get("properties", {})}
+    # NetBox documents allocation inputs separately from the full IP write schema.
+    assert "prefix_length" in fields
+    ip_schema = service.get_schema("ipam/ip-addresses/")
+    ip_fields = {key for schema in ip_schema["schemas"].values() for key in schema.get("properties", {})}
+    assert {"assigned_object_type", "assigned_object_id"} <= ip_fields
+    with pytest.raises(ValueError, match="not found"):
+        service.get_schema("ipam/prefixes/", action="not-an-action")

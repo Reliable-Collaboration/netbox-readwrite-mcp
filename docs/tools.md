@@ -9,7 +9,7 @@ remains authoritative for payload fields and action-specific requirements.
 | --- | --- |
 | capabilities | Actual connection scope, exact version, read-only policy and recovery limits |
 | discover_models(refresh=false) | Discover core and installed plugin API roots, collections and actions |
-| get_schema(object_type) | Native OPTIONS/OpenAPI schemas, required fields, choices and actions |
+| get_schema(object_type, full?, action?) | Native OPTIONS/OpenAPI schemas, required fields, choices and actions |
 | get_objects(object_type, filters?, fields?, limit?, offset?) | Filtered, paginated collection reads; resource path or unambiguous name |
 | get_object_by_id(object_type, object_id, fields?) | Object data and ETag |
 | get_changelogs(filters?, limit?, offset?) | Native audit history |
@@ -22,7 +22,7 @@ remains authoritative for payload fields and action-specific requirements.
 | execute_action(task_id, operation_key, method, path, data?, expected_etag?, files?) | Native POST/PUT/PATCH/DELETE, list payloads and multipart uploads |
 | bulk(task_id, operation_key, operations) | Ordered CRUD/action steps, derived keys, stops on failure/uncertainty |
 | run_workflow(task_id, operation_key, code) | Bounded Python-syntax interpreter with controlled tool calls |
-| web_read(path) | Authenticated native forms/links/text or base64 download |
+| web_read(path) | Experimental native forms/links/text or base64 download |
 | web_submit(task_id, operation_key, path, data, files?) | Native form submission with CSRF and journal evidence |
 | find_operation(operation_key), get_operation(operation_id), get_task(task_id) | Durable outcome lookup across all write paths |
 | preview_undo(operation_id), undo_operation(operation_id, operation_key), undo_task(task_id) | Conflict-aware compensation or explicit guided-recovery result |
@@ -62,3 +62,9 @@ Native validation/permission errors remain durable failed receipts, including
 field errors. Transport/tool errors carry a stable code, recovery guidance,
 automatic_retry_allowed=false and receipt lookup when available. An exception
 never proves a remote write did not commit.
+
+Schema discovery defaults to compact collection POST schemas and filter names.
+Use `action="available-ips"` to inspect a single action's inputs.
+Use `full=true` for complete OPTIONS, action definitions, response schemas
+and descriptions; full responses can exceed an agent client's output limit.
+HTML submissions lack ETag/concurrent-edit protection and automatic undo.

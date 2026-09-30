@@ -9,7 +9,7 @@ model allowlist is required: NetBox permissions define the agent's scope.
 
 The server provides object discovery, filtered/paginated reads, live schemas,
 GraphQL, CRUD, bulk workflows, IPAM allocation, native API actions, file uploads,
-script/job tracking, and authenticated website forms. Installed open-source plugin APIs can use the same discovery and action tools.
+script/job tracking, and an experimental authenticated HTML-form fallback. Installed open-source plugin APIs can use the same discovery and action tools.
 Branching and commercial integrations are explicitly outside the product scope.
 See the [feature matrix](docs/feature-matrix.md) and [validation](docs/validation.md).
 
@@ -46,7 +46,7 @@ purge jobs. Store its write-enabled API token in a protected file.
 
 Generate the instance ID once with `python -c 'import uuid; print(uuid.uuid4())'`.
 The optional website password must belong to the same actor; it enables native
-website forms for actions missing from REST. Keep credentials and the journal
+experimental website forms. Prefer API tools; see [API-first completion](docs/api-completion.md). Keep credentials and the journal
 outside the consuming agent's general filesystem access. Paths are relative to
 the config file. `read_only: true` disables mutation tools.
 

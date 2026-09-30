@@ -147,3 +147,12 @@ def test_website_prefix_is_transparent_to_agent_paths():
     web = Website(api, "agent", None)
     assert web.url("/dcim/sites/") == "https://netbox.example/netbox/dcim/sites/"
     assert web.url("/netbox/dcim/sites/") == "https://netbox.example/netbox/dcim/sites/"
+
+
+@pytest.mark.parametrize("bad", ['result["x"] = 1', "a, b = [1, 2]", "for a, b in [[1, 2]]:\n    result = a"])
+def test_unsupported_assignment_rejected_before_tool_side_effects(bad):
+    calls = []
+    workflow = Workflow(lambda *args, **kwargs: calls.append(args))
+    with pytest.raises(ValueError):
+        workflow.run('tool("create_object")\n' + bad)
+    assert calls == []

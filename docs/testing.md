@@ -60,3 +60,9 @@ podman rm nbrw-audit-4-7-2-worker nbrw-audit-4-7-2-netbox nbrw-audit-4-7-2-valke
 podman volume rm nbrw-audit-4-7-2-db nbrw-audit-4-7-2-scripts
 podman network rm nbrw-audit-4-7-2
 ```
+
+## Real consuming-agent evaluation
+
+The optional [OpenCode/LiteLLM/DeepInfra evaluation](agent-evaluation.md) exercises
+natural-language tasks through MCP and independently verifies NetBox state. It
+incurs provider usage and is not part of unauthenticated CI.

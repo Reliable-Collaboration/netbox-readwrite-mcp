@@ -345,3 +345,42 @@ def test_general_observers_use_one_snapshot(broad):
     assert seen == [True]
     assert not broad.store.db.in_transaction
     assert broad.get_task(broad.task)["operations"][0]["id"] == op["id"]
+
+
+def test_schema_default_excludes_response_graph_and_preserves_write_contract(broad):
+    write = {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+            "name": {"type": "string", "maxLength": 100, "description": "A name"},
+            "status": {"type": "string", "enum": ["active", "planned"]},
+        },
+    }
+    schema = {
+        "paths": {
+            "/api/dcim/devices/": {
+                "get": {
+                    "parameters": [{"in": "query", "name": "name", "schema": {"type": "string"}}],
+                    "responses": {"200": {"schema": {"$ref": "#/components/schemas/LargeResponse"}}},
+                },
+                "post": {
+                    "requestBody": {
+                        "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Write"}}}
+                    }
+                },
+            }
+        },
+        "components": {"schemas": {"Write": write, "LargeResponse": {"description": "x" * 100000}}},
+    }
+    original = broad.api.request
+    broad.api.request = lambda method, path, *args, **kw: (
+        {"status": 200, "body": schema} if path.startswith("schema/") else original(method, path, *args, **kw)
+    )
+    compact = call(broad, "get_schema", {"object_type": "dcim/devices/"})
+    assert len(json.dumps(compact)) < 2000
+    assert compact["schemas"]["Write"]["required"] == ["name"]
+    assert compact["schemas"]["Write"]["properties"]["status"]["enum"] == ["active", "planned"]
+    assert compact["filters"] == {"name": "string"}
+    assert "LargeResponse" not in compact["schemas"]
+    full = call(broad, "get_schema", {"object_type": "dcim/devices/", "full": True})
+    assert len(full["schemas"]["LargeResponse"]["description"]) == 100000

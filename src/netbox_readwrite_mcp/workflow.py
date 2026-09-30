@@ -192,5 +192,20 @@ class Workflow:
         )
         if any(isinstance(n, forbidden) for n in ast.walk(tree)):
             raise ValueError("Workflow permits assignments, for/if, JSON expressions and tool calls only")
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Assign) and not (
+                len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)
+                and not node.targets[0].id.startswith("_")
+            ):
+                raise ValueError(
+                    "Workflow assignments require one public variable name; item assignment/unpacking is unsupported"
+                )
+            if isinstance(node, ast.For) and not (
+                isinstance(node.target, ast.Name) and not node.target.id.startswith("_")
+            ):
+                raise ValueError("Workflow for targets require one public variable name")
+            if isinstance(node, ast.Call) and any(k.arg is None for k in node.keywords):
+                raise ValueError("Workflow does not support argument unpacking")
         self.block(tree.body)
         return self.env["result"]

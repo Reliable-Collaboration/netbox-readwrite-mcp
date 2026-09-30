@@ -1,0 +1,255 @@
+{
+  "date": "2026-09-30",
+  "scope": "Synthetic tasks against real NetBox 4.7.2; not an all-feature or reliability certification",
+  "final_source_run": {
+    "source_sha256": {
+      "src/netbox_readwrite_mcp/__init__.py": "cad430435741be9f74ef01978773af3e8d97be9ee74aae954630a042153d4e4b",
+      "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+      "src/netbox_readwrite_mcp/api.py": "71de09e364692bde02d0bbb33092b6f12266928fd53f10f83c7ab3bdcfeaa38d",
+      "src/netbox_readwrite_mcp/catalog.py": "d2d80d3b2f2a59c142c095785534153d72d9476eff056ea975e79cb02e3fb36b",
+      "src/netbox_readwrite_mcp/compatibility.py": "4c6f8b708fa8d0a7114e7c002682f06bd1c34878ae490aeb1c658bcad0bc6ef7",
+      "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+      "src/netbox_readwrite_mcp/errors.py": "aba98a8cc388774be42988b03fc25628604b0aef3399b11ae4cd89439d6cca16",
+      "src/netbox_readwrite_mcp/http_server.py": "f9b1bc2fe6e17e6c42e1b1d0650caef41cc2d3225a000e97345eeecd91246904",
+      "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+      "src/netbox_readwrite_mcp/recovery.py": "a786c7077cb8344deb64ceff9e285e6cea2c236977a2275610c6557235520c0d",
+      "src/netbox_readwrite_mcp/server.py": "7206faa550d2bcabc246c0ef828901e48f6f149b1e6b96c054c9ed20323ea96c",
+      "src/netbox_readwrite_mcp/service.py": "4620c2d0624c786cb2d87562221614cc0a1743908f5c8cfd25c161c89f1254ff",
+      "src/netbox_readwrite_mcp/store.py": "87776573cd99fb23282e2ba7ee4fc3b8259a0f80a2e9aa91c4780bad764956ab",
+      "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+      "src/netbox_readwrite_mcp/workflow.py": "c7634292e0a42c2457127a48783859074c2f07e90606b9ffb79b121faaa19862",
+      "src/netbox_readwrite_mcp/workspace.py": "36a036f335dde5d7b967a52ae8f373205e8ff47f34e7392df7ffd698fddb6f67"
+    },
+    "model": "deepseek-ai/DeepSeek-V4-Flash",
+    "run": "e4cbd2e018",
+    "netbox": "4.7.2",
+    "phases": [
+      {
+        "name": "greenfield",
+        "seconds": 170.34,
+        "checks": {
+          "one_site": true,
+          "one_rack_12u": true,
+          "two_devices_in_rack": true,
+          "rack_positions": true,
+          "serial_description": true,
+          "interfaces_cabled": true,
+          "first_ip_assigned": true,
+          "vm_and_interface": true,
+          "no_uncertain_operations": true,
+          "client_exit_zero": true,
+          "used_mcp": true,
+          "no_client_error": true
+        },
+        "passed": true,
+        "tool_calls": {
+          "capabilities": 1,
+          "discover_models": 1,
+          "get_schema": 16,
+          "begin_task": 1,
+          "get_objects": 5,
+          "bulk": 6,
+          "create_object": 2,
+          "execute_action": 1,
+          "get_object_by_id": 6,
+          "update_object": 1
+        },
+        "tool_errors": 0,
+        "truncated_tool_outputs": 0,
+        "tokens": {
+          "total": 1240861,
+          "input": 169159,
+          "output": 5462,
+          "reasoning": 0
+        }
+      },
+      {
+        "name": "repeat",
+        "seconds": 82.06,
+        "checks": {
+          "one_site": true,
+          "one_rack_12u": true,
+          "two_devices_in_rack": true,
+          "rack_positions": true,
+          "serial_description": true,
+          "interfaces_cabled": true,
+          "first_ip_assigned": true,
+          "vm_and_interface": true,
+          "no_uncertain_operations": true,
+          "no_new_mutations": true,
+          "client_exit_zero": true,
+          "used_mcp": true,
+          "no_client_error": true
+        },
+        "passed": true,
+        "tool_calls": {
+          "capabilities": 1,
+          "discover_models": 1,
+          "get_objects": 18,
+          "get_object_by_id": 1
+        },
+        "tool_errors": 1,
+        "truncated_tool_outputs": 0,
+        "tokens": {
+          "total": 136349,
+          "input": 22660,
+          "output": 2329,
+          "reasoning": 0
+        }
+      },
+      {
+        "name": "website",
+        "seconds": 86.56,
+        "checks": {
+          "site_created_once": true,
+          "inspected_form": true,
+          "submitted_both_forms": true,
+          "diagnostic_used": true,
+          "client_exit_zero": true,
+          "used_mcp": true,
+          "no_client_error": true
+        },
+        "passed": true,
+        "tool_calls": {
+          "capabilities": 1,
+          "discover_models": 1,
+          "web_read": 1,
+          "begin_task": 1,
+          "web_submit": 2,
+          "get_object_by_id": 1,
+          "diagnostic_report": 1,
+          "get_operation": 1,
+          "get_task": 1
+        },
+        "tool_errors": 0,
+        "truncated_tool_outputs": 0,
+        "tokens": {
+          "total": 359184,
+          "input": 156356,
+          "output": 1868,
+          "reasoning": 0
+        }
+      },
+      {
+        "name": "conflict",
+        "seconds": 28.36,
+        "checks": {
+          "newer_value_preserved": true,
+          "previewed_undo": true,
+          "diagnostic_used": true,
+          "client_exit_zero": true,
+          "used_mcp": true,
+          "no_client_error": true
+        },
+        "passed": true,
+        "tool_calls": {
+          "get_operation": 1,
+          "get_object_by_id": 1,
+          "preview_undo": 1,
+          "diagnostic_report": 1
+        },
+        "tool_errors": 0,
+        "truncated_tool_outputs": 0,
+        "tokens": {
+          "total": 26704,
+          "input": 5021,
+          "output": 947,
+          "reasoning": 0
+        }
+      }
+    ],
+    "opencode": "1.18.33",
+    "passed": true
+  },
+  "supplemental_relationship_checks": {
+    "rack_at_site": true,
+    "type_manufacturer_and_height": true,
+    "device_dependencies": true,
+    "device_status_and_face": true,
+    "interface_types": true,
+    "cable_status": true,
+    "prefix_vrf": true,
+    "vm_cluster_and_type": true
+  },
+  "review": {
+    "website_guarantees": "Final narration acknowledged no pre-write snapshot, ETag protection or automatic undo",
+    "conflict": "Final narration preserved the newer field value and did not claim undo succeeded",
+    "repeat": "One invalid read filter was rejected; agent recovered without mutations"
+  },
+  "preliminary_runs": {
+    "d8d3fdbf2d": "Greenfield/repeat/forms succeeded; 14 greenfield output truncations and overstated website guarantees. Harness argument order prevented conflict phase. Not a complete pass.",
+    "7e23385bca": "All four state-oracle phases passed; one full-schema truncation and one greenfield tool error. Superseded by final-source run."
+  },
+  "glm_run": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "run": "3d5205f375",
+    "source_sha256": {
+      "src/netbox_readwrite_mcp/__init__.py": "cad430435741be9f74ef01978773af3e8d97be9ee74aae954630a042153d4e4b",
+      "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+      "src/netbox_readwrite_mcp/api.py": "71de09e364692bde02d0bbb33092b6f12266928fd53f10f83c7ab3bdcfeaa38d",
+      "src/netbox_readwrite_mcp/catalog.py": "9879669ecfa69b79a7c95097dbaffdd4a31a8407a587f75d790d6d433e4a5c31",
+      "src/netbox_readwrite_mcp/compatibility.py": "4c6f8b708fa8d0a7114e7c002682f06bd1c34878ae490aeb1c658bcad0bc6ef7",
+      "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+      "src/netbox_readwrite_mcp/errors.py": "aba98a8cc388774be42988b03fc25628604b0aef3399b11ae4cd89439d6cca16",
+      "src/netbox_readwrite_mcp/http_server.py": "f9b1bc2fe6e17e6c42e1b1d0650caef41cc2d3225a000e97345eeecd91246904",
+      "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+      "src/netbox_readwrite_mcp/recovery.py": "a786c7077cb8344deb64ceff9e285e6cea2c236977a2275610c6557235520c0d",
+      "src/netbox_readwrite_mcp/server.py": "665928dc61ec2851593bd6013258967d2540d7877abcbcc136027383dc69068e",
+      "src/netbox_readwrite_mcp/service.py": "4620c2d0624c786cb2d87562221614cc0a1743908f5c8cfd25c161c89f1254ff",
+      "src/netbox_readwrite_mcp/store.py": "87776573cd99fb23282e2ba7ee4fc3b8259a0f80a2e9aa91c4780bad764956ab",
+      "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+      "src/netbox_readwrite_mcp/workflow.py": "9b0591816a00eee331d472f9781359a5abf91444bf031c528da04151327c1840",
+      "src/netbox_readwrite_mcp/workspace.py": "b777e67c2284bafbc8cc911f863159aa7eb6c5b2d14b3030d76a00baf53e02e7"
+    },
+    "phases": [
+      {
+        "name": "greenfield",
+        "seconds": 901.59,
+        "checks": {
+          "one_site": true,
+          "one_rack_12u": true,
+          "two_devices_in_rack": true,
+          "rack_positions": true,
+          "serial_description": false,
+          "interfaces_cabled": true,
+          "first_ip_assigned": true,
+          "vm_and_interface": true,
+          "no_uncertain_operations": true,
+          "client_exit_zero": false,
+          "used_mcp": true,
+          "no_client_error": true
+        },
+        "passed": false,
+        "tool_calls": {
+          "capabilities": 1,
+          "discover_models": 1,
+          "begin_task": 1,
+          "get_schema": 2,
+          "run_workflow": 2,
+          "get_objects": 1,
+          "get_task": 1,
+          "create_object": 17,
+          "execute_action": 3,
+          "query": 1,
+          "update_object": 1
+        },
+        "tool_errors": 3,
+        "truncated_tool_outputs": 0,
+        "tokens": {
+          "total": 911007,
+          "input": 166657,
+          "output": 3703,
+          "reasoning": 1319
+        }
+      }
+    ],
+    "passed": false,
+    "qualification": "Preliminary greenfield timed out at 900 seconds with incomplete serial/description. Repeat skipped; subsequent website trial interrupted without grading; conflict not run. Final-source GLM qualification not performed."
+  },
+  "limitations": [
+    "Four targeted tasks are not full NetBox feature coverage or a reliability estimate.",
+    "Native REST oracle grades state; narrative claims were manually reviewed.",
+    "Final-source DeepSeek run recovered from one invalid filter during repeat.",
+    "Real LLM GitHub issue publication was not exercised; separate synthetic issue round trip tested the plumbing."
+  ]
+}
