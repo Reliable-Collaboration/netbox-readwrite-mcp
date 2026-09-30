@@ -1,44 +1,56 @@
 # Validation record
 
-Version **0.2.0**, validated on 2026-09-28. This records observed results, not a production certification.
+Version **0.3.0**, validated locally on **2026-09-30**, against **NetBox 4.7.2 only**.
+This is observed test evidence, not a production certification or universal GUI coverage claim.
+Exact source/test hashes and numeric coverage are in [validation.json](validation.json).
 
 | Check | Observed result |
 | --- | --- |
-| Local offline suite | 212 passed on Python 3.14.4 |
-| Offline coverage | 91.96% combined statement/branch coverage; CI minimum 85% |
-| Local fresh-NetBox integration | 36 passed, plus 6 subtests; each on NetBox 4.7.0 and 4.7.1, restricted actor, separate new databases |
-| Independent GitHub CI | Passed: Python 3.11–3.14 and fresh NetBox 4.7.0/4.7.1 integration; legacy 4.6.10 setup timed out (see below) |
-| Protocol interoperability | Official Python MCP SDK 1.30.0 client initialized, listed/called tools, read structured results and refusals |
-| Packaging | sdist and wheel built; wheel installed into an isolated target and CLI launched |
+| Offline suite | 311 passed on Python 3.14.4 |
+| Offline statement/branch coverage | 86.86% (minimum 85%) |
+| Combined offline + real NetBox suite | 390 passed, plus 6 subtests |
+| Live integration cases in that run | 79, using a newly recreated disposable database |
+| Combined statement/branch coverage | 92.72% |
+| API discovery sweep | 146 endpoints; 135 GET successes, with expected permission denials/action-only responses separately classified |
+| Protocol interoperability | Official MCP SDK 1.30.0 over stdio and authenticated Streamable HTTP; concurrent HTTP clients tested |
+| Packaging | sdist/wheel built; isolated wheel import and CLI launch checked |
 | Lint and format | Ruff checks passed |
-| Licensing | Runtime has no third-party Python dependencies; Apache-2.0 product with retained MIT research notice |
+| GitHub issue workflow | Synthetic issue submitted, read, answered and closed: [issue #1](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/issues/1) |
 
-The 4.7 target and Python matrix passed independent validation at commit **1ee9740**:
-[GitHub Actions run 36471841897](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36471841897).
+The lab uses digest-pinned images from scripts/images.lock.json, a real NetBox
+web process, PostgreSQL, Valkey and a worker. It was reset to a fresh database
+for the final qualification run. The inventory identity is not a superuser;
+a separate restricted actor exercises permission boundaries. No hosted AI
+provider, Branching plugin or commercial integration participates in these tests.
 
-The overall run failed because the legacy 4.6.10 fixture setup timed out on its first read-only API query, before integration tests. Commit **8ca5432** increases the disposable seeder timeout from 20 to 120 seconds without changing runtime/test timeouts or retrying writes. A [fresh full-matrix run](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36472610494) is pending at the time of this record.
+The suite exercises greenfield dependency discovery/creation, physical and virtual
+inventory, cables, IP/VLAN/prefix/ASN allocation, custom fields and tags, native
+bulk writes, resumable workflows, GraphQL, configuration rendering, script upload
+and job completion, website forms, conditional-write races, response loss,
+conflicts, compensation, corruption, backups and durable issue diagnostics.
+Workflow replay retains original read decisions. Malformed uploads are rejected
+before dispatch. General observers use consistent SQLite snapshots.
 
-The 4.7 qualification reruns all six review regressions, including actual NetBox serializer normalization and the post-commit response re-query race. Version-policy tests cover rejected prereleases, malformed versions, other minor versions, and acceptance of future stable patches without claiming they are qualified. See [review decisions and resolution](review-remediation.md).
+Prior review runs are retained privately under .lab/4.7.2-review-evidence/;
+final transcripts, JUnit, coverage and journals are under .lab/4.7.2/. These paths
+contain synthetic credentials/evidence and are excluded from source distributions.
+The GitHub workflow is configured to reproduce offline tests on Python 3.11–3.14
+and real NetBox qualification on Python 3.12. Its remote result is separate from
+this local record.
 
-The 0.2.0 wheel was installed into a separate target and launched with Python site packages disabled. The source archive includes the audit dependency snapshot and regression tests; private lab state is excluded. The source-distribution manifest was also corrected to include the dependency snapshot linked from this document.
+## Qualification limits
 
-Pinned container digests are in [scripts/images.lock.json](../scripts/images.lock.json).
-The exact local test/development dependency snapshot is in [test-dependencies.txt](test-dependencies.txt). These are audit inputs; no paid product or hosted AI service participates in testing.
+- The 146-endpoint GET/OPTIONS sweep establishes discovery and reachability,
+  not successful CRUD semantics for every NetBox model or every website view.
+- General REST and website transports expose native authorized actions. Detailed
+  lifecycle tests cover representative resources/workflows, not universal GUI parity.
+- Guarded field compensation is tested. Exact original-ID undelete and dependency
+  graph restoration require the proposed recovery extension and are not implemented.
+- Branching and commercial products are outside scope. Installed open-source
+  plugins require their own qualification; no arbitrary plugin certification is implied.
+- SSO/MFA website authentication, remote TLS proxy configuration, infrastructure
+  disaster recovery and distributed/large-estate operation are unqualified.
+- Deterministic tool tests do not establish an LLM's judgment or narration quality.
 
-## What these results establish
-
-The suite checks supported field updates and compensation; explicit refusal of unsupported categories; current-value and ABA conflicts; preservation of unrelated work; durable no-op/failed/uncertain outcomes; crash/restart and concurrent writers; actual native permissions; correlation with native history; archive loss; journal corruption guards; backup restoration; HTTP boundaries; and interoperable MCP messages.
-
-See [testing](testing.md) for commands and the distinction between real-server checks and injected faults.
-
-## What remains unqualified
-
-- Models or fields outside the published write contract.
-- NetBox 4.7 patches after 4.7.1 (accepted by policy but not yet individually qualified), and deployment-specific plugins or custom validators.
-- In-place NetBox database upgrades with existing archived native history; see the [upgrade procedure](operations.md#targeting-netbox-47-with-mcp-020).
-- Hardware power loss, hostile administrator tampering, loss of all backups, or restoration from every possible inconsistent database/journal pair.
-- Large-estate throughput, distributed deployment, multi-tenant isolation, and network filesystems.
-- LLM judgment quality, downstream webhook reversal, and physical network rollback.
-- Long-running production use or a published package-registry release.
-
-The implementation deliberately reports conflicts and uncertainty instead of promising unconditional undo.
+See [testing](testing.md) to reproduce the run and [feature matrix](feature-matrix.md)
+for the implemented interfaces and exclusions.

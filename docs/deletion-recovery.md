@@ -32,6 +32,6 @@ it cannot recover pruned data or missing file contents.
 
 The experiments roll back each test's writes and do not qualify concurrent
 restoration, constrained-user permissions, crash durability, arbitrary plugins,
-or every NetBox model. No recovery plugin or broader product CRUD functionality
-was implemented in this research step. The existing 0.2.0 write scope remains
-unchanged. The next implementation needs the full model/action coverage matrix.
+or every NetBox model. No recovery plugin was implemented in this research step. Subsequent 0.3.0
+work adds broad CRUD execution and field compensation; original-ID graph
+restoration still requires the extension described here. The next implementation needs the full model/action coverage matrix.

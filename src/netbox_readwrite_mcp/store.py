@@ -171,6 +171,23 @@ class Store:
         for row in self.db.execute("SELECT * FROM native_changes"):
             if digest(json.loads(row["payload"])) != row["hash"]:
                 raise RuntimeError("Native archive integrity failure")
+        if self.db.execute("SELECT 1 FROM sqlite_master WHERE name='resource_operations'").fetchone():
+            projected_resources = {}
+            for row in self.db.execute(
+                "SELECT operation_id,payload FROM events WHERE kind IN ('resource_prepared','resource_state') ORDER BY seq"
+            ):
+                projected_resources[row[0]] = json.loads(row[1])
+            rows = self.db.execute("SELECT * FROM resource_operations").fetchall()
+            if len(rows) != len(projected_resources):
+                raise RuntimeError("Resource operation projection integrity failure")
+            for row in rows:
+                expected = projected_resources.get(row["id"])
+                if (
+                    not expected
+                    or encode(expected) != row["document"]
+                    or any(row[k] != expected[k] for k in ("id", "operation_key", "task_id", "state"))
+                ):
+                    raise RuntimeError("Resource operation projection integrity failure")
         return {"event_head": previous, "integrity": "verified"}
 
     @consistent_read
@@ -179,6 +196,11 @@ class Store:
         return {
             table: [dict(r) for r in self.db.execute("SELECT * FROM " + table)]
             for table in ["metadata", "tasks", "operations", "events", "native_changes"]
+            + (
+                ["resource_operations"]
+                if self.db.execute("SELECT 1 FROM sqlite_master WHERE name='resource_operations'").fetchone()
+                else []
+            )
         }
 
     def backup(self, path):

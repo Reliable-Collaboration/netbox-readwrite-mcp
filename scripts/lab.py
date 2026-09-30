@@ -11,8 +11,8 @@ import time
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = os.environ.get("NETBOX_RW_TEST_VERSION", "4.7.1")
-PORTS = {"4.6.10": 18860, "4.7.0": 18870, "4.7.1": 18871}
+VERSION = os.environ.get("NETBOX_RW_TEST_VERSION", "4.7.2")
+PORTS = {"4.7.2": 18872}
 if VERSION not in PORTS:
     raise ValueError("NETBOX_RW_TEST_VERSION must select a pinned lab version: " + ", ".join(PORTS))
 PORT = PORTS[VERSION]
@@ -104,17 +104,27 @@ def start():
             *command,
         )
 
-    pod("volume", "create", "--label", LABEL, PREFIX + "-db", capture_output=True)
+    pod("volume", "create", "--ignore", "--label", LABEL, PREFIX + "-db", capture_output=True)
     run(
         "postgres",
         "postgres",
         ["--env-file", str(STATE / "postgres.env"), "-v", PREFIX + "-db:/var/lib/postgresql"],
     )
     run("valkey", "valkey", [], ["valkey-server", "--appendonly", "yes"])
+    pod("volume", "create", "--ignore", "--label", LABEL, PREFIX + "-scripts", capture_output=True)
     run(
         "netbox",
         "netbox",
-        ["--env-file", str(STATE / "netbox.env"), "-p", f"127.0.0.1:{PORT}:8080", "--memory", "2g"],
+        [
+            "--env-file",
+            str(STATE / "netbox.env"),
+            "-p",
+            f"127.0.0.1:{PORT}:8080",
+            "--memory",
+            "2g",
+            "-v",
+            PREFIX + "-scripts:/opt/netbox/netbox/scripts",
+        ],
     )
     print("Started. Run python3 scripts/lab.py ready, then bootstrap.", flush=True)
 
@@ -171,6 +181,8 @@ print('Lab API identity ready')
             str(STATE / "netbox.env"),
             "--memory",
             "1g",
+            "-v",
+            PREFIX + "-scripts:/opt/netbox/netbox/scripts",
             image,
             "/opt/netbox/venv/bin/python",
             "/opt/netbox/netbox/manage.py",

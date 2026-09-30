@@ -1,23 +1,12 @@
-# Changelog
+# Changes
 
-## 0.1.1 — recovery and observability correctness
+## 0.3.0 — in development
 
-- Derive verified effects from native history instead of post-commit response representations.
-- Retain raw and qualified normalized intent; reconcile normalized lost responses.
-- Refuse unround-trippable previous values and identify incomplete legacy restorations.
-- Repair provable legacy dispatched receipts through append-only reconciliation.
-- Read evidence in consistent SQLite snapshots; order task recovery by durable event sequence.
-- Reject malformed initialization and excessive JSON nesting without terminating the session.
-- Add deterministic and live regression coverage for all six review findings.
+- Target only NetBox 4.7.2 with one pinned Podman lab.
+- Add live discovery, schemas, filtered reads, GraphQL and general CRUD.
+- Add native actions, bulk, uploads, website forms and script/job tracking.
+- Add a bounded workflow interpreter and authenticated Streamable HTTP.
+- Extend durable receipts, integrity projections, compensation and diagnostics.
+- Add greenfield integration scenarios and agent GitHub issue feedback.
 
-## 0.1.0 — initial implementation
-
-- Direct stdio MCP writes for device description, serial, and status.
-- Durable intents, previous values, no-op/failure receipts, native history correlation.
-- Local idempotency, uncertain outcome reconciliation, optimistic field-aware undo.
-- Resumable task compensation, history inspection, recovery bundles, backups and exports.
-- Strict object scope and configuration, structured instructional errors.
-- Independent offline, HTTP, MCP SDK, property-based, and real-NetBox integration tests.
-- Apache-2.0 packaging and operator/agent recovery guidance.
-
-No PyPI release or broad production qualification has been performed.
+Earlier development history is retained in Git and JOURNAL.md.

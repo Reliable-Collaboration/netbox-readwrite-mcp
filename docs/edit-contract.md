@@ -1,30 +1,32 @@
-# Edit coverage and extension contract
+# Execution and recovery contracts
 
-Considering each edit category means defining a recovery contract or refusing it, not passing arbitrary bodies through.
+The general tools accept native NetBox payloads across resources; native
+permissions, field validation and relationship constraints remain authoritative.
+Supporting execution does not establish automatic reversibility.
 
-| Category | Examples | Policy / recovery concern |
+| Operation | Execution | Recovery |
 | --- | --- | --- |
-| Scalar text | Device description, serial; Unicode, multiline, empty | Supported; qualified whitespace normalization is retained alongside raw intent. Unrestorable pre-images are refused. |
-| Choice | Device status | Supported strings; invalid choices yield durable validation receipts. |
-| Multiple fields | Description + serial + status | One supported detail PATCH; inverse includes only effective changes. |
-| No-op / replay | Same value / key | Retained no-op / original receipt. |
-| Multiple objects | Several edits in one task | Sequential writes, resumable compensation, explicit partial outcomes. |
-| Unique identifiers | Name, asset tag | Refused; another object may claim the old value. |
-| Foreign keys | Site, role, tenant, platform, primary IP | Refused; references, permissions, and validation can change or disappear. |
-| Placement | Rack, position, face, chassis | Refused; occupancy and multi-field constraints. |
-| Collections | Tags, memberships | Refused; normalization and concurrent set changes need an adapter. |
-| Structured fields | Custom fields, JSON context | Refused; schema, defaults, nested paths, merge semantics. |
-| Create/allocate/clone | Devices, addresses, prefixes, VLANs, VMs | No tool; lost POST receipts and new dependents complicate undo. |
-| Delete/cascade | Interfaces, cables, devices | No tool; recreation changes IDs and can lose dependent graphs. |
-| Other resources | Circuits, power, wireless, contacts, tenancy, plugins | No generic writes; resource-specific contracts required. |
-| Bulk PUT/PATCH/DELETE | List endpoint mutations | No tool; batch atomicity and result ambiguity differ. |
-| Reserved/read-only | IDs, timestamps, URLs, changelog marker | Rejected; caller cannot forge correlation markers. |
-| Force/redo | Ignore concurrency / undo a correction | No tool; reviewed new forward edit required. |
+| Read/search/schema/GraphQL | Native queries | No mutation |
+| General create | POST with durable key and native evidence | Retained created-object graph; guided correction checks later affected-object changes |
+| General detail PATCH | Fresh ETag, retained pre-image, correlated changes | Field-aware inverse when one native change and exact writable before/after values establish the contract; conflicts/ABA block |
+| Detail DELETE | Fresh ETag and retained native cascade changes | Guided graph recovery; no claim that REST recreation preserves original IDs |
+| Native bulk/action/upload | Durable request/receipt and all correlated native rows | Explicit action-specific evidence; no cross-object atomicity promise |
+| Resumable bulk/workflow | Per-step derived keys, stop on failure/uncertainty | Inspect partial task; no blind workflow restart under a new key |
+| Website forms | Native session/CSRF/permissions, retained request/result | Form validation and native evidence inspected; arbitrary form inverses are not synthesized |
+| Script/job | Submission receipt and recognized job tracking | Acceptance separate from completion; job failure may have partial effects |
+| Existing device description/serial/status path | Original normalization and conditional-write contract | Exact field-aware compensation, including repeated-field task recovery |
 
-Tests exercise every supported field, representative values from each unsupported field category, malformed tool inputs, unlisted mutation tools, and native validation/permission failures. They do not claim to test every internal NetBox model validator.
+General compensation never dispatches a synthesized inverse for an unknown
+serializer transformation. Scalar and compatible relationship values can be
+converted from native REST representations. Only verified correction evidence
+whose post-image equals original native pre-image establishes completed undo.
+Newer unrelated fields survive; newer same-field changes, including ABA, conflict.
 
-## Extension requirements
+Graph restoration and original-ID undelete are still the subject of the proposed
+NetBox-side extension described in deletion-recovery.md. Keeping a graph's
+before-images is not equivalent to having implemented that extension. Recovery
+assessments expose this boundary rather than declaring success.
 
-Before adding an adapter, define and test read/write normalization; full mutation effects and cascades; durable intent and lost-response correlation; inverse preconditions and preserved newer work; uniqueness and dependency changes; schema upgrades; permission changes; and backup compatibility.
-
-Require real NetBox integration tests plus independent offline invariants. Include an actionable refusal when safe recovery cannot be proved. Merely adding a field to an allowlist does not establish reversibility.
+Tests use the real pinned NetBox and distinguish successful lifecycle tests from
+metadata/reachability sweeps. Deployment plugins and custom validators require
+their own qualification.

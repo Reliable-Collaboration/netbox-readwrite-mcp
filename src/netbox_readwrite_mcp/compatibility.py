@@ -1,18 +1,13 @@
-"""Explicit stable-version policy; acceptance is distinct from qualification."""
+"""One explicit, tested NetBox target. Upgrade code and lab together."""
 
-import re
-
-QUALIFIED_VERSIONS = ("4.6.10", "4.7.0", "4.7.1")
-SUPPORTED_VERSIONS = "stable 4.7.x or legacy 4.6.10"
+NETBOX_VERSION = "4.7.2"
+QUALIFIED_VERSIONS = (NETBOX_VERSION,)
+SUPPORTED_VERSIONS = NETBOX_VERSION
 
 
 def normalization_profile(version):
-    if version == "4.6.10":
-        return "netbox-4.6.10-device-v1"
-    if isinstance(version, str) and re.fullmatch(r"4\.7\.(0|[1-9][0-9]*)", version):
+    if version == NETBOX_VERSION:
         return "netbox-4.7-device-v1"
     raise RuntimeError(
-        "Unsupported NetBox version; requires "
-        + SUPPORTED_VERSIONS
-        + ". Prereleases are refused. Run the live contract suite before upgrading."
+        f"Unsupported NetBox version; requires exactly {NETBOX_VERSION}. Run the live contract suite before upgrading."
     )

@@ -1,10 +1,16 @@
 # NetBox-wide agent operations: requirements and implementation design
 
-Status: requirements and discovery, not delivered functionality. The existing
-0.2.0 device-field contract remains the implemented contract. This document
-supersedes that narrow scope as the product objective.
+Status: product requirements. Version 0.3.0 implements general discovery, CRUD,
+actions, workflows and native website forms; see feature-matrix.md for measured
+coverage. Universal action qualification and original-ID graph recovery remain
+separate acceptance work, not implied by a generic transport.
 
 ## Required outcome
+
+Scope clarification (2026-09-30): implement fully open-source NetBox Community
+features. Exclude Branching and commercial product integrations; the managed
+MCP feature list is a source of open-source capability ideas, not a requirement
+to adopt proprietary or restrictively licensed backends.
 
 An agent must be able to perform the actions available to its human-equivalent
 NetBox identity: create, modify, and delete objects across NetBox, including

@@ -2,7 +2,6 @@
   "netbox_url": "https://netbox.example.org",
   "token_file": "token",
   "journal": "state/journal.sqlite",
-  "instance_id": "replace-with-a-uuid-for-this-netbox-lineage",
-  "actor": "netbox-agent",
-  "allowed_device_ids": [42, 43]
+  "instance_id": "replace-with-generated-uuid",
+  "actor": "inventory-agent"
 }

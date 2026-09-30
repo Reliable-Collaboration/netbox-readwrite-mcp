@@ -8,4 +8,4 @@ Preserve append-only evidence and conservative uncertain outcomes. Do not add au
 
 Keep source, documentation, and dependencies compatible with an entirely open-source deployment. Contributions are under Apache-2.0; preserve third-party notices. Never commit tokens, private inventory, .lab data, or real recovery bundles.
 
-No established production stability claim is made for 0.1. Before a release, record exact tested versions, build/install the wheel, scan tracked files for credentials, and publish validation limits alongside results.
+No established production stability claim is made. Before a release, record exact tested versions, build/install the wheel, scan tracked files for credentials, and publish validation limits alongside results.

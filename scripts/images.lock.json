@@ -1,19 +1,9 @@
 {
   "netbox": {
-    "4.6.10": {
-      "tag": "docker.io/netboxcommunity/netbox:v4.6.10-5.0.2",
-      "id": "23ffaca5cce9c7e14f74643bd7b6628676c34217892027afb14c9accec009d9c",
-      "digest": "docker.io/netboxcommunity/netbox@sha256:5ee780bdc63b5a5f7ad5073e05e265f74d1a1c52ca0057facc9e4279fcfdb8cc"
-    },
-    "4.7.0": {
-      "tag": "docker.io/netboxcommunity/netbox:v4.7.0-5.1.1",
-      "id": "1c366c7eee77ed5d6f370aba50696bbad97d5417e43c0c05e5f6b3dcf3056110",
-      "digest": "docker.io/netboxcommunity/netbox@sha256:1685e91c61bb4050089db2bb1603718820ae3ce0b266d4d069ff7c682f5d9c58"
-    },
-    "4.7.1": {
-      "tag": "docker.io/netboxcommunity/netbox:v4.7.1-5.1.1",
-      "id": "698ebc1d1ced7d87acb677f468b264ae63a50e585c71579b5ec45a192c72d77d",
-      "digest": "docker.io/netboxcommunity/netbox@sha256:59e3e5954d0243d8648f2fa7ba82cf7c7770aaeef392026cca8b21cd67411e74"
+    "4.7.2": {
+      "tag": "docker.io/netboxcommunity/netbox:v4.7.2-5.1.1",
+      "id": "75412157b61cbaede607ae2c30201f99d8df15aac7060dd4c06fb3aeb37711db",
+      "digest": "docker.io/netboxcommunity/netbox@sha256:06e6389565bce8e65ce68aed7d5e7871606ebd79b35da9af9a08f989761aa18a"
     }
   },
   "postgres": {

@@ -41,8 +41,10 @@ class Service:
     def __init__(self, api, journal, instance_id, actor, allowed_device_ids, fault=None):
         self.api = api
         self.actor = actor
-        self.allowed = frozenset(allowed_device_ids)
-        if not self.allowed or any(type(x) is not int or x <= 0 for x in self.allowed):
+        self.allowed = None if allowed_device_ids is None else frozenset(allowed_device_ids)
+        if self.allowed is not None and (
+            not self.allowed or any(type(x) is not int or x <= 0 for x in self.allowed)
+        ):
             raise ValueError("A non-empty positive device ID allowlist is required")
         self.store = Store(
             journal,
@@ -50,7 +52,7 @@ class Service:
                 "url": api.url,
                 "instance_id": instance_id,
                 "actor": actor,
-                "allowed_device_ids": sorted(self.allowed),
+                "allowed_device_ids": None if self.allowed is None else sorted(self.allowed),
                 "policy": 1,
             },
         )
@@ -58,7 +60,7 @@ class Service:
         self.version = None
 
     def _device(self, device_id):
-        if type(device_id) is not int or device_id not in self.allowed:
+        if type(device_id) is not int or (self.allowed is not None and device_id not in self.allowed):
             raise ValueError("Device is outside the configured allowlist")
         return self.api.get(f"dcim/devices/{device_id}/")
 
@@ -646,7 +648,7 @@ class Service:
 
     @consistent_read
     def get_device_history(self, device_id):
-        if device_id not in self.allowed:
+        if self.allowed is not None and device_id not in self.allowed:
             raise ValueError("Device is outside the configured allowlist")
         return {
             "device_id": device_id,

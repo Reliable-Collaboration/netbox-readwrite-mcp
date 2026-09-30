@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        netbox: ['4.6.10', '4.7.0', '4.7.1']
+        netbox: ['4.7.2']
     env:
       NETBOX_RW_TEST_VERSION: ${{ matrix.netbox }}
     steps:
@@ -44,7 +44,7 @@ jobs:
       - run: python scripts/lab.py up
       - run: python scripts/lab.py ready
       - run: python scripts/lab.py bootstrap && python scripts/seed.py
-      - run: NETBOX_RW_LIVE=1 pytest tests/integration -v --junitxml=.lab/${{ matrix.netbox }}/integration-results.xml
+      - run: NETBOX_RW_LIVE=1 pytest tests/unit tests/integration --cov=netbox_readwrite_mcp --cov-fail-under=85 -v --junitxml=.lab/${{ matrix.netbox }}/integration-results.xml
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:

@@ -1,77 +1,62 @@
-# Reproducing the audit
+# Reproducing validation
 
-## Offline suite
+Use Python 3.11+ and install `.[test,dev]`. Runtime uses the standard library;
+tests use pytest, Hypothesis and the official MCP SDK.
 
-Install a local editable copy and optional test/dev dependencies:
-
-~~~sh
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install -e '.[test,dev]'
+```sh
 ruff check src tests scripts
 ruff format --check src tests scripts
-pytest --cov=netbox_readwrite_mcp --cov-fail-under=85
-python -m build
-~~~
+pytest tests/unit
+```
 
-The suite does not contact a real NetBox. HTTP transport tests use a loopback server; protocol tests launch subprocesses and an official MCP SDK client. Hypothesis generates edit sequences and verifies that reverse task compensation restores initial values. Additional regressions cover consistent observer/export snapshots during concurrent commits, descending/equal clocks, legacy receipt reconciliation, inexact historical corrections, and malformed initialization/nested JSON. Other tests cover scope, malformed/unsupported edits, native error receipts, ambiguous outcomes, corruption, archive loss, idempotency, and recovery conflicts.
+The offline suite exercises journal invariants, generated edit sequences,
+concurrency, HTTP boundaries, both MCP transports, and the bounded workflow
+interpreter. It is separate from real NetBox qualification.
 
-The small independent NetBox model is deliberately not the authority for server semantics. Live tests establish those separately.
+## Real NetBox 4.7.2
 
-## Real NetBox integration
+Prerequisites: rootless Podman, free loopback port 18872, approximately 4 GiB RAM
+and 8 GiB disk plus room for retained test evidence. Images are pinned in
+scripts/images.lock.json. The lab never reuses an existing home-lab deployment.
 
-Prerequisites: Linux with rootless Podman, Python, network access to pull images, free port 18871 for the default NetBox 4.7.1 lab, approximately 4 GiB available RAM and 8 GiB disk. No cloud account or AI inference is involved.
-
-~~~sh
-export NETBOX_RW_TEST_VERSION=4.7.1  # alternatively: 4.7.0 or 4.6.10
+```sh
 python scripts/lab.py up
 python scripts/lab.py ready
 python scripts/lab.py bootstrap
 python scripts/seed.py
-NETBOX_RW_LIVE=1 pytest tests/integration -v --junitxml=.lab/$NETBOX_RW_TEST_VERSION/integration-results.xml
+NETBOX_RW_LIVE=1 pytest tests/unit tests/integration --cov=netbox_readwrite_mcp --cov-fail-under=85 --junitxml=.lab/4.7.2/results.xml
 python scripts/lab.py stop
-~~~
+```
 
-The selector must remain set for every command, including stop. Each version has independent containers, database volume, credentials and journals. Ports are 18860 (4.6.10), 18870 (4.7.0), and 18871 (4.7.1); omitting the selector defaults to 4.7.1. The integration suite checks the actual server version before modifying fixtures. Older unversioned labs are left intact.
+Only NETBOX_RW_TEST_VERSION=4.7.2 is accepted; omitting it selects the same version.
+Tests require explicit opt-in and verify the exact lab URL/version before writes.
+The broad test identity is not a superuser. The separate restricted identity
+checks native denials and the original guarded device contract. Script storage
+is shared between web and worker containers through a dedicated lab volume.
 
-Images are digest-pinned in scripts/images.lock.json. Startup migrates a fresh database. Bootstrap creates a lab-only administrator; seed creates synthetic devices plus a restricted agent with view/change only for two device IDs. A third device tests permission denial.
+Live tests cover greenfield dependency creation; hardware, cables, IP/VLAN and
+virtual inventory; filtered discovery; schemas; GraphQL; CRUD across resource
+types; native and resumable bulk; custom fields and tags; website CSRF/form
+validation; scripts/uploads/jobs; rendering; allocations; compensation and ABA;
+response loss; crash boundaries; native denials; journal corruption and backup.
+The original device suite retains its transport-loss, hard-exit and race tests.
 
-Tests use a new journal per case and reset only the two synthetic devices. They send actual conditional PATCH requests and verify actual native history. The suite requires explicit opt-in and refuses configuration pointing away from the lab's loopback URL. Do not route that port to a production server.
+GET/OPTIONS sweeps produce .lab/4.7.2/resource-coverage.json. They establish route
+reachability/metadata, not successful CRUD semantics for every NetBox model.
+Registered GUI/API inventory is generated separately with scripts/inventory_surface.py.
 
-Each run retains journal exports and checksums under `.lab/<version>/evidence`. Tokens/configuration live under .lab and are ignored by Git. Do not publish this directory. CI uploads only synthetic JUnit reports.
+Evidence, tokens and transcripts remain in ignored .lab/4.7.2/. Do not publish
+this directory. CI publishes synthetic JUnit reports only. The validation record
+states what was actually run; passing representative tests is not universal GUI
+or plugin certification.
 
-Covered live scenarios include:
+## Cleanup
 
-- Actual MCP edit/undo, native snapshots, and idempotent replay after restart.
-- Qualified serializer normalization, normalized no-ops, and refusal of noncanonical pre-images.
-- Normalized writes surviving response loss and hard exit.
-- A real second HTTP writer between NetBox commit and response re-query; committed effects stay accurate.
-- No-op with no PATCH, stale preconditions, last-moment server 412, unrelated-field preservation, ABA conflicts.
-- Real commit followed by injected response loss; hard process exit before dispatch and after commit.
-- Archive outage before/after commit, missing archived row, wrong correlation actor.
-- Simulated disk-full transaction failure before dispatch.
-- Repeated-field task recovery, partial conflict, resumed correction after hard exit.
-- Two writer processes sharing an idempotency boundary.
-- Actual restricted-token denial of out-of-scope edits and deletion.
-- Native invalid status, scalar multi-field restoration, and unsupported fields.
-- Verified backup restoration and local evidence/projection integrity guards.
+Stop preserves data and evidence. Remove only these exact disposable resources
+when evidence is no longer needed:
 
-Fault injection does not establish hardware power-loss durability, distributed failover correctness, high-volume scalability, webhook reversal, or arbitrary model recovery. Tests after a real commit simulate transport loss; they do not physically interrupt a network switch.
-
-## Cleanup and isolation
-
-Stop preserves evidence and data. Resource names use the `nbrw-audit-<version-with-dashes>` prefix and project label. The harness never prunes global resources or touches the preliminary research lab.
-
-To remove only the default 4.7.1 disposable lab after stopping it (substitute the version in every name for a different lab):
-
-~~~sh
-podman rm nbrw-audit-4-7-1-worker nbrw-audit-4-7-1-netbox nbrw-audit-4-7-1-valkey nbrw-audit-4-7-1-postgres
-podman volume rm nbrw-audit-4-7-1-db
-podman network rm nbrw-audit-4-7-1
-~~~
-
-Archive any evidence needed first. Starting again with retained `.lab/<version>` credentials creates a fresh database with the same lab credentials; run bootstrap and seed again.
-
-## CI and dependencies
-
-GitHub Actions runs offline tests on Python 3.11–3.14 and the live suite on Python 3.12 against NetBox 4.6.10, 4.7.0, and 4.7.1. Actions are pinned by commit. Test dependencies have supported major-version bounds; runtime has no third-party Python dependencies. The checked-in validation report records the exact versions used locally. Auditors wanting exact replay can install the recorded dependency snapshot on the corresponding platform/Python version; ongoing CI intentionally tests resolution within the declared bounds.
+```sh
+podman rm nbrw-audit-4-7-2-worker nbrw-audit-4-7-2-netbox nbrw-audit-4-7-2-valkey nbrw-audit-4-7-2-postgres
+podman volume rm nbrw-audit-4-7-2-db nbrw-audit-4-7-2-scripts
+podman network rm nbrw-audit-4-7-2
+```

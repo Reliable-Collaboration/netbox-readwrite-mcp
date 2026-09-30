@@ -1,78 +1,94 @@
 {
-  "date": "2026-09-28",
-  "version": "0.2.0",
-  "tested_commit": "1ee9740c05785720d043908b309f822e3c28df19",
-  "unit_tests": 212,
-  "integration_tests": 36,
-  "integration_subtests": 6,
-  "coverage": {
-    "covered_lines": 677,
-    "num_statements": 722,
-    "percent_covered": 91.95519348268839,
-    "percent_covered_display": "92",
-    "missing_lines": 45,
-    "excluded_lines": 0,
-    "percent_statements_covered": 93.76731301939058,
-    "percent_statements_covered_display": "94",
-    "num_branches": 260,
-    "num_partial_branches": 26,
-    "covered_branches": 226,
-    "missing_branches": 34,
-    "percent_branches_covered": 86.92307692307692,
-    "percent_branches_covered_display": "87"
-  },
-  "ci_run": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36471841897",
-  "ci_conclusion": "failure",
-  "ci_jobs": [
-    {
-      "name": "netbox (4.6.10)",
-      "conclusion": "failure"
-    },
-    {
-      "name": "unit (3.14)",
-      "conclusion": "success"
-    },
-    {
-      "name": "unit (3.12)",
-      "conclusion": "success"
-    },
-    {
-      "name": "unit (3.13)",
-      "conclusion": "success"
-    },
-    {
-      "name": "netbox (4.7.1)",
-      "conclusion": "success"
-    },
-    {
-      "name": "netbox (4.7.0)",
-      "conclusion": "success"
-    },
-    {
-      "name": "unit (3.11)",
-      "conclusion": "success"
-    }
-  ],
-  "source_sha256": {
-    "src/netbox_readwrite_mcp/__init__.py": "556f96996e04a7c3cc0a1e64cb62a2610dbe40d434bc365b50803c5f2cbe0555",
-    "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
-    "src/netbox_readwrite_mcp/api.py": "c028bf9d639e965249248c0ae2f62e28c81998e410e8ce8b66c22851c275db7b",
-    "src/netbox_readwrite_mcp/compatibility.py": "34f1f66d4e3248c74a3255711b428ed42429874db955dcbbfa5b6bf1440815db",
-    "src/netbox_readwrite_mcp/config.py": "06f899634dd383913f36bd131f632be62f02213a167526d5b2b6dd819842e2b9",
-    "src/netbox_readwrite_mcp/errors.py": "aba98a8cc388774be42988b03fc25628604b0aef3399b11ae4cd89439d6cca16",
-    "src/netbox_readwrite_mcp/normalization.py": "81f8208fc954c0c2c3bcd05d3faa6859843a911b2ff44015b4f6f448762cebfa",
-    "src/netbox_readwrite_mcp/server.py": "d68c15e95015c76234b1bde909de618c5f748f35cd68e0fb188049b99be28834",
-    "src/netbox_readwrite_mcp/service.py": "8aaa439cbccd3ea0968c470f0939f1274ce1a748843ad03e83707a5f1807fc73",
-    "src/netbox_readwrite_mcp/store.py": "4b95d045aed70b0b549fe46f6cc8dbe569e86455c58aafd9526fb9611f2cc189"
-  },
+  "date": "2026-09-30",
+  "version": "0.3.0",
   "netbox_versions": [
-    "4.7.0",
-    "4.7.1"
+    "4.7.2"
   ],
-  "ci_followup": {
-    "run": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36472610494",
-    "commit": "8ca543298312f367780bf298d491868df88e5d6a",
-    "status_at_recording": "pending",
-    "reason": "Legacy 4.6.10 fixture setup timed out on its first GET; bounded lab-only timeout increased."
-  }
+  "python": "3.14.4",
+  "official_mcp_sdk": "1.30.0",
+  "unit_tests": 311,
+  "integration_tests": 79,
+  "integration_subtests": 6,
+  "combined_tests": 390,
+  "coverage": {
+    "covered_lines": 1590,
+    "num_statements": 1682,
+    "percent_covered": 92.71966527196653,
+    "percent_covered_display": "93",
+    "missing_lines": 92,
+    "excluded_lines": 0,
+    "percent_statements_covered": 94.53032104637336,
+    "percent_statements_covered_display": "95",
+    "num_branches": 708,
+    "num_partial_branches": 76,
+    "covered_branches": 626,
+    "missing_branches": 82,
+    "percent_branches_covered": 88.4180790960452,
+    "percent_branches_covered_display": "88"
+  },
+  "offline_coverage": {
+    "covered_lines": 1499,
+    "num_statements": 1682,
+    "percent_covered": 86.86192468619247,
+    "percent_covered_display": "87",
+    "missing_lines": 183,
+    "excluded_lines": 0,
+    "percent_statements_covered": 89.12009512485136,
+    "percent_statements_covered_display": "89",
+    "num_branches": 708,
+    "num_partial_branches": 87,
+    "covered_branches": 577,
+    "missing_branches": 131,
+    "percent_branches_covered": 81.49717514124293,
+    "percent_branches_covered_display": "81"
+  },
+  "lab": "Fresh disposable PostgreSQL database; digest-pinned NetBox 4.7.2, PostgreSQL and Valkey; native non-superuser roles",
+  "discovered_endpoints": 146,
+  "successful_collection_or_action_gets": 135,
+  "ci_status": "Workflow updated; remote result is separate from this local validation record",
+  "issue_feedback_test": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/issues/1",
+  "source_sha256": {
+    "src/netbox_readwrite_mcp/__init__.py": "cad430435741be9f74ef01978773af3e8d97be9ee74aae954630a042153d4e4b",
+    "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+    "src/netbox_readwrite_mcp/api.py": "71de09e364692bde02d0bbb33092b6f12266928fd53f10f83c7ab3bdcfeaa38d",
+    "src/netbox_readwrite_mcp/catalog.py": "48b20fbeb0e87f8dbde032b81f7cdb0b8bd8577fbb000a2700c08e635b6f1921",
+    "src/netbox_readwrite_mcp/compatibility.py": "4c6f8b708fa8d0a7114e7c002682f06bd1c34878ae490aeb1c658bcad0bc6ef7",
+    "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+    "src/netbox_readwrite_mcp/errors.py": "aba98a8cc388774be42988b03fc25628604b0aef3399b11ae4cd89439d6cca16",
+    "src/netbox_readwrite_mcp/http_server.py": "f9b1bc2fe6e17e6c42e1b1d0650caef41cc2d3225a000e97345eeecd91246904",
+    "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+    "src/netbox_readwrite_mcp/recovery.py": "a786c7077cb8344deb64ceff9e285e6cea2c236977a2275610c6557235520c0d",
+    "src/netbox_readwrite_mcp/server.py": "0d94bf590190070ba2c4d2b0743529416077dad515cc0f516caff215d20c0d4c",
+    "src/netbox_readwrite_mcp/service.py": "4620c2d0624c786cb2d87562221614cc0a1743908f5c8cfd25c161c89f1254ff",
+    "src/netbox_readwrite_mcp/store.py": "87776573cd99fb23282e2ba7ee4fc3b8259a0f80a2e9aa91c4780bad764956ab",
+    "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+    "src/netbox_readwrite_mcp/workflow.py": "9b0591816a00eee331d472f9781359a5abf91444bf031c528da04151327c1840",
+    "src/netbox_readwrite_mcp/workspace.py": "5db6c9773d72ab2e38383b280945c24fd3e210cb681c6cbe1910bdbbefe16a9a"
+  },
+  "test_sha256": {
+    "tests/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/integration/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/integration/mcp_client.py": "06e400ad51cb2023ca041fc7186c2ac6030f7a4d784e2e5f09e4fc1c584a1cd5",
+    "tests/integration/response_race.py": "b1fa1d4ef085571345b2f3758b46e92f8c6c74cda96d206478913fceb722ce2b",
+    "tests/integration/test_inventory.py": "6bd3db20eda9f02636d036b4c98b03c2ed96aca1f35877fc40cdc6340c1d78d3",
+    "tests/integration/test_live.py": "459ae567b7c3fa182045a1a3fcfb9463ee5fcf04513c6d16f69008342edec2a3",
+    "tests/unit/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/unit/conftest.py": "4bb982977ff3d57963427dffb50afd639ef6764efb465d01e9da275aa2d25775",
+    "tests/unit/fakes.py": "68703b816e7c2974d22ee28c4abb7191725875ed7e851f200b20967d6d46630e",
+    "tests/unit/test_boundaries.py": "6c8d51b0979d20f1cef63ec768645b722d43f0938732781fe6ed12f10b690527",
+    "tests/unit/test_compatibility.py": "5d57efc7b2f7b1d8d25d8401f02b08e230beaf6fd0b41d87ce3216b6fcdddf06",
+    "tests/unit/test_http.py": "60bd1069163778270f1ecebd864bd2881fca7d783eda5878d634fa858ca50e32",
+    "tests/unit/test_recovery.py": "1b7bb0d1f525ecd5e3e73deb44838e0489bfb583b9ad54b5fe5da8ad209be0f2",
+    "tests/unit/test_review_regressions.py": "c04dd7388d46c0cc9781c8464bdb1560a1dcb8fd42d49985f2a7f033cf30f411",
+    "tests/unit/test_streamable_http.py": "ac1651d3f637c9349d4f0de07814e459720cad62526818b1b2c5ee5b5cfe1149",
+    "tests/unit/test_workflow.py": "561502eb3facfd8258e7e506cb20e6b0003b0c26f44cb95adf9990f9d5750f4a",
+    "tests/unit/test_workspace.py": "b394d33f68b002d7b74abfb1b5cbe598c5ecb183c5c8b9bde4e933f565e7589f"
+  },
+  "limits": [
+    "Representative native CRUD/action and website scenarios; route reachability is not universal model/GUI semantic qualification",
+    "No Branching or commercial integrations",
+    "No automatic original-ID graph restoration",
+    "No arbitrary plugin certification, SSO/MFA login qualification, large-estate or distributed-deployment qualification",
+    "LLM judgment quality is not established by deterministic tool tests"
+  ]
 }

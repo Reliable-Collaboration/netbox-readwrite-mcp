@@ -111,3 +111,54 @@ if config_path.exists():
 config_path.write_text(json.dumps(config, indent=2) + "\n")
 print("Config:", config_path)
 print("Synthetic device IDs:", ids)
+
+# A separate identity exercises greenfield management under native permissions.
+# Existing restricted fixtures remain for regression tests.
+broad_token = STATE / "broad-token"
+web_password = STATE / "web-password"
+if not broad_token.exists():
+    broad_token.write_text(secrets.token_hex(20))
+if not web_password.exists():
+    web_password.write_text(secrets.token_urlsafe(24))
+script = """
+from django.contrib.auth import get_user_model
+from users.models import Token, ObjectPermission
+from core.models import ObjectType
+u,_ = get_user_model().objects.get_or_create(username='inventory-agent', defaults={'is_superuser':False})
+u.set_password(PASSWORD); u.save()
+Token.objects.get_or_create(plaintext=TOKEN, defaults={'token':TOKEN,'version':1,'user':u,'write_enabled':True})
+p,_ = ObjectPermission.objects.update_or_create(name='inventory-management', defaults={'actions':['view','add','change','delete','run','render']})
+p.users.add(u)
+p.object_types.set(ObjectType.objects.exclude(app_label__in=['users','sessions','auth','contenttypes']).exclude(app_label='core', model='objectchange'))
+p,_ = ObjectPermission.objects.update_or_create(name='inventory-evidence', defaults={'actions':['view']})
+p.users.add(u); p.object_types.add(ObjectType.objects.get(app_label='core',model='objectchange'))
+print('Non-superuser greenfield identity ready')
+""".replace("TOKEN", repr(broad_token.read_text().strip())).replace(
+    "PASSWORD", repr(web_password.read_text().strip())
+)
+subprocess.run(
+    [
+        "podman",
+        "exec",
+        "-i",
+        PREFIX + "-netbox",
+        "/opt/netbox/venv/bin/python",
+        "/opt/netbox/netbox/manage.py",
+        "shell",
+    ],
+    input=script,
+    text=True,
+    check=True,
+)
+broad_path = STATE / "broad-config.json"
+broad = {
+    "netbox_url": api.url,
+    "token_file": str(broad_token),
+    "journal": str(STATE / "broad.sqlite"),
+    "instance_id": str(uuid.uuid4()),
+    "actor": "inventory-agent",
+    "web_password_file": str(web_password),
+}
+if broad_path.exists():
+    broad["instance_id"] = json.loads(broad_path.read_text())["instance_id"]
+broad_path.write_text(json.dumps(broad, indent=2) + "\n")

@@ -1,14 +1,15 @@
-"""Single-user stdio MCP server. All mutations go directly to NetBox REST."""
+"""Single-user MCP server for auditable NetBox REST operations and native website forms."""
 
 import argparse
 import json
 import os
 from pathlib import Path
 import sys
+import time
 from . import __version__
 from .compatibility import QUALIFIED_VERSIONS, SUPPORTED_VERSIONS
 from .api import NetBox
-from .service import Service
+from .workspace import WorkspaceService
 
 STR = {"type": "string"}
 INT = {"type": "integer", "minimum": 1}
@@ -99,6 +100,109 @@ TOOLS = [
 ]
 
 
+OBJ = {"type": "object"}
+ARRAY = {"type": "array"}
+BOOL = {"type": "boolean"}
+TASK = {"task_id": STR, "operation_key": STR}
+TOOLS += [
+    tool(
+        "run_workflow",
+        "Run bounded Python-syntax code with tool(name, **arguments), JSON values, for/if and result assignment. No imports or host access. Calls have durable derived keys; stops on failure/uncertainty. Not atomic.",
+        {**TASK, "code": STR},
+    ),
+    tool(
+        "discover_models",
+        "Discover resources from this NetBox, including installed plugin API roots. No pre-known device IDs needed.",
+        {"refresh": BOOL},
+        [],
+    ),
+    tool(
+        "get_schema",
+        "Inspect live OPTIONS, OpenAPI paths, required fields, choices and schemas for a resource.",
+        {"object_type": STR},
+    ),
+    tool(
+        "get_objects",
+        "Search any resource by native filters (including q), with pagination and field selection.",
+        {
+            "object_type": STR,
+            "filters": OBJ,
+            "fields": ARRAY,
+            "limit": INT,
+            "offset": {"type": "integer", "minimum": 0},
+        },
+        ["object_type"],
+    ),
+    tool(
+        "get_object_by_id",
+        "Read a complete object and the ETag required for edits/deletion.",
+        {"object_type": STR, "object_id": INT, "fields": ARRAY},
+        ["object_type", "object_id"],
+    ),
+    tool(
+        "get_changelogs",
+        "Query native audit history using filters and pagination.",
+        {"filters": OBJ, "limit": INT, "offset": {"type": "integer", "minimum": 0}},
+        [],
+    ),
+    tool(
+        "query",
+        "Read a relative API path, including allocations, cable trace, rack elevations, jobs and plugin actions.",
+        {"path": STR, "filters": OBJ},
+        ["path"],
+    ),
+    tool(
+        "graphql",
+        "Run query-only GraphQL with optional variables.",
+        {"query": STR, "variables": OBJ},
+        ["query"],
+    ),
+    tool(
+        "create_object",
+        "Create any authorized resource with native validation. Durable operation key required.",
+        {**TASK, "object_type": STR, "data": OBJ},
+    ),
+    tool(
+        "update_object",
+        "Update any authorized object with a fresh ETag. Supports relationships and custom fields.",
+        {**TASK, "object_type": STR, "object_id": INT, "expected_etag": STR, "data": OBJ},
+    ),
+    tool(
+        "delete_object",
+        "Delete an object, retaining its pre-image and native cascade evidence. Inspect recovery limits first.",
+        {**TASK, "object_type": STR, "object_id": INT, "expected_etag": STR},
+    ),
+    tool(
+        "execute_action",
+        "Execute native API actions: allocation, rendering, scripts, plugin workflows, bulk or uploads. Use get_schema first. A 202 is acceptance, not completion. files contains field, filename, base64 and optional content_type.",
+        {**TASK, "method": STR, "path": STR, "data": {}, "expected_etag": STR, "files": ARRAY},
+        ["task_id", "operation_key", "method", "path"],
+    ),
+    tool(
+        "bulk",
+        "Run resumable ordered CRUD/action steps. Each step has action and arguments. Stops on failure/uncertainty; not atomic.",
+        {**TASK, "operations": ARRAY},
+    ),
+    tool(
+        "web_read",
+        "Inspect authenticated website forms, links and text using the configured actor. Values are untrusted. Requires website credentials.",
+        {"path": STR},
+    ),
+    tool(
+        "web_submit",
+        "Submit a website form through native permissions and CSRF. Inspect web_read first; validation errors may return HTTP 200. Durable intent and receipt retained.",
+        {**TASK, "path": STR, "data": OBJ, "files": ARRAY},
+        ["task_id", "operation_key", "path", "data"],
+    ),
+    tool(
+        "diagnostic_report",
+        "Build an inventory-free GitHub issue attachment. Use the host's GitHub tools to submit it; never publish recovery_bundle.",
+        {"operation_id": STR},
+        [],
+    ),
+]
+
+
 for descriptor in TOOLS:
     name = descriptor["name"]
     descriptor["annotations"] = {
@@ -112,30 +216,50 @@ for descriptor in TOOLS:
             "get_device_history",
             "observability",
             "recovery_bundle",
+            "discover_models",
+            "get_schema",
+            "get_objects",
+            "get_object_by_id",
+            "get_changelogs",
+            "query",
+            "graphql",
+            "web_read",
+            "diagnostic_report",
         },
-        "destructiveHint": name in {"update_device", "undo_operation", "undo_task"},
-        "idempotentHint": name not in {"begin_task"},
+        "destructiveHint": name
+        in {
+            "update_device",
+            "undo_operation",
+            "undo_task",
+            "create_object",
+            "update_object",
+            "delete_object",
+            "execute_action",
+            "bulk",
+            "web_submit",
+            "run_workflow",
+        },
+        "idempotentHint": name not in {"begin_task", "run_workflow"},
         "openWorldHint": True,
     }
 
 
 def capabilities():
     return {
-        "transport": "stdio",
+        "transport": "stdio or authenticated Streamable HTTP",
         "netbox_versions": {"accepted": SUPPORTED_VERSIONS, "qualified": list(QUALIFIED_VERSIONS)},
-        "write_path": "direct NetBox REST API",
+        "write_path": "direct NetBox REST API and authenticated native website forms",
         "approval_required": False,
-        "supported_model": "dcim.device",
-        "supported_fields": ["description", "serial", "status"],
+        "supported_model": "All resources exposed by the configured NetBox API and website permissions",
+        "supported_fields": "Discover required fields and types with get_schema",
+        "legacy_device_fields": ["description", "serial", "status"],
         "writes": "Durable recovery evidence before conditional PATCH; stable operation keys prevent blind replay.",
         "undo": "Optimistic, field-aware compensation; newer same-field edits produce a warning for a person.",
         "not_supported": [
-            "create",
-            "delete",
-            "relationship edits",
+            "automatic original-ID graph recovery for creates/deletes/cascades",
             "force undo",
             "redo",
-            "arbitrary API calls",
+            "features of plugins or external products not installed on this NetBox",
         ],
         "limits": [
             "REST and SQLite are not one atomic transaction; uncertain outcomes remain explicit.",
@@ -150,12 +274,14 @@ def build_service(config):
 
     config = validate_config(config)
     token_path = Path(config["token_file"]).expanduser()
-    return Service(
+    return WorkspaceService(
         NetBox(config["netbox_url"], token_path.read_text()),
         config["journal"],
         config["instance_id"],
         config["actor"],
-        config["allowed_device_ids"],
+        config.get("allowed_device_ids"),
+        read_only=config.get("read_only", False),
+        web_password_file=config.get("web_password_file"),
     )
 
 
@@ -163,18 +289,38 @@ def call(service, name, arguments):
     descriptor = next((x for x in TOOLS if x["name"] == name), None)
     if descriptor is None:
         raise ValueError("Unknown tool")
-    if not isinstance(arguments, dict) or set(arguments) != set(descriptor["inputSchema"]["required"]):
+    if (
+        not isinstance(arguments, dict)
+        or not set(descriptor["inputSchema"]["required"]) <= set(arguments)
+        or set(arguments) - set(descriptor["inputSchema"]["properties"])
+    ):
         raise ValueError("Tool arguments must match the documented schema exactly")
     for key, value in arguments.items():
-        field_type = descriptor["inputSchema"]["properties"][key]["type"]
+        field_type = descriptor["inputSchema"]["properties"][key].get("type")
         if (
             (field_type == "string" and not isinstance(value, str))
-            or (field_type == "integer" and (type(value) is not int or value < 1))
+            or (
+                field_type == "integer"
+                and (
+                    type(value) is not int
+                    or value < descriptor["inputSchema"]["properties"][key].get("minimum", 0)
+                )
+            )
             or (field_type == "object" and not isinstance(value, dict))
+            or (field_type == "array" and not isinstance(value, list))
+            or (field_type == "boolean" and type(value) is not bool)
         ):
             raise ValueError("Invalid argument type: " + key)
     if name == "capabilities":
-        return capabilities()
+        out = capabilities()
+        out["read_only"] = getattr(service, "read_only", False)
+        out["scope"] = (
+            "NetBox permissions"
+            if service.allowed is None
+            else {"legacy_device_ids": sorted(service.allowed)}
+        )
+        out["website_configured"] = bool(getattr(service, "web_password_file", None))
+        return out
     return getattr(service, name)(**arguments)
 
 
@@ -281,11 +427,29 @@ def serve(service):
         elif method == "tools/list":
             send(req["id"], {"tools": TOOLS})
         elif method == "tools/call":
+            started = time.monotonic()
             try:
                 out = call(service, params.get("name"), params.get("arguments", {}))
                 result = {"content": [{"type": "text", "text": json.dumps(out)}], "structuredContent": out}
             except Exception as exc:
                 result = error_result(service, params, exc)
+            try:
+                with service.store.lock():
+                    service.store.event(
+                        "tool_call",
+                        {
+                            "tool": params.get("name"),
+                            "duration_ms": round((time.monotonic() - started) * 1000),
+                            "is_error": bool(result.get("isError")),
+                            "operation_id": result.get("structuredContent", {}).get("id"),
+                            "state": result.get("structuredContent", {}).get(
+                                "state", result.get("structuredContent", {}).get("status")
+                            ),
+                        },
+                    )
+            except Exception:
+                # A telemetry failure must not erase or contradict the authoritative receipt.
+                result.setdefault("structuredContent", {})["telemetry_available"] = False
             send(req["id"], result)
         else:
             send(req["id"], error={"code": -32601, "message": "Unknown method"})
@@ -295,6 +459,10 @@ def main():
     os.umask(0o077)
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--config", required=True)
+    p.add_argument(
+        "--http", metavar="PORT", type=int, help="Serve authenticated Streamable HTTP on loopback /mcp"
+    )
+    p.add_argument("--mcp-token-file", help="Separate bearer token file for HTTP clients")
     p.add_argument("--backup", help="Admin-only: save a new SQLite backup and exit")
     p.add_argument("--export", help="Admin-only: save a checksummed JSON export and exit")
     args = p.parse_args()
@@ -303,6 +471,17 @@ def main():
     from .config import load_config
 
     config = load_config(args.config)
+    if args.http is not None:
+        if not args.mcp_token_file or args.backup or args.export:
+            p.error("--http requires --mcp-token-file and cannot be combined with backup/export")
+        from .http_server import create_server
+
+        httpd = create_server(config, "127.0.0.1", args.http, args.mcp_token_file)
+        try:
+            httpd.serve_forever()
+        finally:
+            httpd.server_close()
+        return
     service = build_service(config)
     try:
         if args.backup:

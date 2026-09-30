@@ -1,57 +1,64 @@
 # Tool reference
 
-All tools reject missing/extra arguments and wrong top-level types. IDs and operation keys are strings; device IDs are positive integers. Device writes are constrained by both configured IDs and native permissions.
+Compatibility is exactly NetBox 4.7.2. Both stdio and authenticated loopback
+Streamable HTTP expose the same tools. Tool schemas are returned by tools/list;
+unknown arguments and incorrect types are refused. Native NetBox validation
+remains authoritative for payload fields and action-specific requirements.
 
-| Tool | Required arguments | Result |
-| --- | --- | --- |
-| capabilities | None | Supported model/fields, write path, exclusions, limitations |
-| begin_task | purpose | task_id; purpose is 1–1000 characters |
-| read_device | device_id | Supported values, name, ETag, untrusted-content flag |
-| update_device | task_id, operation_key, device_id, expected_etag, changes | Durable operation and authoritative state/receipt |
-| find_operation | operation_key | found flag, original operation, guidance |
-| get_operation | operation_id | Raw/normalized intent, previous/resulting values, receipts, state, evidence IDs |
-| get_task | task_id | Task and ordered operations |
-| get_device_history | device_id | Retained native changes and freshness |
-| preview_undo | operation_id | ready, conflicted, blocked, no_change, already_undone, correction_pending, incomplete_restore, or unsupported |
-| undo_operation | operation_id, operation_key | New correction receipt or a refusal/conflict assessment |
-| undo_task | task_id | undone or partial_or_blocked, correction task, per-operation results, atomic=false |
-| reconcile | None | Refreshed history, resolved outcomes where provable, observability |
-| observability | None | State/event counts, unresolved operations, archive health, integrity |
-| recovery_bundle | operation_id | Offline inverse values, identity, operation, native evidence, journal events |
+| Tools | Purpose |
+| --- | --- |
+| capabilities | Actual connection scope, exact version, read-only policy and recovery limits |
+| discover_models(refresh=false) | Discover core and installed plugin API roots, collections and actions |
+| get_schema(object_type) | Native OPTIONS/OpenAPI schemas, required fields, choices and actions |
+| get_objects(object_type, filters?, fields?, limit?, offset?) | Filtered, paginated collection reads; resource path or unambiguous name |
+| get_object_by_id(object_type, object_id, fields?) | Object data and ETag |
+| get_changelogs(filters?, limit?, offset?) | Native audit history |
+| query(path, filters?) | GET for any relative API path, including specialized actions |
+| graphql(query, variables?) | Query-only GraphQL |
+| begin_task(purpose) | Durable task ID |
+| create_object(task_id, operation_key, object_type, data) | Native create with durable intent |
+| update_object(task_id, operation_key, object_type, object_id, expected_etag, data) | Conditional PATCH |
+| delete_object(task_id, operation_key, object_type, object_id, expected_etag) | Conditional DELETE with retained pre-image/cascade evidence |
+| execute_action(task_id, operation_key, method, path, data?, expected_etag?, files?) | Native POST/PUT/PATCH/DELETE, list payloads and multipart uploads |
+| bulk(task_id, operation_key, operations) | Ordered CRUD/action steps, derived keys, stops on failure/uncertainty |
+| run_workflow(task_id, operation_key, code) | Bounded Python-syntax interpreter with controlled tool calls |
+| web_read(path) | Authenticated native forms/links/text or base64 download |
+| web_submit(task_id, operation_key, path, data, files?) | Native form submission with CSRF and journal evidence |
+| find_operation(operation_key), get_operation(operation_id), get_task(task_id) | Durable outcome lookup across all write paths |
+| preview_undo(operation_id), undo_operation(operation_id, operation_key), undo_task(task_id) | Conflict-aware compensation or explicit guided-recovery result |
+| reconcile | Refresh history, resolve provable unknown outcomes and track recognized asynchronous jobs |
+| observability | Integrity, freshness, event/state counts and unresolved operations |
+| recovery_bundle(operation_id) | Private retained evidence; never publish to GitHub |
+| diagnostic_report(operation_id?) | Inventory-free diagnostic issue attachment |
+| read_device, update_device, get_device_history | Existing narrow device workflow retained for established journals and regression tests |
 
-Operation keys contain 8–160 ASCII letters, digits, periods, underscores, colons, or hyphens. Supported values are strings up to the transport guard of 10,000 characters; NetBox applies its tighter field validators. Status choices are validated by NetBox so deployment-specific choices can be honored.
+Operation keys are 8–160 ASCII letters, digits, periods, underscores, colons or
+hyphens (workflow keys: at most 120). Bulk child keys append `.index`; leave room
+for that suffix. List reads default to 100 and accept up to 1000 records per page.
 
-The protocol supports stdio versions 2024-11-05, 2025-03-26, 2025-06-18, and 2025-11-25. Requests are bounded to 1 MiB and 64 JSON nesting levels and responses from NetBox to 16 MiB. Initialize the session first. No HTTP MCP transport, arbitrary API tool, shell tool, resources, or approval workflow is provided.
+Relative API paths end in `/` and exclude queries, traversal and origins. Pass
+filters separately for reads. `files` is a list of `{field, filename, base64,
+content_type?}`. No tool reads arbitrary agent-supplied local file paths.
 
-## Error contract
+## Outcomes
 
-Tool errors return isError=true with structured content:
+| State | Meaning |
+| --- | --- |
+| prepared / dispatched | Durable intent / possible dispatch; inspect before acting |
+| uncertain | Response unavailable or ambiguous; never blindly retry |
+| applied | Correlated native change evidence retained; inspect all affected objects |
+| completed | HTTP exchange completed, without verified mutation evidence; inspect its semantic result |
+| accepted | Recognized async job accepted; reconcile tracks its status |
+| job_completed / job_failed | Native job terminal status; inspect output and possible partial effects |
+| failed | Definite rejection or abandoned before dispatch |
+| no_change | Existing guarded device path found no effective change |
+| applied_unverified | Existing device path has HTTP success but lacks verified native evidence |
 
-~~~json
-{
-  "status": "blocked",
-  "code": "STALE_STATE",
-  "warning": "Stale expected_etag: read current state; no write was dispatched",
-  "action": "Read the device again. Compare current values before making a new deliberate edit.",
-  "automatic_retry_allowed": false,
-  "mutation_outcome": "inspect_durable_receipt"
-}
-~~~
+Undo assessments include ready, conflicted, guided_recovery, blocked,
+already_undone, correction_pending and incomplete_restore. A normal tool result
+can contain a conflict or failure: inspect structured state, not only isError.
 
-When an operation key is available and storage is usable, receipt_lookup identifies any durable operation. Storage failure can prevent this lookup. Do not infer non-commit from an exception.
-
-Codes include UNRESTORABLE_VALUE, STALE_STATE, KEY_REUSED, UNSUPPORTED_EDIT, OUT_OF_SCOPE, UNRESOLVED_OPERATION, HISTORY_UNAVAILABLE, INTEGRITY_FAILURE, UNSUPPORTED_VERSION, UNKNOWN_TASK, UNKNOWN_OPERATION, DEPENDENCY_UNAVAILABLE, INVALID_REQUEST, and OPERATION_BLOCKED.
-
-NetBox validation/permission rejection is a durable failed operation, not a transport exception. Inspect last_receipt.status and last_receipt.body for native field errors. Conflict assessments are normal tool results with warnings; clients must inspect their status, not only isError.
-
-
-Description/serial whitespace is normalized before no-op detection and dispatch.
-The raw requested map remains the idempotency input. normalized_requested is the
-retained canonical intent; after_values represents that expected effect until
-native verification establishes it. A response receipt may legitimately contain
-a later writer's state; use the verified operation/native record for this
-operation's effect.
-
-incomplete_restore is a blocking undo assessment: an older correction committed,
-but did not restore the exact prior values. Its inverse and warning support operator
-review. Task undo stops rather than treating that correction as complete.
+Native validation/permission errors remain durable failed receipts, including
+field errors. Transport/tool errors carry a stable code, recovery guidance,
+automatic_retry_allowed=false and receipt lookup when available. An exception
+never proves a remote write did not commit.

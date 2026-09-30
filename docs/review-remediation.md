@@ -3,7 +3,8 @@
 The review of bed414e found six reproducible defects. All were actionable.
 The response/normalization defects directly affected audit and recovery correctness;
 the others affected supported concurrency, task recovery, and local protocol robustness.
-The supported three-field scope and documented infrastructure limitations remain unchanged.
+These findings concern the original device engine. Its regression contract is retained
+alongside the general resource engine; see edit-contract.md for the expanded scope.
 
 | Finding | Chosen resolution | Regression evidence |
 | --- | --- | --- |
@@ -38,7 +39,7 @@ the operation projection when native evidence proves a legacy write. Unprovable
 dispatches remain uncertain. Historical inexact corrections are identified rather
 than falsely reported as completed undo. Stop old processes, retain a verified
 backup, upgrade all clients, and reconcile before resuming; see
-[the upgrade procedure](operations.md#upgrading-from-010-to-011).
+[the upgrade procedure](operations.md#existing-journal-migration).
 
 The previous standalone review reproductions remain in the private lab directory
 as historical evidence. The maintained regression suite asserts the corrected
