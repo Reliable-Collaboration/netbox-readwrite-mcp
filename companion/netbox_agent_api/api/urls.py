@@ -1,5 +1,6 @@
 from django.urls import path
 from .views import FilterSchemaView, RootView
+from .dashboard import DashboardView, DashboardWidgetSchemaView
 from .configuration import (
     ConfigurationSchemaView,
     RevisionCollectionView,
@@ -8,6 +9,8 @@ from .configuration import (
 )
 
 urlpatterns = [
+    path("self/dashboard/", DashboardView.as_view(), name="self-dashboard"),
+    path("dashboard-widgets/", DashboardWidgetSchemaView.as_view(), name="dashboard-widgets"),
     path("", RootView.as_view(), name="api-root"),
     path("filter-schema/", FilterSchemaView.as_view(), name="filter-schema"),
     path("configuration-schema/", ConfigurationSchemaView.as_view(), name="configuration-schema"),

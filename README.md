@@ -128,5 +128,6 @@ For complete native filter discovery, install the optional Apache-2.0
 [companion plugin](companion/README.md) in NetBox. It supplies custom-field filter
 metadata omitted by OpenAPI. Unknown filters are rejected to prevent accidental
 unfiltered inventory lookups. It also exposes guarded configuration-revision
-APIs using native validation and activation, without HTML forms. The disposable
+APIs using native validation and activation, and personal dashboard APIs with
+native widget validation and conditional writes, without HTML forms. The disposable
 lab includes the plugin; see its contract for permissions and recovery limits.

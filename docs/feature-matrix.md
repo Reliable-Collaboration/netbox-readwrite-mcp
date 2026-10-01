@@ -17,6 +17,8 @@ The table maps capabilities, not identical tool signatures.
 | Core/plugin model discovery | discover_models, get_schema(refresh via discover_models) | Stock roots and schema; plugin behavior requires that plugin's lab |
 | Native dynamic filter definitions | Optional Apache-2.0 companion filter-schema API | Real custom-field changes, target permissions, discovery and cold OpenAPI generation; unknown filters rejected before inventory queries |
 | Configuration revisions | Companion configuration API through `query` / `execute_action` | Live lifecycle, native cache activation, permissions, concurrency, conditional deletion and response-loss tests; no native changelog/automatic undo; GLM create/reset/cleanup qualification; privileged restore tested deterministically |
+| Personal dashboards | Companion self/dashboard and dashboard-widgets APIs | All five native widgets, first use/reset, exact preservation, user isolation, token permissions, concurrency, stale guards and response loss live-tested; no native history/automatic undo |
+| Personal preferences | Native users/config GET/PATCH | Live deep-merge and isolation checks; body preserved without MCP audit-marker pollution |
 | GraphQL | graphql | Real query; no GraphQL mutation bypass |
 | Single CRUD | create_object, update_object, delete_object | Real lifecycle fixtures across inventory domains |
 | Native bulk requests | execute_action | Real list POST; records all correlated native rows |

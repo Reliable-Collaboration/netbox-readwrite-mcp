@@ -25,6 +25,8 @@ class RootView(APIView):
                     "filter-schema",
                     "configuration-schema",
                     "config-revisions",
+                    "self/dashboard",
+                    "dashboard-widgets",
                 )
             }
         )

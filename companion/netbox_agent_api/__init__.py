@@ -6,8 +6,8 @@ from netbox.plugins import PluginConfig
 class AgentAPIConfig(PluginConfig):
     name = "netbox_agent_api"
     verbose_name = "Agent API Support"
-    description = "Native filter metadata and guarded configuration revisions"
-    version = "0.2.0"
+    description = "Native metadata, guarded configuration and personal dashboards"
+    version = "0.3.0"
     author = "Reliable Collaboration contributors"
     base_url = "agent-support"
     min_version = "4.7.2"

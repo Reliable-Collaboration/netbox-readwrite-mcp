@@ -155,7 +155,9 @@ def main():
     parser.add_argument("--port", type=int, default=14001)
     parser.add_argument("--timeout", type=int, default=14400)
     parser.add_argument("--idle-timeout", type=int, default=0)
-    parser.add_argument("--scenario", choices=["inventory", "configuration"], default="inventory")
+    parser.add_argument(
+        "--scenario", choices=["inventory", "configuration", "dashboard"], default="inventory"
+    )
     args = parser.parse_args()
     if os.environ.get("NETBOX_RW_AGENT_EVAL") != "1":
         parser.error("Set NETBOX_RW_AGENT_EVAL=1: incurs provider charges and writes disposable lab data")
@@ -443,6 +445,54 @@ def main():
         def one(resource, **filters):
             found = objects(resource, **filters)
             return found[0] if len(found) == 1 else {}
+
+        if args.scenario == "dashboard":
+            path = "plugins/agent-support/self/dashboard/"
+            original = svc.api.get(path)["body"]
+            write_json(run / "dashboard-before.json", original)
+
+            def dashboard_oracle(events):
+                after = svc.api.get(path)["body"]
+                write_json(run / "dashboard-after.json", after)
+                operations = [
+                    json.loads(row[0])
+                    for row in svc.store.db.execute("SELECT document FROM resource_operations")
+                ]
+                receipts = [op.get("last_receipt") or {} for op in operations]
+                return {
+                    "original_dashboard_restored": after == original,
+                    "note_saved": any(
+                        r.get("status") == 200
+                        and any(
+                            w.get("class") == "extras.NoteWidget"
+                            and w.get("title") == prefix
+                            and w.get("config", {}).get("content") == prefix
+                            for w in (r.get("body") or {}).get("config", {}).values()
+                        )
+                        for r in receipts
+                    ),
+                    "invalid_widget_rejected": any(r.get("status") == 400 for r in receipts),
+                    "stale_write_rejected": any(r.get("status") == 412 for r in receipts),
+                    "task_summary_read": any(
+                        e["tool"] == "get_task" and not e.get("is_error") for e in events
+                    ),
+                    "no_website_calls": not any(e["tool"] in {"web_read", "web_submit"} for e in events),
+                    "no_uncertain_operations": not svc.observability()["unresolved"],
+                }
+
+            report["passed"] = phase(
+                "dashboard",
+                f"""Qualify your own dashboard through the companion API under plugins/agent-support/ using only MCP API tools.
+Read the dashboard and widget schemas and retain the exact original dashboard state, including whether it was initialized. Preserve every existing widget while doing this task.
+Make one deliberately invalid update attempting to add a NoteWidget with blank required content. Verify rejection without a dashboard change.
+Then add a blue NoteWidget titled {prefix} with content {prefix}, width 4 and height 3. Verify the saved widget.
+Make one deliberately stale PUT using the ETag you read BEFORE adding the note. Verify rejection without changes.
+Finally remove your note and restore the exact original dashboard state. If it originally did not exist, reset it back to uninitialized. If it existed, preserve its original layout and config exactly. Use fresh ETags for intended writes.
+Inspect your task summary and report receipts accurately, distinguishing the two expected rejections from unresolved outcomes. Do not use website tools or modify inventory. Dashboards have no native ObjectChange history or automatic undo.""",
+                dashboard_oracle,
+            )
+            print("Report: " + str(run / "report.json"), flush=True)
+            return 0 if report["passed"] else 1
 
         if args.scenario == "configuration":
             path = "plugins/agent-support/config-revisions/"

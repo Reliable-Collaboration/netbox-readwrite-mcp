@@ -269,6 +269,9 @@ class WorkspaceService(Service):
                 and method in {"POST", "PATCH", "PUT"}
                 and isinstance(data, dict)
                 and not files
+                # This native endpoint deep-merges the entire body into user
+                # preferences; a transport marker would become application data.
+                and path != "users/config/"
             ):
                 payload = {**data, "changelog_message": "netbox-rw:" + op_id}
             headers = {"If-Match": expected_etag} if expected_etag else {}

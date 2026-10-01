@@ -2,7 +2,7 @@
 
 An Apache-2.0 companion plugin for **NetBox Community 4.7.2 only**. It exposes the
 running resource's native filter definitions as JSON, including custom-field
-filters omitted from OpenAPI, and provides an API for native configuration revisions.
+filters omitted from OpenAPI, and provides APIs for native configuration revisions and personal dashboards.
 It adds no database models. Configuration endpoints can change the running NetBox
 configuration; ordinary inventory work does not require them.
 
@@ -130,3 +130,36 @@ API-only create/reset/cleanup scenario in 163.88 seconds with no tool errors or
 truncations, while disclosing and removing an extra revision it created. The
 privileged restore action and response-loss path are qualified deterministically,
 not by that LLM scenario. See [agent evaluation](../docs/agent-evaluation.md).
+
+## Personal dashboards
+
+`GET plugins/agent-support/self/dashboard/` returns only the current user's
+`initialized`, `layout` and `config`, plus an ETag. Reading an absent dashboard
+has no side effects. `POST` initializes native defaults if absent; `PUT` replaces
+the complete layout/config; `DELETE` resets to uninitialized. Every mutation
+requires the exact `If-Match` ETag from a fresh read and a write-enabled token.
+No administrative dashboard permission or browser visit is needed. No user ID
+input is accepted. Preserve existing widget IDs and configurations when editing.
+
+`GET plugins/agent-support/dashboard-widgets/` describes the five built-in
+Community widget types, native defaults, fields and choices. New/changed widget
+configurations pass the native widget forms; unchanged configurations retain
+their exact values. Layout IDs must match config IDs uniquely, and positions must
+fit the twelve-column grid. Empty dashboards are valid. Other plugins' widgets
+need separate qualification and are excluded here.
+
+Companion mutations serialize on the user and existing dashboard rows, including
+first use. Missing guards return 428 and stale guards 412. This content-based
+ETag is not an ABA-proof generation counter; native website/API writers do not
+participate in the conditional-write contract and can overwrite state later.
+Dashboards have no native ObjectChange history: successful MCP receipts are
+`completed`; response loss remains uncertain and requires inspection, not blind
+replay or automatic undo. No HTML is used.
+
+Live tests cover first use, reset, empty layouts, all five widgets with valid and
+invalid inputs, preservation of native defaults, user isolation, read-only tokens,
+concurrent initialization, stale guards, fresh OpenAPI, and response loss after
+commit. Native `users/config/` preference PATCH is also tested for deep-merge
+semantics and isolation. MCP sends preference bodies unchanged, without inserting
+an audit marker into the user's data; native preferences have no ETag or native
+ObjectChange recovery contract.

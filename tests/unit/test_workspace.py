@@ -502,3 +502,21 @@ def test_action_rejects_encoded_or_scalar_json_before_dispatch(broad, monkeypatc
     with pytest.raises(ValueError, match="structured data directly; this request was not sent"):
         broad.execute_action(broad.task, key(), "POST", "extras/action/", data)
     assert broad.store.db.execute("SELECT count(*) FROM resource_operations").fetchone()[0] == 0
+
+
+def test_freeform_preferences_body_is_not_modified_by_audit_metadata(broad, monkeypatch):
+    sent = []
+    original = broad.api.request
+
+    def capture(method, path, data=None, *args, **kwargs):
+        if path == "users/config/":
+            sent.append(data)
+            return {"status": 200, "body": data, "headers": {}}
+        return original(method, path, data, *args, **kwargs)
+
+    monkeypatch.setattr(broad.api, "request", capture)
+    data = {"ui": {"theme": "dark"}, "changelog_message": "User-owned preference value"}
+    result = broad.execute_action(broad.task, key(), "PATCH", "users/config/", data)
+    assert sent == [data]
+    assert result["requested"] == data
+    assert result["state"] == "completed"

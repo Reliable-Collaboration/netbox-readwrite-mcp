@@ -28,7 +28,7 @@ The tradeoff is one additional installed component and compatibility testing
 against the pinned NetBox version. Branching and commercial extensions remain
 outside scope. The first [companion plugin](../companion/README.md) now implements
 native filter metadata, a gap demonstrated by the consuming-agent evaluation,
-and guarded configuration revisions, a gap confirmed in the pinned source.
+guarded configuration revisions, and validated first-use personal dashboards.
 Other missing operations still need action-specific implementation and qualification.
 
 ## Initial audit against the actual 4.7.2 source
@@ -42,9 +42,9 @@ of the running pinned image established these examples:
 | Dynamic custom-field filter metadata | Companion `filter-schema` endpoint reads the native FilterSet | OpenAPI omits these fields; accurate metadata prevents silently broadened queries |
 | Inventory CRUD and relationships | Native model REST endpoints | No HTML or new plugin required for the evaluated greenfield task |
 | Data-source synchronization | `POST /api/core/data-sources/{id}/sync/` | Existing custom action checks `core.sync_datasource`; do not duplicate it |
-| Current user's dashboard | `/api/extras/dashboard/`, a custom RetrieveUpdateDestroyAPIView | A model/ViewSet-only inventory falsely suggests an API gap |
+| Current user's dashboard | Native raw JSON API plus companion `self/dashboard/` and `dashboard-widgets/` | Companion fills first-use and native-form-validation gaps, with self-service permissions, conditional writes and reset; all five widgets live-tested |
 | Background queues, workers and task administration | Native `core/background-queues/`, `background-workers/`, and task `enqueue`, `requeue`, `stop`, `delete` actions | No duplicate plugin needed; worker-name lookup is live-tested, queue mutation lifecycles still need qualification |
-| Current user's preferences | Native `GET` / `PATCH users/config/` | Existing custom ViewSet; qualify merge semantics and authorization rather than adding an endpoint |
+| Current user's preferences | Native `GET` / `PATCH users/config/` | Live-tested merge semantics and user isolation; MCP audit metadata no longer pollutes preferences; no native ETag or ObjectChange contract |
 | Synchronized contexts, context profiles and templates | Native per-object `sync/` from `SyncedDataMixin` | Existing API checks native `sync` permission; bulk composition and failure semantics still need qualification |
 | Notifications, subscriptions, bookmarks and account management | Native extras/users APIs | Routes exist; self-service versus administrative permissions still need action-level equivalence tests |
 | Configuration revisions | Companion `config-revisions/` and `configuration-schema/` | Native validation/activation, permission constraints, stale-write guards, restore and inactive deletion tested against real NetBox; no native ObjectChange history or automatic undo |

@@ -91,6 +91,19 @@ Native configuration revisions have no ObjectChange history or automatic undo;
 verify the result even when the journal says `completed`. A lost response remains
 uncertain. Restoration has a separate native administrative permission.
 
+## Personal dashboards and preferences
+
+Use `plugins/agent-support/self/dashboard/` and `dashboard-widgets/` for your own
+dashboard. GET has no initialization side effect; POST initializes native defaults,
+PUT replaces the complete `layout` and `config`, and DELETE resets to uninitialized.
+Every write requires the fresh ETag via `expected_etag`. Preserve existing widget
+IDs and configuration when adding/removing another widget. The `initialized`
+response field is not a PUT input. Native widget forms validate the configuration.
+These operations have receipts but no native ObjectChange history or automatic undo.
+`users/config/` remains the native preference API: PATCH deep-merges its entire
+JSON body, so use only intended preference data. It has no ETag guard or automatic
+undo; empty nested objects replace that subtree rather than deleting its key.
+
 ## Workflow example
 
 Use a stable task/key supplied outside the code:
