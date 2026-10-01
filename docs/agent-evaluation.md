@@ -9,8 +9,10 @@ This is an opt-in, paid-provider test, separate from deterministic integration t
 It runs OpenCode through a loopback LiteLLM proxy backed by DeepInfra, with the
 real MCP server connected to the disposable Podman NetBox 4.7.2 lab.
 
-The agent receives the normal agent guide, the MCP tool catalog and a natural
-language task. Host shell/file/network/delegation tools are denied. It gets no
+Current runs receive the MCP tool catalog and a natural-language task; usage
+instructions come from MCP initialization and built-in tools. No guide is injected
+into the client prompt. Earlier recorded runs used the guide injection explicitly
+identified by their source/harness revisions. Host shell/file/network/delegation tools are denied. It gets no
 preselected NetBox IDs or recipe of tool calls. Credentials are never included in
 the prompt. The provider receives synthetic lab inventory and tool results.
 

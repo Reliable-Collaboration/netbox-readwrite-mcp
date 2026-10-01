@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-agent-api"
-version = "0.3.0"
+version = "0.4.0"
 description = "Native metadata, configuration and dashboard APIs for NetBox Community agents"
 requires-python = ">=3.12"
 license = "Apache-2.0"
@@ -14,3 +14,9 @@ dependencies = []
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["netbox_agent_api*"]
+
+[project.scripts]
+netbox-agent-api-enable = "netbox_agent_api_setup:main"
+
+[tool.setuptools]
+py-modules = ["netbox_agent_api_setup", "netbox_agent_api_configuration"]

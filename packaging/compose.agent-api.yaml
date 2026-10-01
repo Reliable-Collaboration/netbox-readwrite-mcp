@@ -1,0 +1,10 @@
+# Add to an existing netbox-docker Compose deployment. Existing volumes/env stay in place.
+services:
+  netbox:
+    image: ghcr.io/reliable-collaboration/netbox-agent-api:0.4.0-netbox4.7.2
+    environment:
+      NETBOX_CONFIGURATION: netbox_agent_api_configuration
+  netbox-worker:
+    image: ghcr.io/reliable-collaboration/netbox-agent-api:0.4.0-netbox4.7.2
+    environment:
+      NETBOX_CONFIGURATION: netbox_agent_api_configuration

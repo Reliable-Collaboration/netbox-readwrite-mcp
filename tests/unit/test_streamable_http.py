@@ -39,7 +39,10 @@ def test_official_sdk_http_initialization_discovery_and_local_tools(http_mcp):
         async with httpx.AsyncClient(headers={"Authorization": "Bearer " + "a" * 40}) as http_client:
             async with streamable_http_client(http_mcp, http_client=http_client) as (read, write, _):
                 async with ClientSession(read, write) as session:
-                    await session.initialize()
+                    initialized = await session.initialize()
+                    assert "get_guidance" in initialized.instructions
+                    guide = await session.call_tool("get_guidance", {})
+                    assert "operation" in guide.structuredContent["instructions"]
                     tools = await session.list_tools()
                     assert "create_object" in [x.name for x in tools.tools]
                     cap = await session.call_tool("capabilities", {})

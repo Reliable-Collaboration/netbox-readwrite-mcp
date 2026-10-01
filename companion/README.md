@@ -11,35 +11,32 @@ configuration; ordinary inventory work does not require them.
 
 ## Install
 
-From the repository root, build the separate distribution:
+Use the [two-command release installation](../README.md#install-and-enable-the-companion).
+The prebuilt container image includes and enables the companion on web and worker.
+Traditional installs use the downloadable wheel followed by
+`netbox-agent-api-enable --config PATH`, then a deployment-managed restart.
+The enable command appends to the selected configuration file without executing
+it, preserves existing plugins, and keeps a `.before-agent-api` backup. Select the
+file that defines the effective `PLUGINS` setting (often `plugins.py` in container
+configurations, or `configuration.py` in traditional installs).
 
-```sh
-python -m pip install build
-python -m build companion
-```
+For custom images, install the wheel during your normal image build and enable it
+in your existing `PLUGINS` list, or set
+`NETBOX_CONFIGURATION=netbox_agent_api_configuration`. That packaged overlay
+loads `netbox.configuration` by default, retains its settings and plugins, and
+adds `netbox_agent_api`. For another base module set
+`NETBOX_AGENT_BASE_CONFIGURATION` explicitly. The prebuilt image uses this overlay;
+it retains the base configuration's LDAP directory. Do not point the base setting
+back at the overlay itself.
 
-Install `companion/dist/netbox_agent_api-0.3.0-py3-none-any.whl` into the Python
-environment used by both NetBox web and worker processes, or include it in their
-shared NetBox image. For example, after copying the wheel to the NetBox host:
+Invalidate cached OpenAPI responses on upgrades so clients discover endpoints
+immediately (native schema URLs can be cached for a day). Use your deployment's
+cache maintenance procedure, not the job queue. Verify with the MCP `doctor`
+command and a schema request. Credentials and permissions remain operator-managed.
 
-```sh
-/opt/netbox/venv/bin/python -m pip install /path/to/netbox_agent_api-0.3.0-py3-none-any.whl
-```
-
-Replace those paths for your deployment. Add `netbox_agent_api` to your existing
-`PLUGINS` list and restart both NetBox web and worker processes using your normal
-plugin installation process. Invalidate cached OpenAPI responses on
-upgrade so clients discover new endpoints immediately (native schema URLs can be
-cached for a day); use your deployment cache maintenance procedure, not the job
-queue. For a deployment with no other plugins:
-
-```python
-PLUGINS = ["netbox_agent_api"]
-```
-
-The disposable Podman lab mounts this source and configuration for both web and
-worker processes. An existing lab created before the plugin needs its web and
-worker containers recreated with the new mounts; preserve its database volume.
+For development only, build from the repository root with
+`python -m pip install build` and `python -m build companion`. The disposable
+Podman lab mounts the source and configuration for both web and worker processes.
 
 ## Filter metadata contract
 

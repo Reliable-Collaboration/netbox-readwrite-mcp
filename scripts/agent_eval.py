@@ -224,7 +224,9 @@ def main():
             str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in (Path(__file__), ROOT / "scripts/agent_gateway.py")
         },
-        "instructions_sha256": hashlib.sha256((ROOT / "docs/agent-guide.md").read_bytes()).hexdigest(),
+        "instructions_sha256": hashlib.sha256(
+            (ROOT / "src/netbox_readwrite_mcp/agent-guide.md").read_bytes()
+        ).hexdigest(),
         "source_sha256": {
             str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in sorted(
@@ -233,6 +235,7 @@ def main():
         },
         "model": args.model,
         "scenario": args.scenario,
+        "guidance_delivery": "MCP initialization and tools only; no guide injected into client prompt",
         "run": stamp,
         "netbox": "4.7.2",
         "phases": [],
@@ -298,8 +301,7 @@ def main():
                 "inventory": {
                     "mode": "primary",
                     "steps": 160,
-                    "prompt": (ROOT / "docs/agent-guide.md").read_text() + "\n"
-                    "Complete the requested inventory task using ONLY netbox MCP tools. "
+                    "prompt": "Complete the requested inventory task using ONLY netbox MCP tools. "
                     "Do not use shell, file, web fetch, delegation or other host tools. "
                     "Do not ask for confirmation for the authorized synthetic lab work. "
                     "Use schemas when needed; do not guess IDs. Finish with concise actual outcomes "

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-readwrite-mcp"
-version = "0.3.0"
+version = "0.4.0"
 description = "Auditable NetBox edits with durable history and optimistic recovery over MCP"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -50,3 +50,6 @@ select = ["E4", "E7", "E9", "F"]
 source = ["netbox_readwrite_mcp"]
 branch = true
 patch = ["subprocess"]
+
+[tool.setuptools.package-data]
+netbox_readwrite_mcp = ["agent-guide.md"]

@@ -175,6 +175,9 @@ def test_official_mcp_sdk_interoperability(config, tmp_path):
             async with ClientSession(read, write) as session:
                 info = await session.initialize()
                 assert info.serverInfo.name == "netbox-readwrite-mcp"
+                assert "get_guidance" in info.instructions
+                guide = await session.call_tool("get_guidance", {"topic": "native-imports-and-bulk-forms"})
+                assert "related_objects" in guide.structuredContent["instructions"]
                 listed = await session.list_tools()
                 assert "undo_operation" in {tool.name for tool in listed.tools}
                 result = await session.call_tool("begin_task", {"purpose": "SDK interoperability"})
