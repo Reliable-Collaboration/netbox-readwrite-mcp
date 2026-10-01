@@ -13,12 +13,21 @@ from rest_framework.views import APIView
 
 @extend_schema(exclude=True)
 class RootView(APIView):
-    """Discover the companion's read-only metadata endpoints."""
+    """Discover the companion's native metadata and configuration endpoints."""
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response({"filter-schema": request.build_absolute_uri("filter-schema/")})
+        return Response(
+            {
+                name: request.build_absolute_uri(name + "/")
+                for name in (
+                    "filter-schema",
+                    "configuration-schema",
+                    "config-revisions",
+                )
+            }
+        )
 
 
 class FilterSchemaView(APIView):

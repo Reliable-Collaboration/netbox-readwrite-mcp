@@ -155,6 +155,7 @@ def main():
     parser.add_argument("--port", type=int, default=14001)
     parser.add_argument("--timeout", type=int, default=14400)
     parser.add_argument("--idle-timeout", type=int, default=0)
+    parser.add_argument("--scenario", choices=["inventory", "configuration"], default="inventory")
     args = parser.parse_args()
     if os.environ.get("NETBOX_RW_AGENT_EVAL") != "1":
         parser.error("Set NETBOX_RW_AGENT_EVAL=1: incurs provider charges and writes disposable lab data")
@@ -227,6 +228,7 @@ def main():
             )
         },
         "model": args.model,
+        "scenario": args.scenario,
         "run": stamp,
         "netbox": "4.7.2",
         "phases": [],
@@ -441,6 +443,61 @@ def main():
         def one(resource, **filters):
             found = objects(resource, **filters)
             return found[0] if len(found) == 1 else {}
+
+        if args.scenario == "configuration":
+            path = "plugins/agent-support/config-revisions/"
+            original = svc.api.get(path)["body"]
+            original_rows = {row["id"]: row for row in original["results"]}
+            original_data = next((row["data"] for row in original["results"] if row["active"]), {}) or {}
+            write_json(run / "configuration-before.json", original)
+
+            def configuration_oracle(events):
+                after = svc.api.get(path)["body"]
+                write_json(run / "configuration-after.json", after)
+                rows = {row["id"]: row for row in after["results"]}
+                new = [row for pk, row in rows.items() if pk not in original_rows]
+                operations = [
+                    json.loads(row[0])
+                    for row in svc.store.db.execute("SELECT document FROM resource_operations")
+                ]
+                receipts = [op.get("last_receipt") or {} for op in operations]
+                return {
+                    "effective_overrides_restored": len(new) == 1
+                    and new[0]["active"]
+                    and new[0]["data"] == original_data,
+                    "reset_revision_identified": len(new) == 1 and new[0]["comment"] == prefix + "-reset",
+                    "temporary_banner_created": any(
+                        r.get("status") == 201
+                        and r.get("body", {}).get("data", {}).get("BANNER_TOP") == prefix
+                        for r in receipts
+                    ),
+                    "stale_request_rejected": any(r.get("status") == 409 for r in receipts),
+                    "temporary_revision_deleted": any(r.get("status") == 204 for r in receipts),
+                    "preexisting_revisions_preserved": all(
+                        pk in rows
+                        and {k: v for k, v in row.items() if k != "active"}
+                        == {k: v for k, v in rows[pk].items() if k != "active"}
+                        for pk, row in original_rows.items()
+                    ),
+                    "task_summary_read": any(
+                        e["tool"] == "get_task" and not e.get("is_error") for e in events
+                    ),
+                    "no_website_calls": not any(e["tool"] in {"web_read", "web_submit"} for e in events),
+                    "no_uncertain_operations": not svc.observability()["unresolved"],
+                }
+
+            report["passed"] = phase(
+                "configuration",
+                f"""Qualify the companion configuration API in this disposable lab using only MCP API tools, without website forms.
+Discover its configuration schema and revision endpoints under plugins/agent-support/. Read and retain the original dynamic overrides and active revision ID.
+Create and activate a revision that preserves the original overrides except BANNER_TOP must become {prefix}; use comment {prefix}-temporary. Verify the saved data and active revision.
+Make exactly one deliberately stale creation request using the ORIGINAL active revision guard. Verify rejection without a new revision; this rejection is an expected test outcome.
+Create another revision with the original overrides restored exactly and comment {prefix}-reset. Then delete ONLY your temporary inactive revision using its fresh ETag and the current active revision guard.
+Leave every pre-existing revision's stored data intact and leave the reset revision active. Do not use the privileged restore action. Inspect your task summary, distinguish the expected rejection from unresolved outcomes, and report receipts honestly: configuration revisions have no native ObjectChange history or automatic undo.""",
+                configuration_oracle,
+            )
+            print("Report: " + str(run / "report.json"), flush=True)
+            return 0 if report["passed"] else 1
 
         inventory = f"""Build this synthetic home lab inventory. No IDs are provided. Reuse exact matches; create missing dependencies; leave unrelated inventory alone.
 Site {prefix}, slug {prefix}; rack {prefix}-rack, 12U. Manufacturer {prefix}-vendor; device role {prefix}-server; device type {prefix}-type, 1U.

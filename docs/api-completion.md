@@ -27,7 +27,8 @@ NetBox Community supports [plugin REST endpoints](https://netboxlabs.com/docs/ne
 The tradeoff is one additional installed component and compatibility testing
 against the pinned NetBox version. Branching and commercial extensions remain
 outside scope. The first [companion plugin](../companion/README.md) now implements
-native filter metadata, a gap demonstrated by the consuming-agent evaluation.
+native filter metadata, a gap demonstrated by the consuming-agent evaluation,
+and guarded configuration revisions, a gap confirmed in the pinned source.
 Other missing operations still need action-specific implementation and qualification.
 
 ## Initial audit against the actual 4.7.2 source
@@ -42,7 +43,7 @@ of the running pinned image established these examples:
 | Inventory CRUD and relationships | Native model REST endpoints | No HTML or new plugin required for the evaluated greenfield task |
 | Data-source synchronization | `POST /api/core/data-sources/{id}/sync/` | Existing custom action checks `core.sync_datasource`; do not duplicate it |
 | Current user's dashboard | `/api/extras/dashboard/`, a custom RetrieveUpdateDestroyAPIView | A model/ViewSet-only inventory falsely suggests an API gap |
-| Configuration revision editing | Native `ConfigRevisionEditView`/form; no matching handler found in core API modules | Candidate plugin gap; administrative semantics and permission tests still required |
+| Configuration revisions | Companion `config-revisions/` and `configuration-schema/` | Native validation/activation, permission constraints, stale-write guards, restore and inactive deletion tested against real NetBox; no native ObjectChange history or automatic undo |
 | CSV import, bulk rename, rendering and other specialized views | Some have native actions or can be composed from CRUD | Audit their transaction, validation and result semantics before declaring equivalence |
 
 ## What full coverage would require
