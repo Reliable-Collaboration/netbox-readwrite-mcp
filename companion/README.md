@@ -125,5 +125,8 @@ Real-NetBox qualification covers lifecycle and actual cached activation, native
 field validation, replacement semantics, rejected static/unknown/commercial
 settings, missing guards, stale restoration/deletion, simultaneous writers,
 object-constrained non-superusers, read-only tokens, ETags, cold OpenAPI generation,
-MCP discovery/receipts, same-key replay, and response loss after commit. This does
-not yet include an LLM-driven configuration-administration scenario.
+MCP discovery/receipts, same-key replay, and response loss after commit. GLM also passed the
+API-only create/reset/cleanup scenario in 163.88 seconds with no tool errors or
+truncations, while disclosing and removing an extra revision it created. The
+privileged restore action and response-loss path are qualified deterministically,
+not by that LLM scenario. See [agent evaluation](../docs/agent-evaluation.md).

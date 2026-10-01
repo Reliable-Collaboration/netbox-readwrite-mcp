@@ -4,6 +4,16 @@ Version **0.3.0**, validated locally on **2026-09-30**, against **NetBox 4.7.2 o
 This is observed test evidence, not a production certification or universal GUI coverage claim.
 Exact source/test hashes and numeric coverage are in [validation.json](validation.json).
 
+**Latest code qualification:** `f44e1c9` passed 437 tests (338 unit + 99 live),
+plus 6 subtests, with 92.69% MCP coverage on a fresh NetBox database.
+[Final-source CI](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36802962944)
+also passed Python 3.11–3.14 checks (86.85% offline coverage).
+
+The table below retains the original `5a953b6` baseline. The later configuration
+extension is recorded under `configuration_extension` in the JSON and in the
+follow-up section below; its separate agent run is `2a96b46bb2`.
+
+
 | Check | Observed result |
 | --- | --- |
 | Offline suite | 334 passed on Python 3.14.4 |
@@ -85,3 +95,35 @@ from unresolved work. Earlier runs exposed oversized task history and inaccurate
 history narration, both retained in the evaluation record. This demonstrates
 recovery and correct final state, not absence of transient mistakes; precise
 evidence attribution still comes from the structured receipts.
+
+
+## Configuration extension follow-up
+
+Companion 0.2.0 adds API access to native configuration revisions: creation and
+activation, guarded restoration, and inactive deletion. It preserves excluded
+commercial/static settings, uses native form validation and reset semantics,
+checks object permissions before cache activation, and tests stale/concurrent
+writes and response loss. Native worker identifiers containing `@` and `+` are
+also reachable through the existing MCP query tool.
+
+The local baseline run passed 431 tests plus 6 subtests (92.68% MCP coverage).
+After the final action-body and ETag-contract changes, 338 unit tests passed and
+11 relevant live cases were exercised. One live fixture initially assumed no
+active revision existed; after correcting its expected revision guard, its
+focused recheck passed. Fresh-database CI on the final source passed all 437 tests plus 6 subtests
+(92.69% MCP coverage); its exact commit, test hashes and link are in the JSON. Discovery now covers 149 endpoints: 137 successful GETs,
+9 permission denials, 2 expected bad requests and 1 method-only endpoint.
+
+GLM run `2a96b46bb2` passed the configuration create/reset/cleanup task in 163.88
+seconds, with zero tool errors or truncations and one deliberate 409. It disclosed
+and removed an extra empty revision it created, preserved pre-existing revision
+data and inventory, and used no website tools. The earlier configuration run
+passed state checks but misdiagnosed invalid JSON strings as transport failures;
+that finding led to the explicit action-body schema and pre-dispatch validation.
+Both reports and source/harness/guide hashes are preserved.
+
+This closes the confirmed configuration-revision API gap. It does not establish
+universal website/API parity. Queue mutations, self-service account operations,
+dashboard semantics and bulk/CSV equivalence still need action-level qualification.
+Configuration revisions have no native ObjectChange history or automatic undo;
+PostgreSQL and the native configuration cache are separate stores.

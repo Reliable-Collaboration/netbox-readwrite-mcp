@@ -206,3 +206,40 @@ No human completed or corrected the inventory. The same implementation passed
 counts, rejected attempts, previous runs and exact hashes remain in the results
 JSON. The evidence supports this controlled greenfield handoff; universal GUI
 parity, all-feature lifecycle coverage and a reliability rate remain unestablished.
+
+
+## Configuration API qualification
+
+Use the same runner with `--scenario configuration --model zai-org/GLM-5.3-Flash`
+to run the API-only configuration task separately from the four inventory phases.
+It discovers the companion schema, changes a harmless banner, exercises a stale
+revision guard, restores the original dynamic overrides and deletes only its own
+temporary revisions. It leaves one new active reset revision. An independent
+oracle checks receipts, final overrides, preserved pre-existing revision data
+(apart from the expected active-flag transition), task-summary inspection and
+unchanged inventory. It also rejects any use of website tools.
+
+The first run, `f22156d6e0`, passed the state oracle in 166.54 seconds but failed
+manual narrative review. GLM sent JSON-encoded strings twice, then incorrectly
+called the resulting 400 responses intermittent transport failures. It also had
+an ETag preflight rejection. The action tool's body schema was unconstrained;
+it now explicitly describes structured JSON objects/arrays/null and rejects
+strings/scalars before dispatch. ETag instructions now require the quoted header
+verbatim and refer to the target object, rather than always saying device.
+
+The final run, `2a96b46bb2`, passed in **163.88 seconds** on the corrected source:
+15 MCP calls, zero tool errors, zero truncated outputs and one intended 409
+rejection. GLM initially created an empty revision, noticed its missing banner,
+created the corrected revision and deleted both temporary revisions after reset.
+Its final report disclosed that mistake and accurately distinguished five
+completed exchanges from the expected rejection. No human supplied the missing
+work or corrected the configuration. Exact source, harness and guide hashes,
+monitoring counters and both runs are retained in the results JSON.
+
+This qualifies the tested creation/reset/cleanup workflow. The native privileged
+restore action, object-constrained permissions, static/commercial-setting
+preservation and lost-response handling have deterministic live tests; this LLM
+scenario does not qualify those paths. PostgreSQL and the native configuration
+cache are separate stores, and configuration revisions have no native ObjectChange
+history or automatic undo. It remains a targeted acceptance test, not universal
+GUI parity or a reliability rate.
