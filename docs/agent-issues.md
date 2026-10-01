@@ -73,3 +73,8 @@ publication/replay/read flow and a maintainer reply in the real project reposito
 Unit and official-SDK tests cover privacy, lost responses, duplicate suppression,
 operator opt-in and malformed arguments. A live agent pass must be recorded
 before claiming the consuming-agent feedback loop is qualified.
+
+Clients such as OpenCode can isolate `XDG_CONFIG_HOME`. In that case the operator
+must pass `--gh-config-dir /operator/config/gh` so the feedback process can use
+the intended GitHub login. This is a host-side path, never a tool argument. The
+GLM harness sets it explicitly and keeps provider credentials out of this process.

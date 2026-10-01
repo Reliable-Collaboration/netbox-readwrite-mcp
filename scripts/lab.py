@@ -43,7 +43,12 @@ def setup():
         (STATE / "secrets.json").write_text(json.dumps(data))
         (STATE / "secrets.json").chmod(0o600)
     c = config()
-    (STATE / "plugins.py").write_text("PLUGINS = ['netbox_agent_api']\n")
+    # The social backend is loaded only to qualify native account disconnection;
+    # no OAuth client credentials or external login request is needed.
+    (STATE / "plugins.py").write_text(
+        "PLUGINS = ['netbox_agent_api']\n"
+        "REMOTE_AUTH_BACKEND = ['netbox.authentication.RemoteUserBackend', 'social_core.backends.github.GithubOAuth2']\n"
+    )
     env = {
         "DB_HOST": PREFIX + "-postgres",
         "DB_NAME": "netbox",

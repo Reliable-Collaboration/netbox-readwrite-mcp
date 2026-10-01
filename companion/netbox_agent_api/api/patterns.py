@@ -5,6 +5,7 @@ import json
 
 from core.signals import clear_events
 from django import forms
+from django.apps import apps
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import IntegrityError, router, transaction
 from django.http import QueryDict
@@ -75,11 +76,37 @@ class PatternView(APIView):
     permission_classes = [IsAuthenticated, TokenWritePermission]
 
     @extend_schema(
-        parameters=[OpenApiParameter("field", str, required=False)], responses={200: OpenApiTypes.OBJECT}
+        parameters=[OpenApiParameter("field", str, required=False)]
+        + [
+            OpenApiParameter(name, int)
+            for name in ("device", "device_type", "module_type", "virtual_machine")
+        ],
+        responses={200: OpenApiTypes.OBJECT},
     )
     def get(self, request, model):
         view = pattern_view(request, model)
-        form = view.form()
+        parents = {
+            "device": "dcim.Device",
+            "device_type": "dcim.DeviceType",
+            "module_type": "dcim.ModuleType",
+            "virtual_machine": "virtualization.VirtualMachine",
+        }
+        context = {}
+        if set(request.query_params) - {"field", *parents}:
+            raise ValidationError("Unknown pattern schema query parameter.")
+        for name, label in parents.items():
+            if name in request.query_params:
+                try:
+                    pk = int(request.query_params[name])
+                except (ValueError, TypeError) as exc:
+                    raise ValidationError({name: "Use a numeric parent ID."}) from exc
+                cls = apps.get_model(label)
+                if not cls.objects.restrict(request.user, "view").filter(pk=pk).exists():
+                    raise NotFound("Parent is missing or inaccessible.")
+                context[name] = pk
+        form = view.form(initial=context)
+        if set(context) - set(form.fields):
+            raise ValidationError("This pattern handler does not use the supplied parent field.")
         restrict_form_fields(form, request.user)
         fields = field_schema(form, request.query_params.get("field"))
         if isinstance(view, BulkCreateView):

@@ -91,7 +91,7 @@ def test_all_native_bulk_disconnect_types(cabling, component):
                 rear = create(
                     service, "dcim/rear-ports/", {"device": device, "name": "rear-for-front", "type": "8p8c"}
                 )
-                values.update(rear_port=rear["id"], rear_port_position=1)
+                values["rear_ports"] = [{"position": 1, "rear_port": rear["id"], "rear_port_position": 1}]
         elif kind == "powerfeed":
             panel = create(service, "dcim/power-panels/", {"name": prefix, "site": site})
             values = {"name": kind, "power_panel": panel["id"]}

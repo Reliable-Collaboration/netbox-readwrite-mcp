@@ -62,3 +62,36 @@ def test_every_stock_bulk_edit_schema_serializes(queue_admin):  # noqa: F811
     for row in catalog["results"]:
         response = service.query("plugins/agent-support/bulk-edit/" + row["model"] + "/")
         assert response["body"]["fields"], row["model"]
+
+
+def test_native_bulk_tag_deltas_preserve_unselected_tags(sites):  # noqa: F811
+    from tests.integration.test_configuration import shell
+
+    service, prefix, ids = sites
+    tags = []
+    try:
+        for suffix in ("keep", "remove", "add"):
+            result = service.api.request(
+                "POST", "extras/tags/", {"name": prefix + suffix, "slug": prefix + suffix}
+            )
+            assert result["status"] == 201, result
+            tags.append(result["body"]["id"])
+        for pk in ids:
+            assert service.api.request("PATCH", f"dcim/sites/{pk}/", {"tags": tags[:2]})["status"] == 200
+        body = {"ids": ids, "values": {"add_tags": tags[2:], "remove_tags": tags[1:2]}}
+        preview = service.api.request("POST", PATH, body)
+        assert preview["status"] == 200, preview
+        result = service.api.request(
+            "POST", PATH, {**body, "apply": True, "expected": preview["body"]["expected"]}
+        )
+        assert result["status"] == 200, result
+        for pk in ids:
+            assert {t["id"] for t in service.api.get(f"dcim/sites/{pk}/")["body"]["tags"]} == {
+                tags[0],
+                tags[2],
+            }
+    finally:
+        shell(f"""
+from extras.models import Tag
+Tag.objects.filter(pk__in={tags!r}).delete()
+""")

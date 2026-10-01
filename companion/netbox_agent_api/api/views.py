@@ -32,6 +32,7 @@ class RootView(APIView):
                     "bulk-edit",
                     "pattern-create",
                     "self/profile",
+                    "self/connections",
                     "self/preferences",
                     "self/password",
                     "self/notifications",

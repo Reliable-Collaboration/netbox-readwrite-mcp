@@ -314,6 +314,18 @@ def main():
                     sys.executable,
                     "-m",
                     "netbox_readwrite_mcp.feedback",
+                    "--gh-config-dir",
+                    str(
+                        Path(
+                            os.environ.get(
+                                "GH_CONFIG_DIR",
+                                str(
+                                    Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config")))
+                                    / "gh"
+                                ),
+                            )
+                        ).resolve()
+                    ),
                     "--journal",
                     cfg["journal"],
                     "--outbox",
@@ -448,6 +460,14 @@ def main():
                 "checks": checks,
                 "passed": all(checks.values()),
                 "tool_calls": dict(Counter(e["tool"] for e in events)),
+                "feedback_tool_calls": dict(
+                    Counter(
+                        e["part"]["tool"]
+                        for e in transcript
+                        if e.get("type") == "tool_use"
+                        and e.get("part", {}).get("tool", "").startswith("feedback_")
+                    )
+                ),
                 "tool_errors": sum(e["is_error"] for e in events),
                 "tool_states": dict(Counter(e["state"] for e in events if e.get("state") is not None)),
                 "truncated_tool_outputs": sum(
@@ -512,8 +532,14 @@ Use feedback.report_issue with operation_key '{report_key}', that rejected opera
 
                 def reply_oracle(events):
                     transcript = (run / "feedback-read-events.jsonl").read_text()
+                    answers = [
+                        json.loads(line)["part"].get("text", "")
+                        for line in transcript.splitlines()
+                        if line.startswith("{") and json.loads(line).get("type") == "text"
+                    ]
                     return {
                         "maintainer_reply_observed": reply_code in transcript,
+                        "reply_code_in_final_answer": any(reply_code in answer for answer in answers),
                         "feedback_read_called": "feedback_read_report" in transcript,
                         "netbox_receipt_checked": any(e["tool"] == "get_operation" for e in events),
                     }

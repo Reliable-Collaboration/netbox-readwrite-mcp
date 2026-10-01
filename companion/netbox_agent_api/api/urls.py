@@ -9,6 +9,7 @@ from .utilities import SearchView, MarkdownView
 from .administration import SystemView, DatabaseSchemaView, QueueTasksView
 from .media import MediaCatalogView, MediaView
 from .batch_actions import DisconnectCatalogView, DisconnectView, SyncCatalogView, SyncView
+from .connections import ConnectionsView
 from .scripts import ScriptCatalogView, ScriptSchemaView, ScriptSourceView
 from .chassis import ChassisCatalogView, ChassisMembersView
 from .deletion import DeleteCatalogView, DeleteView
@@ -22,6 +23,7 @@ from .configuration import (
 )
 
 urlpatterns = [
+    path("self/connections/", ConnectionsView.as_view(), name="self-connections"),
     path("scripts/", ScriptCatalogView.as_view(), name="scripts"),
     path("scripts/<int:pk>/", ScriptSchemaView.as_view(), name="script-schema"),
     path("scripts/<int:pk>/source/", ScriptSourceView.as_view(), name="script-source"),

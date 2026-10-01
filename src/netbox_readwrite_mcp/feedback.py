@@ -37,13 +37,14 @@ EXPECTATIONS = (
 
 
 class Feedback:
-    def __init__(self, journal, outbox, publish=False, runner=subprocess.run):
+    def __init__(self, journal, outbox, publish=False, runner=subprocess.run, gh_config_dir=None):
         self.journal = Path(journal).resolve()
         self.outbox = Path(outbox).resolve()
         if self.journal == self.outbox:
             raise ValueError("Feedback outbox must be separate from the NetBox journal")
         self.publish = publish
         self.runner = runner
+        self.gh_config_dir = str(Path(gh_config_dir).expanduser().resolve()) if gh_config_dir else None
         self.outbox.parent.mkdir(parents=True, exist_ok=True)
         with self.locked() as db:
             db.execute(
@@ -83,6 +84,9 @@ class Feedback:
         }
 
     def gh(self, args, body=None):
+        environment = (
+            {"env": {**os.environ, "GH_CONFIG_DIR": self.gh_config_dir}} if self.gh_config_dir else {}
+        )
         result = self.runner(
             ["gh", *args, "--repo", REPOSITORY],
             input=body,
@@ -90,6 +94,7 @@ class Feedback:
             capture_output=True,
             timeout=45,
             check=False,
+            **environment,
         )
         if result.returncode:
             raise RuntimeError("GitHub request failed; inspect the operator's gh connection locally")
@@ -221,9 +226,14 @@ def main():
         action="store_true",
         help="Authorize structured reports to the fixed project repository",
     )
+    parser.add_argument(
+        "--gh-config-dir",
+        type=Path,
+        help="Operator gh configuration directory when the MCP client isolates XDG configuration",
+    )
     args = parser.parse_args()
     os.umask(0o077)
-    feedback = Feedback(args.journal, args.outbox, args.enable_publish)
+    feedback = Feedback(args.journal, args.outbox, args.enable_publish, gh_config_dir=args.gh_config_dir)
     try:
         from mcp.server.fastmcp import FastMCP
     except ImportError:

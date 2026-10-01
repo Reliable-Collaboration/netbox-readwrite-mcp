@@ -162,3 +162,20 @@ def test_feedback_stdio_official_sdk_schema_and_draft(journal, tmp_path):
             assert invalid.isError
 
     asyncio.run(check())
+
+
+def test_operator_gh_config_survives_client_xdg_isolation(journal, tmp_path, monkeypatch):
+    path, operation = journal
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "isolated-client"))
+    gh_config = tmp_path / "operator-gh"
+
+    def runner(command, **kwargs):
+        assert kwargs["env"]["GH_CONFIG_DIR"] == str(gh_config)
+        assert kwargs["env"]["XDG_CONFIG_HOME"] == str(tmp_path / "isolated-client")
+        return SimpleNamespace(returncode=0, stdout=f"https://github.com/{REPOSITORY}/issues/456")
+
+    feedback = Feedback(path, tmp_path / "outbox", True, runner, gh_config)
+    assert (
+        feedback.submit("report-isolated", operation, "qualification", "feedback-roundtrip")["state"]
+        == "published"
+    )
