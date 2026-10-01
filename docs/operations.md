@@ -89,3 +89,18 @@ before/after snapshots. It omits live expanded object/user references. NetBox
 immutable fields remain readable. These are the same fields already retained in
 the journal, so this transport change does not alter archived record hashes or
 require resetting history. The client still fails closed if audit reads fail.
+
+## Release upgrades
+
+Keep the configuration directory, token and journal when updating the MCP
+application. Replace the downloaded application at the same path (or upgrade the
+wheel in its existing environment), reconnect the client and run `doctor`.
+Do not run a new setup wizard or generate a new instance ID for a package upgrade.
+
+For a container-bundle upgrade, retain the old extracted directory before
+unpacking the new release into a clean `netbox-agent-api` directory. Recreate web
+and worker with the updated mount. Do not overlay different wheel versions in
+one plugin directory: stale files or duplicate distribution metadata could remain.
+Traditional installs upgrade the wheel in each NetBox environment and restart
+both processes. Keep the prior package/bundle for rollback. Native NetBox upgrades
+remain managed by your existing deployment procedure, independently of our assets.

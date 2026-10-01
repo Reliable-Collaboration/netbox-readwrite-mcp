@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-agent-api"
-version = "0.4.0"
-description = "Native metadata, configuration and dashboard APIs for NetBox Community agents"
+version = "0.4.1"
+description = "Community APIs for Reliable Collaboration's unofficial NetBox MCP server"
 requires-python = ">=3.12"
 license = "Apache-2.0"
 license-files = ["LICENSE"]

@@ -1,6 +1,6 @@
 # Changes
 
-## 0.4.0 — release installation and self-describing MCP
+## 0.4.1 — release installation and self-describing MCP
 
 - CI-gated downloadable wheels, standalone Python application and plugin-only container bundle.
 - Private configuration wizard, generated client settings and read-only doctor.

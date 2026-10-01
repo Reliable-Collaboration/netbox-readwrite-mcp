@@ -45,12 +45,13 @@ in [issue #1](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/iss
 
 ## Optional structured feedback MCP
 
-From this checkout, an operator can install the optional feedback dependencies
-and connect a separate feedback server to the same private journal:
+An operator can install the released wheel with optional feedback dependencies
+in a private virtualenv and connect the feedback server to the same journal:
 
 ```sh
-python -m pip install -e '.[feedback]'
-python -m netbox_readwrite_mcp.feedback --journal /private/netbox.sqlite --outbox /private/feedback.sqlite --enable-publish
+python3 -m venv feedback-venv
+feedback-venv/bin/python -m pip install 'netbox-readwrite-mcp[feedback] @ https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.1/netbox_readwrite_mcp-0.4.1-py3-none-any.whl'
+feedback-venv/bin/python -m netbox_readwrite_mcp.feedback --journal /private/netbox.sqlite --outbox /private/feedback.sqlite --enable-publish
 ```
 
 It uses the operator's existing `gh` login and always targets this repository.

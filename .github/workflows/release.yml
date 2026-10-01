@@ -36,4 +36,4 @@ jobs:
       - name: Publish downloadable assets
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" release/* --verify-tag --title "NetBox agent tools ${GITHUB_REF_NAME}" --notes-file packaging/release-notes.md
+        run: gh release create "$GITHUB_REF_NAME" release/* --verify-tag --title "Reliable Collaboration unofficial NetBox MCP ${GITHUB_REF_NAME}" --notes-file packaging/release-notes.md

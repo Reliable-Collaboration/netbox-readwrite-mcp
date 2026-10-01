@@ -36,7 +36,7 @@ def main():
                 "/opt/netbox/netbox/manage.py",
                 "shell",
                 "-c",
-                'from django.conf import settings; from django.urls import resolve; from importlib.metadata import version; import netbox_agent_api; assert "netbox_agent_api" in settings.PLUGINS; assert version("netbox-agent-api") == "0.4.0"; assert netbox_agent_api.__file__.startswith("/opt/netbox/agent-api/"); resolve("/api/plugins/agent-support/"); print("Upstream image plus release companion bundle: PASS")',
+                'from django.conf import settings; from django.urls import resolve; from importlib.metadata import version; import netbox_agent_api; assert "netbox_agent_api" in settings.PLUGINS; assert version("netbox-agent-api") == "0.4.1"; assert netbox_agent_api.__file__.startswith("/opt/netbox/agent-api/"); resolve("/api/plugins/agent-support/"); print("Upstream image plus release companion bundle: PASS")',
             ],
             check=True,
         )
