@@ -506,6 +506,7 @@ Read the dashboard and widget schemas and retain the exact original dashboard st
 Make one deliberately invalid update attempting to add a NoteWidget with blank required content. Verify rejection without a dashboard change.
 Then add a blue NoteWidget titled {prefix} with content {prefix}, width 4 and height 3. Verify the saved widget.
 Make one deliberately stale PUT using the ETag you read BEFORE adding the note. Verify rejection without changes.
+Use a dashboard GET after each of the two intended rejections and compare it with the last known state.
 Finally remove your note and restore the exact original dashboard state. If it originally did not exist, reset it back to uninitialized. If it existed, preserve its original layout and config exactly. Use fresh ETags for intended writes.
 Inspect your task summary and report receipts accurately, distinguishing the two expected rejections from unresolved outcomes. Do not use website tools or modify inventory. Dashboards have no native ObjectChange history or automatic undo.""",
                 dashboard_oracle,

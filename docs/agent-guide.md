@@ -112,6 +112,8 @@ For example, one note uses a UUID in both places:
 Append to the existing layout/config; do not replace other widgets with this example.
 Native widget forms validate the configuration.
 These operations have receipts but no native ObjectChange history or automatic undo.
+A receipt body is not a separate verification read. Report only reads you actually
+executed; use a fresh GET to verify state after a rejected write.
 `users/config/` remains the native preference API: PATCH deep-merges its entire
 JSON body, so use only intended preference data. It has no ETag guard or automatic
 undo; empty nested objects replace that subtree rather than deleting its key.
