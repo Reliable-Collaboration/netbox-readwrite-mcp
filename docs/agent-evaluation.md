@@ -1,5 +1,18 @@
 # Consuming-agent evaluation
 
+The server under test is **Reliable Collaboration's unofficial NetBox read/write
+MCP server** ([repository](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp)),
+registered in test clients with the short alias `netbox`. NetBox's official MCP
+server is not used in these evaluations. Historical report keys such as
+`used_mcp` refer to this project; original reports are preserved unchanged.
+
+Live model evaluations run locally, with explicit opt-in and a private provider
+key file under the Git-ignored `.lab/` directory. GitHub CI runs deterministic
+tests against its own disposable NetBox plus package checks; it does not run
+agent clients or call a model provider. Provider credentials and raw local
+transcripts are not uploaded. Committed evaluation records contain reviewed
+results and hashes, not credentials.
+
 Current acceptance includes the strict combined Community workflow and the real
 GitHub feedback loop recorded below. Earlier sections preserve development runs
 and their limits at the time; [validation](validation.md) records the current
@@ -104,7 +117,7 @@ The observation gateway counts incremental output for both protocols without
 retaining content in activity counters. Native clients load the test MCP only;
 Claude Code uses a private configuration directory, while Codex ignores user
 configuration and uses invocation-scoped settings, including explicit write approval
-for the disposable lab NetBox MCP. `approval_policy="never"` alone rejects MCP
+for the disposable lab connection to our unofficial read/write MCP server. `approval_policy="never"` alone rejects MCP
 writes that would need approval; it does not preapprove them. Neither adapter changes normal
 client settings. Shell tools are disabled, and the task restricts work to NetBox
 MCP. These are client policies, not an OS isolation boundary. Native-client
@@ -465,7 +478,7 @@ review. Raw transcripts and credentials remain private.
 The first Codex attempt (`903e768b1f`) was an evaluation-configuration failure:
 `approval_policy="never"` rejected MCP writes that needed approval. It created
 no inventory and **failed the state oracle despite a zero client exit code**.
-The runner now explicitly approves the disposable lab NetBox MCP through an
+The runner now explicitly approves the disposable lab connection to our unofficial read/write MCP server through an
 invocation-scoped setting, without changing the user's normal client configuration.
 
 Claude Code run `236807be64` passed inventory creation and a fresh-session repeat
@@ -516,7 +529,7 @@ recovery semantics. Unit tests and a real NetBox bookmark/missing-device check
 exercise those boundaries.
 
 Codex run `03b33417c8` satisfied the NetBox state assertions but **failed** the
-MCP-only requirement: it called an inherited Context7 App. Ignoring the user's
+requirement to use only our unofficial read/write MCP server: it called an inherited Context7 App. Ignoring the user's
 configuration alone did not disable Codex Apps. The runner now explicitly disables
 Apps, plugins, hooks and host skill discovery for this disposable evaluation.
 A local startup probe captured nine tool definitions (23,102 serialized bytes),
@@ -529,3 +542,31 @@ nested JSON/YAML import. The compact `get_schema` response now carries import
 instructions directly: inspect the model-specific GET metadata, use its related
 keys, and serialize nested lists as JSON or YAML. The acceptance criterion remains
 unchanged; matching final inventory alone does not prove the requested operation.
+
+Codex run `2d208b74c6`, using the 0.4.2 candidate built from `3366fdf`, passed all
+24 checks in 388.27 seconds. It imported the device type and both templates in
+one JSON operation, successfully traced before disconnecting, completed the
+remaining maintenance work, and preserved the checked existing inventory. It
+used only Reliable Collaboration's unofficial NetBox read/write MCP server. Historical rejected requests and a no-change workflow
+remain in the journal; no unresolved operations remained. This is a targeted
+successful acceptance after the retained failures, not a claim that GLM always
+completes correctly.
+
+Claude Code run `a5badc9997` passed the same 24 checks on the same candidate in
+249.61 seconds. Its journal retained five rejected operations; the agent
+recovered and completed the workflow without outside tools or unresolved writes.
+
+OpenCode run `1a4272a45c` passed all 24 checks in 357.65 seconds on the same
+candidate. It recovered from six rejected write operations and left no unresolved
+operations. No external tools or injected guide were used.
+
+| Client | Version | 0.4.2 candidate Community result | Run |
+| --- | --- | --- | --- |
+| Claude Code | 2.1.287 | 24/24 passed; 249.61 seconds | `a5badc9997` |
+| Codex | 0.159.2 | 24/24 passed; 388.27 seconds | `2d208b74c6` |
+| OpenCode | 1.18.33 | 24/24 passed; 357.65 seconds | `1a4272a45c` |
+
+All three used Reliable Collaboration's unofficial NetBox read/write MCP server,
+NetBox Community 4.7.2, and GLM-5.3-Flash through a local LiteLLM proxy. These are
+local model evaluations, separate from GitHub CI. The candidate application SHA-256
+is `ec76c6ce1d3b1c3df62dccc40c4aa479349a100a12ab6acefa74a2ec7ae3613d`.

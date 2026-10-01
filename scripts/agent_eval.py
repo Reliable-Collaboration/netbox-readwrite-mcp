@@ -24,6 +24,8 @@ import uuid
 if __package__:
     from .agent_gateway import Gateway
     from .agent_clients import (
+        MCP_SERVER_NAME,
+        MCP_SERVER_REPOSITORY,
         native_command,
         client_failed,
         used_host_tools,
@@ -33,6 +35,8 @@ if __package__:
 else:
     from agent_gateway import Gateway
     from agent_clients import (
+        MCP_SERVER_NAME,
+        MCP_SERVER_REPOSITORY,
         native_command,
         client_failed,
         used_host_tools,
@@ -259,6 +263,9 @@ def main():
     logger = threading.Thread(target=proxy_log, daemon=True)
     logger.start()
     report = {
+        "mcp_server": MCP_SERVER_NAME,
+        "mcp_server_repository": MCP_SERVER_REPOSITORY,
+        "mcp_client_alias": "netbox",
         "harness_sha256": {
             str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in (Path(__file__), ROOT / "scripts/agent_gateway.py", ROOT / "scripts/agent_clients.py")
@@ -291,6 +298,7 @@ def main():
     )
     mcp_command += ["--config", str(run / "mcp.json")]
     gateway = None
+    print(f"Server under test: {MCP_SERVER_NAME} ({MCP_SERVER_REPOSITORY}; alias: netbox)", flush=True)
     print("Run: " + str(run), flush=True)
     report["limits"] = {
         "phase_seconds": args.timeout,
@@ -349,7 +357,8 @@ def main():
                 "inventory": {
                     "mode": "primary",
                     "steps": 160,
-                    "prompt": "Complete the requested inventory task using ONLY netbox MCP tools. "
+                    "prompt": "Complete the requested inventory task using ONLY netbox MCP tools, "
+                    f"provided by {MCP_SERVER_NAME}. "
                     "Do not use shell, file, web fetch, delegation or other host tools. "
                     "Do not ask for confirmation for the authorized synthetic lab work. "
                     "Use schemas when needed; do not guess IDs. Finish with concise actual outcomes "
@@ -470,6 +479,7 @@ def main():
                         if now - heartbeat >= 60:
                             calls = tool_events(Path(cfg["journal"]))[before:]
                             progress = {
+                                "mcp_server": MCP_SERVER_NAME,
                                 "phase": name,
                                 "elapsed_seconds": round(now - started),
                                 "llm": activity,
@@ -534,6 +544,7 @@ def main():
                         {k: v for k, v in event.get("usage", {}).items() if isinstance(v, (int, float))}
                     )
             item = {
+                "mcp_server": MCP_SERVER_NAME,
                 "name": name,
                 "interruption": interruption,
                 "llm_activity_cumulative": gateway.activity.snapshot(),
