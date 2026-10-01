@@ -31,6 +31,22 @@ class RootView(APIView):
                     "bulk-rename",
                     "bulk-edit",
                     "pattern-create",
+                    "self/profile",
+                    "self/preferences",
+                    "self/password",
+                    "self/notifications",
+                    "search",
+                    "render-markdown",
+                    "system",
+                    "database-schema",
+                    "queue-tasks",
+                    "media",
+                    "bulk-disconnect",
+                    "bulk-sync",
+                    "exports",
+                    "native-delete",
+                    "scripts",
+                    "virtual-chassis",
                 )
             }
         )

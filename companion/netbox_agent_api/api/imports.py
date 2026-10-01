@@ -10,7 +10,7 @@ from django.utils.choices import flatten_choices
 from core.signals import clear_events
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from netbox.api.authentication import TokenWritePermission
-from netbox.views.generic import BulkImportView
+from netbox.views.generic import BulkImportView, ObjectListView
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
@@ -40,10 +40,16 @@ def registered_views(base):
             cls = getattr(route.callback, "view_class", None)
             if cls is None or not issubclass(cls, base):
                 continue
+            if base is ObjectListView and not callable(getattr(cls, "table", None)):
+                continue
             model = getattr(getattr(cls, "queryset", None), "model", None)
+            if model is None and base is ObjectListView:
+                model = getattr(getattr(getattr(cls, "table", None), "_meta", None), "model", None)
             if model is None or model._meta.app_label not in STOCK_APPS:
                 continue
-            if cls.__module__.split(".")[0] not in STOCK_APPS:
+            if cls.__module__.split(".")[0] not in STOCK_APPS and not (
+                base is ObjectListView and cls.__module__ == "account.views"
+            ):
                 continue
             found[model._meta.label_lower] = cls
 
@@ -61,7 +67,7 @@ def permitted_view(request, model, base=BulkImportView):
         raise NotFound("No stock Community handler for this operation and model.")
     view = cls()
     view.setup(request)
-    view.queryset = view.get_queryset(request)
+    view.queryset = view.get_queryset(request) if hasattr(view, "get_queryset") else view.queryset.all()
     # Native method applies additional permissions and restricts the queryset to
     # the caller's add constraints. Its helper separately checks change constraints.
     if not view.has_permission():

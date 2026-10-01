@@ -303,3 +303,22 @@ not flawless execution. No human completed or corrected the task. The native
 default dashboard was prepared before the run and removed only as fixture cleanup
 after the independent oracle passed. Exact source/harness/guide hashes and earlier
 attempts are retained in [the results](agent-evaluation-results.json).
+
+## Native bulk workflow qualification
+
+Run **`6a0d7babb0`**, source **`2dbc6a8`**, passed in **258.26 seconds**.
+GLM discovered and used CSV import, guarded native rename, guarded bulk editing,
+and VLAN range expansion. The independent oracle confirmed two renamed/planned
+sites with the requested description, exactly three correctly named VLANs,
+a stale-rename 409, and atomic rejection of a two-item range request whose second
+item had an invalid status. Existing inventory remained unchanged.
+
+The run made 21 MCP calls with zero tool errors, zero output truncations and no
+unresolved operations. Its nine operations comprise five applied writes, two
+completed previews and two expected rejections. Final verification reads and a
+task summary are present. There was no immediate GET between stale rename
+rejection and bulk editing; the agent's broad statement that the sites were
+re-verified unchanged should not be read as proof of that particular read order.
+No human completed or corrected the task. This qualifies the scenario, not every
+native form combination or full website parity. Exact hashes are retained in
+[the results](agent-evaluation-results.json).

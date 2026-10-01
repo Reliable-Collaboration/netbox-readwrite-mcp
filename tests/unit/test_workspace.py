@@ -580,3 +580,32 @@ def test_schema_resolves_parameterized_operation_families(broad, resource):
     result = broad.get_schema(resource, method="POST")
     assert set(result["paths"]) == {path}
     assert result["schemas"]["ImportWrite"]["required"] == ["data"]
+
+
+def test_own_password_intent_is_redacted_but_dispatch_and_replay_are_exact(broad, monkeypatch):
+    path = "plugins/agent-support/self/password/"
+    sent = []
+    original = broad.api.request
+
+    def request(method, target, data=None, *args, **kwargs):
+        if target == path:
+            sent.append(data)
+            return {"status": 200, "body": {"changed": True}, "headers": {}}
+        return original(method, target, data, *args, **kwargs)
+
+    monkeypatch.setattr(broad.api, "request", request)
+    body = {
+        "old_password": "old-private-value",
+        "new_password1": "new-private-value",
+        "new_password2": "new-private-value",
+    }
+    operation_key = key()
+    result = broad.execute_action(broad.task, operation_key, "POST", path, body)
+    assert result["requested"] == {name: "[REDACTED]" for name in body}
+    assert all(sent[0][name] == value for name, value in body.items())
+    assert broad.execute_action(broad.task, operation_key, "POST", path, body)["id"] == result["id"]
+    assert len(sent) == 1
+    with pytest.raises(ValueError, match="different arguments"):
+        broad.execute_action(broad.task, operation_key, "POST", path, {**body, "new_password1": "different"})
+    for row in broad.store.db.execute("SELECT payload FROM events"):
+        assert "old-private-value" not in row[0] and "new-private-value" not in row[0]

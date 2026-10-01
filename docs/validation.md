@@ -4,7 +4,15 @@ Version **0.3.0**, latest qualification on **2026-10-01**, against **NetBox 4.7.
 This is observed test evidence, not a production certification or universal GUI coverage claim.
 Exact source/test hashes and numeric coverage are in [validation.json](validation.json).
 
-**Latest code qualification:** `5c13c56` passed 458 tests (343 unit + 115 live),
+**Latest code qualification:** `2dbc6a8` passed **484 tests and 6 subtests**
+(345 unit + 139 real-NetBox integration), with **92.76%** MCP runtime coverage.
+[Push CI](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36881146647)
+and [PR CI](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36881151047)
+passed, including Python 3.11–3.14 and both package builds. GLM bulk scenario
+`6a0d7babb0` passed in 258.26 seconds with no tool errors or truncations.
+Further parity work is tracked in [the worklist](parity-worklist.md).
+
+**Earlier dashboard qualification:** `5c13c56` passed 458 tests (343 unit + 115 live),
 plus 6 subtests, with 92.75% MCP coverage on a fresh NetBox database.
 [Final-source CI](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36871366840)
 also passed Python 3.11–3.14 checks (86.99% offline coverage).

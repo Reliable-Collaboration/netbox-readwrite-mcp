@@ -2044,5 +2044,120 @@
       "passed": true
     }
   ],
-  "dashboard_evaluation_date": "2026-10-01"
+  "dashboard_evaluation_date": "2026-10-01",
+  "bulk_runs": [
+    {
+      "harness_sha256": {
+        "scripts/agent_eval.py": "caebf3e7d2d512d60bff5bc1a6e58d72d51b6cb9d84d37ad03889b93c6668e29",
+        "scripts/agent_gateway.py": "6ac8ff3815aa67f30d8b8b1442eda878c9a5c015670e371e3f2353c59bf7768b"
+      },
+      "instructions_sha256": "8a290b6207f5cdeeeb16accae0289d67b64649ad5d2c7d61fb50d8b6061af5fc",
+      "source_sha256": {
+        "companion/netbox_agent_api/__init__.py": "d610a328fe8cd7510c38bb0c3f21bbcff94eefca4d2c38e2821cfc894da11090",
+        "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "companion/netbox_agent_api/api/bulk_edit.py": "6f70d4f100e3667cfb71db2e1614e3aa5fa9539f1b4fd79200d4bb4e9684fb74",
+        "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+        "companion/netbox_agent_api/api/dashboard.py": "34ee81112d046d6b0d05181cc1070fb88157aa1214568ef09330886272983981",
+        "companion/netbox_agent_api/api/imports.py": "d4917e8cc4ac3fbf9f2d29bbf89f4fbe09c86b1a564ab474b15810dc7fd9779b",
+        "companion/netbox_agent_api/api/patterns.py": "a7c17d390e0669d726c10496d2a86e0e1cb4fccff32cb97212df29d8cf6b3bbc",
+        "companion/netbox_agent_api/api/rename.py": "2ed08aa8af26d611155f2f658c9c7406cf5b794a245c85175f9fcf388f8415ba",
+        "companion/netbox_agent_api/api/urls.py": "34992687f5dfc0695a276cf7b87aeccec6642c1c52e3b43949ababee1ca621e4",
+        "companion/netbox_agent_api/api/views.py": "aea18145fa6241cf18595b438669ec12fb7d43397a01968b5df7c774bcaf98f7",
+        "src/netbox_readwrite_mcp/__init__.py": "cad430435741be9f74ef01978773af3e8d97be9ee74aae954630a042153d4e4b",
+        "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+        "src/netbox_readwrite_mcp/api.py": "71de09e364692bde02d0bbb33092b6f12266928fd53f10f83c7ab3bdcfeaa38d",
+        "src/netbox_readwrite_mcp/catalog.py": "dd3fec35994414b4b28fa633024476a371c07a8debd12bc47259422d040f0851",
+        "src/netbox_readwrite_mcp/compatibility.py": "4c6f8b708fa8d0a7114e7c002682f06bd1c34878ae490aeb1c658bcad0bc6ef7",
+        "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+        "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+        "src/netbox_readwrite_mcp/http_server.py": "f9b1bc2fe6e17e6c42e1b1d0650caef41cc2d3225a000e97345eeecd91246904",
+        "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+        "src/netbox_readwrite_mcp/recovery.py": "a786c7077cb8344deb64ceff9e285e6cea2c236977a2275610c6557235520c0d",
+        "src/netbox_readwrite_mcp/server.py": "dc45ff6989cd45bfe2f7d34c1b6dbf1cc4bcbd80fb1fafcfa3f74a9a7f23188c",
+        "src/netbox_readwrite_mcp/service.py": "4620c2d0624c786cb2d87562221614cc0a1743908f5c8cfd25c161c89f1254ff",
+        "src/netbox_readwrite_mcp/store.py": "87776573cd99fb23282e2ba7ee4fc3b8259a0f80a2e9aa91c4780bad764956ab",
+        "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+        "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+        "src/netbox_readwrite_mcp/workspace.py": "59b528b0e09147702fafb34bfe20c1c243fd778bcf77f6856501b36f8ea2a423"
+      },
+      "model": "zai-org/GLM-5.3-Flash",
+      "scenario": "bulk",
+      "run": "6a0d7babb0",
+      "netbox": "4.7.2",
+      "phases": [
+        {
+          "name": "bulk",
+          "interruption": null,
+          "llm_activity_cumulative": {
+            "requests": 15,
+            "response_bytes": 128863,
+            "network_chunks": 546,
+            "content_chunks": 220,
+            "finished_choices": 15,
+            "finished_requests": 15,
+            "transport_errors": 0,
+            "tool_calls_chunks": 202,
+            "reasoning_content_chunks": 67,
+            "active_requests": [],
+            "last_network_age_seconds": 3.8,
+            "last_generation_age_seconds": 3.8
+          },
+          "seconds": 258.26,
+          "checks": {
+            "two_imported_sites_renamed": true,
+            "bulk_fields_applied": true,
+            "exact_vlan_range": true,
+            "native_import_used": true,
+            "native_rename_used": true,
+            "native_bulk_edit_used": true,
+            "native_range_used": true,
+            "stale_rename_rejected": true,
+            "atomic_range_rejection": true,
+            "task_summary_read": true,
+            "no_website_calls": true,
+            "no_uncertain_operations": true,
+            "preexisting_inventory_unchanged": true,
+            "client_exit_zero": true,
+            "used_mcp": true,
+            "no_client_error": true
+          },
+          "passed": true,
+          "tool_calls": {
+            "capabilities": 1,
+            "discover_models": 1,
+            "begin_task": 1,
+            "query": 2,
+            "get_schema": 4,
+            "execute_action": 8,
+            "create_object": 1,
+            "get_objects": 2,
+            "get_task": 1
+          },
+          "tool_errors": 0,
+          "tool_states": {
+            "200": 2,
+            "applied": 5,
+            "completed": 2,
+            "failed": 2
+          },
+          "truncated_tool_outputs": 0,
+          "tokens": {
+            "total": 323378,
+            "input": 106749,
+            "output": 2416,
+            "reasoning": 197
+          }
+        }
+      ],
+      "opencode": "1.18.33",
+      "limits": {
+        "phase_seconds": 14400,
+        "idle_seconds": 0,
+        "agent_steps": 160
+      },
+      "passed": true,
+      "source_commit": "2dbc6a8c6432ea85eddea83aeaa8ea92c966fa36",
+      "scope": "Bulk workflow only; does not qualify all native model forms or full website parity. Final independent state oracle passed; no immediate GET between stale rename rejection and the subsequent bulk edit."
+    }
+  ]
 }

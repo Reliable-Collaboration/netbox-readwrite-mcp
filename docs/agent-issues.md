@@ -42,3 +42,34 @@ retry an uncertain mutation under a new key merely to close an issue.
 
 The actual submission/read/comment/close loop was exercised with synthetic data
 in [issue #1](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/issues/1).
+
+## Optional structured feedback MCP
+
+An operator can connect a separate feedback server to the same private journal:
+
+```sh
+pip install 'netbox-readwrite-mcp[feedback]'
+python -m netbox_readwrite_mcp.feedback --journal /private/netbox.sqlite --outbox /private/feedback.sqlite --enable-publish
+```
+
+It uses the operator's existing `gh` login and always targets this repository.
+Without `--enable-publish` it returns a draft and performs no GitHub write. Its
+three tools are `report_issue`, `reconcile_report`, and `read_report`. The agent
+can supply an existing generic operation UUID and enum fields; it cannot supply
+an issue body, credentials, an arbitrary repository or a filesystem path.
+Publication includes only package/NetBox versions, the UUID, operation state and
+HTTP status. Inventory, request bodies, receipt bodies and secrets stay local.
+
+A separate private SQLite outbox records publication before dispatch. A lost
+response stays uncertain; repeating the same key does not publish again. Marker
+search can recover a successful publication. GitHub search may take time to
+index a new issue, so an empty search is not evidence that publication failed.
+Maintainers can use the CLI above to read/respond with sanitized reproduction
+and fix evidence. This bridge supports generic API operation receipts; legacy
+bounded-device receipts still use `diagnostic_report` and the reviewed CLI.
+
+`scripts/agent_eval.py --scenario feedback` qualifies the actual consuming-agent
+publication/replay/read flow and a maintainer reply in the real project repository.
+Unit and official-SDK tests cover privacy, lost responses, duplicate suppression,
+operator opt-in and malformed arguments. A live agent pass must be recorded
+before claiming the consuming-agent feedback loop is qualified.

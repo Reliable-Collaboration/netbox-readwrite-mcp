@@ -238,7 +238,14 @@ class WorkspaceService(Service):
                 "path": path,
                 "transport": transport,
                 "reverses": reverses,
-                "requested": data,
+                "requested": {
+                    name: "[REDACTED]"
+                    if name in {"old_password", "new_password1", "new_password2"}
+                    else value
+                    for name, value in data.items()
+                }
+                if path == "plugins/agent-support/self/password/" and isinstance(data, dict)
+                else data,
                 "files": files,
                 "before": before,
                 "expected_etag": expected_etag,

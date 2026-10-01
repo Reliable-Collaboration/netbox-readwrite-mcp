@@ -27,6 +27,7 @@ Issues = "https://github.com/reliable-collaboration/netbox-readwrite-mcp/issues"
 netbox-readwrite-mcp = "netbox_readwrite_mcp.server:main"
 
 [project.optional-dependencies]
+feedback = ["mcp>=1.30,<2"]
 test = ["pytest>=8,<10", "pytest-cov>=6,<8", "hypothesis>=6,<7", "mcp>=1.30,<2"]
 dev = ["ruff>=0.12,<1", "build>=1,<2"]
 

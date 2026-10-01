@@ -156,7 +156,9 @@ def main():
     parser.add_argument("--timeout", type=int, default=14400)
     parser.add_argument("--idle-timeout", type=int, default=0)
     parser.add_argument(
-        "--scenario", choices=["inventory", "configuration", "dashboard", "bulk"], default="inventory"
+        "--scenario",
+        choices=["inventory", "configuration", "dashboard", "bulk", "feedback"],
+        default="inventory",
     )
     args = parser.parse_args()
     if os.environ.get("NETBOX_RW_AGENT_EVAL") != "1":
@@ -305,6 +307,26 @@ def main():
                 }
             },
         }
+        if args.scenario == "feedback":
+            agent_cfg["mcp"]["feedback"] = {
+                "type": "local",
+                "command": [
+                    sys.executable,
+                    "-m",
+                    "netbox_readwrite_mcp.feedback",
+                    "--journal",
+                    cfg["journal"],
+                    "--outbox",
+                    str(run / "feedback.sqlite"),
+                    "--enable-publish",
+                ],
+                "enabled": True,
+                "timeout": 120000,
+            }
+            agent_cfg["permission"]["feedback_*"] = "allow"
+            agent_cfg["agent"]["inventory"]["prompt"] = agent_cfg["agent"]["inventory"]["prompt"].replace(
+                "ONLY netbox MCP tools", "ONLY netbox and feedback MCP tools"
+            )
         write_json(agent_dir / "opencode.json", agent_cfg)
         # Isolate client configuration and avoid passing provider/NetBox credentials to the LLM host.
         env = {k: v for k, v in os.environ.items() if k in {"PATH", "HOME", "LANG", "TMPDIR"}}
@@ -445,6 +467,69 @@ def main():
         def one(resource, **filters):
             found = objects(resource, **filters)
             return found[0] if len(found) == 1 else {}
+
+        if args.scenario == "feedback":
+            from netbox_readwrite_mcp.feedback import Feedback
+
+            feedback = Feedback(cfg["journal"], run / "feedback.sqlite", publish=True)
+            report_key = prefix + "-feedback"
+
+            def publication_oracle(events):
+                try:
+                    receipt = feedback.get(report_key)
+                    issue = feedback.read(report_key)
+                except ValueError:
+                    return {"published": False}
+                write_json(run / "feedback-receipt.json", receipt)
+                report["feedback_issue"] = receipt.get("url")
+                return {
+                    "published": receipt["state"] == "published",
+                    "one_durable_report": sqlite3.connect(run / "feedback.sqlite")
+                    .execute("SELECT count(*) FROM reports")
+                    .fetchone()[0]
+                    == 1,
+                    "native_rejection": receipt["diagnostic"]["operation"]["http_status"] == 400,
+                    "failed_receipt": receipt["diagnostic"]["operation"]["state"] == "failed",
+                    "issue_readable": issue.get("issue", {}).get("state") == "OPEN",
+                    "no_unresolved_netbox_operations": not svc.observability()["unresolved"],
+                }
+
+            first = phase(
+                "feedback-publish",
+                f"""Qualify issue feedback using synthetic data. Begin a task, then deliberately attempt to create a dcim site named and slugged {prefix} with invalid status 'not-a-status'. Expect a native validation rejection and verify that no site was created. This is an intentional qualification, not a product defect.
+Use feedback.report_issue with operation_key '{report_key}', that rejected operation's UUID, category 'qualification' and expected 'feedback-roundtrip'. Publication to the project repository is authorized. Repeat the EXACT same report call and verify the same issue receipt, then read_report. Read your NetBox task summary and finish with the issue URL and rejected operation UUID. Do not create any other issue or retry the rejected site mutation.""",
+                publication_oracle,
+            )
+            if first:
+                receipt = feedback.get(report_key)
+                reply_code = "verified-" + uuid.uuid4().hex[:12]
+                feedback.gh(
+                    ["issue", "comment", str(receipt["number"]), "--body-file", "-"],
+                    "Maintainer qualification response: native validation behaved correctly. The durable report and duplicate suppression were verified. No inventory repair is needed. Reply verification code: "
+                    + reply_code
+                    + ".",
+                )
+
+                def reply_oracle(events):
+                    transcript = (run / "feedback-read-events.jsonl").read_text()
+                    return {
+                        "maintainer_reply_observed": reply_code in transcript,
+                        "feedback_read_called": "feedback_read_report" in transcript,
+                        "netbox_receipt_checked": any(e["tool"] == "get_operation" for e in events),
+                    }
+
+                second = phase(
+                    "feedback-read",
+                    f"Read the maintainer response using feedback.read_report for operation_key '{report_key}'. Also inspect NetBox operation {receipt['diagnostic']['operation']['id']} with get_operation. Report the maintainer's reply verification code and whether inventory repair is needed. Do not publish another issue or mutate NetBox.",
+                    reply_oracle,
+                )
+                report["passed"] = first and second
+                if report["passed"]:
+                    feedback.gh(["issue", "close", str(receipt["number"]), "--reason", "completed"])
+            else:
+                report["passed"] = False
+            print("Report: " + str(run / "report.json"), flush=True)
+            return 0 if report["passed"] else 1
 
         if args.scenario == "bulk":
 

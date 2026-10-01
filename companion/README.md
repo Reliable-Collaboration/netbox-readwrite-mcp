@@ -213,3 +213,12 @@ Schema sweeps and representative lifecycle tests are recorded separately from
 full feature qualification. These endpoints do not imply universal automatic
 undo or that every native form combination has been tested. On response loss,
 retain the operation key and reconcile native history before another mutation.
+
+Additional API families cover own profile/preferences/password/notifications,
+permission-scoped native search and Markdown preview, system/database/queue
+metadata, authenticated image downloads, native table/CSV/YAML/template exports,
+atomic cable disconnection and data-file synchronization, atomic virtual-chassis
+position swaps, script form/source discovery, and guarded deletion of data files,
+job records and script modules. Discover `api/plugins/agent-support/` for paths
+and use the live OpenAPI schema for request fields. External queue and filesystem
+effects of native deletion cannot be rolled back by a database transaction.
