@@ -188,9 +188,19 @@ class Catalog:
         resource = self.resolve(resource)
         options = self.api.request("OPTIONS", resource)
         self.load_schema()
-        paths = {
-            p: value for p, value in self.schema.get("paths", {}).items() if p.startswith("/api/" + resource)
-        }
+        requested = ("/api/" + resource).strip("/").split("/")
+
+        def matches(path, exact=False):
+            segments = path.strip("/").split("/")
+            return (len(segments) == len(requested) if exact else len(segments) >= len(requested)) and all(
+                a == b or (a.startswith("{") and a.endswith("}")) for a, b in zip(segments, requested)
+            )
+
+        paths = {p: value for p, value in self.schema.get("paths", {}).items() if matches(p)}
+        has_root_write = any(
+            matches(p, exact=True) and any(m in value for m in ("post", "put", "patch", "delete"))
+            for p, value in paths.items()
+        )
         if action is not None:
             if not isinstance(action, str) or not re.fullmatch(r"[a-zA-Z0-9_-]+", action):
                 raise ValueError("action must be a single action name, such as available-ips")
@@ -245,7 +255,7 @@ class Catalog:
                     request_schema = request.get("schema")
                 if request_schema:
                     entry["request"] = request_schema
-                    if (action is not None or path == "/api/" + resource) and method in {
+                    if (action is not None or matches(path, exact=True) or not has_root_write) and method in {
                         "post",
                         "put",
                         "patch",
@@ -258,7 +268,7 @@ class Catalog:
                                 f"Use get_schema(method='{method.upper()}') for bulk inputs."
                             )
                 compact_paths[path][method] = entry
-                if path == "/api/" + resource and method == "get":
+                if matches(path, exact=True) and method == "get":
                     for parameter in spec.get("parameters", []):
                         if parameter.get("in") == "query":
                             filters[parameter["name"]] = parameter.get("schema", {}).get(

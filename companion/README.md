@@ -178,3 +178,38 @@ reads and exact restoration. It corrected one additional malformed request; that
 attempt remains in the evidence. No host/browser tools or manual task completion
 were used. See [agent evaluation](../docs/agent-evaluation.md) for the scoped proof
 and earlier failed attempts.
+
+## Native import and bulk operation APIs
+
+Four catalogs expose stock Community handlers: `imports/`, `bulk-rename/`,
+`bulk-edit/`, and `pattern-create/`, under `/api/plugins/agent-support/`.
+Each lists models the caller may operate on. A model detail URL, for example
+`imports/dcim.site/`, provides native field metadata on GET and accepts a typed
+operation envelope on POST. OpenAPI documents the envelopes. The implementation
+calls native Python forms and operation helpers without HTML/session requests.
+See the [agent guide](../docs/agent-guide.md#native-imports-and-bulk-forms) for inputs.
+
+Imports preserve native CSV/JSON/YAML parsing, relationship lookups, custom
+fields, partial update semantics and model-specific save hooks. Native add and
+change constraints are enforced separately. Malformed IDs and unknown fields
+are rejected before saving. Every request is one transaction, including related
+records. Imports retain the native lack of a conditional-write guard.
+
+Rename uses native literal/regex substitution, restricts field selection to the
+native rename fields and requires the previous preview's selected values when
+applying. Bulk edit preserves native clearing, tag deltas and per-model hooks;
+it requires hashes of selected records from the preceding validation request.
+Both lock the selected rows before checking their guards and applying. These
+are content guards, not globally enforced revisions or ABA-proof generations;
+native website writers do not participate in this API's preview protocol.
+
+Pattern creation expands native IP/prefix/VLAN ranges and component names,
+labels and other replication fields. Multiple parent inputs can be combined in
+one atomic request. Native field validation, add constraints and changelog
+messages still apply. Bulk operations execute synchronously for the home-lab
+scope. Native object APIs and native asynchronous jobs remain available.
+
+Schema sweeps and representative lifecycle tests are recorded separately from
+full feature qualification. These endpoints do not imply universal automatic
+undo or that every native form combination has been tested. On response loss,
+retain the operation key and reconcile native history before another mutation.

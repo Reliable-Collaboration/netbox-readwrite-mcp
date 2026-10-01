@@ -2,6 +2,7 @@
 
 import json
 import os
+import time
 import uuid
 
 import pytest
@@ -14,6 +15,88 @@ pytestmark = [
     pytest.mark.integration,
     pytest.mark.skipif(os.environ.get("NETBOX_RW_LIVE") != "1", reason="Disposable lab opt-in required"),
 ]
+
+
+@pytest.fixture
+def queue_admin(tmp_path):
+    cfg = json.loads((STATE / "broad-config.json").read_text())
+    assert cfg["netbox_url"] == URL
+    token = tmp_path / "token"
+    token.write_text(json.loads((STATE / "secrets.json").read_text())["token"])
+    token.chmod(0o600)
+    cfg.update(token_file=str(token), actor="audit-admin", journal=str(tmp_path / "journal.sqlite"))
+    service = build_service(cfg)
+    try:
+        yield service
+    finally:
+        service.store.close()
+
+
+def wait_task(service, path, status):
+    deadline = time.monotonic() + 45
+    while time.monotonic() < deadline:
+        response = service.query(path)
+        assert response["status"] == 200, response
+        if response["body"]["status"] == status:
+            return response["body"]
+        time.sleep(0.25)
+    pytest.fail(f"Disposable RQ task did not reach {status}: {response['body']}")
+
+
+@pytest.mark.parametrize("initial,action", [("scheduled", "enqueue"), ("failed", "requeue")])
+def test_native_queue_execution_and_deletion(queue_admin, initial, action):
+    """Real worker execution, receipt replay, and deletion of only our own job."""
+    job_id = "qualification-" + uuid.uuid4().hex
+    fixture = f"""
+from django_rq import get_queue
+from rq.job import Job, JobStatus
+from rq.registry import FailedJobRegistry, ScheduledJobRegistry
+from datetime import datetime, timedelta, timezone
+queue = get_queue('default')
+job_id = {job_id!r}
+"""
+    setup = """
+job = Job.create('operator.add', args=(19, 23), connection=queue.connection,
+                 origin=queue.name, id=job_id, result_ttl=300)
+job.set_status(JobStatus.SCHEDULED if INITIAL == 'scheduled' else JobStatus.FAILED)
+job.save()
+if INITIAL == 'scheduled':
+    ScheduledJobRegistry(queue=queue).schedule(job, datetime.now(timezone.utc) + timedelta(hours=1))
+else:
+    FailedJobRegistry(queue=queue).add(job, ttl=300)
+""".replace("INITIAL", repr(initial))
+    shell(fixture + setup)
+    service = queue_admin
+    path = "core/background-tasks/" + job_id + "/"
+    try:
+        assert service.query(path)["body"]["status"] == initial
+        restricted = build_service(json.loads((STATE / "broad-config.json").read_text()))
+        try:
+            for verb, suffix in [("GET", ""), ("POST", action + "/"), ("POST", "delete/")]:
+                assert restricted.api.request(verb, path + suffix)["status"] == 403
+        finally:
+            restricted.store.close()
+        task = service.begin_task("Qualify disposable queue task")["task_id"]
+        result = service.execute_action(task, "execute-job", "POST", path + action + "/", {})
+        assert result["last_receipt"]["status"] == 200, result
+        assert result["state"] == "completed" and result["native_changes"] == []
+        wait_task(service, path, "finished")
+        shell(
+            fixture
+            + "job = Job.fetch(job_id, connection=queue.connection)\nassert job.return_value() == 42\n"
+        )
+        assert (
+            service.execute_action(task, "execute-job", "POST", path + action + "/", {})["id"] == result["id"]
+        )
+        removed = service.execute_action(task, "delete-job", "POST", path + "delete/", {})
+        assert removed["last_receipt"]["status"] == 200
+        shell(fixture + "assert not Job.exists(job_id, connection=queue.connection)\n")
+        assert service.api.request("POST", path + "delete/", {})["status"] == 404
+    finally:
+        shell(
+            fixture
+            + "\nif Job.exists(job_id, connection=queue.connection):\n    Job.fetch(job_id, connection=queue.connection).delete()\n"
+        )
 
 
 def test_native_worker_name_with_at_and_plus(tmp_path):
@@ -45,3 +128,28 @@ worker = Worker([], connection=connection, name={name!r})
     finally:
         service.store.close()
         shell(fixture + "worker.register_death()\n")
+
+
+def test_native_stop_running_task(queue_admin):
+    job_id = "qualification-" + uuid.uuid4().hex
+    fixture = f"""
+from django_rq import get_queue
+from rq.job import Job
+queue = get_queue('default')
+job_id = {job_id!r}
+"""
+    shell(fixture + "queue.enqueue('time.sleep', 90, job_id=job_id, job_timeout=120, failure_ttl=300)\n")
+    service = queue_admin
+    path = "core/background-tasks/" + job_id + "/"
+    try:
+        wait_task(service, path, "started")
+        task = service.begin_task("Stop only the disposable test task")["task_id"]
+        result = service.execute_action(task, "stop-running", "POST", path + "stop/", {})
+        assert result["state"] == "completed" and result["last_receipt"]["status"] == 200, result
+        wait_task(service, path, "stopped")
+        assert service.execute_action(task, "stop-running", "POST", path + "stop/", {})["id"] == result["id"]
+    finally:
+        shell(
+            fixture
+            + "\nif Job.exists(job_id, connection=queue.connection):\n    from rq.command import send_stop_job_command\n    job = Job.fetch(job_id, connection=queue.connection)\n    if job.get_status() == 'started':\n        send_stop_job_command(queue.connection, job_id)\n    job.delete()\n"
+        )

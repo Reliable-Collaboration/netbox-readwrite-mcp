@@ -156,7 +156,7 @@ def main():
     parser.add_argument("--timeout", type=int, default=14400)
     parser.add_argument("--idle-timeout", type=int, default=0)
     parser.add_argument(
-        "--scenario", choices=["inventory", "configuration", "dashboard"], default="inventory"
+        "--scenario", choices=["inventory", "configuration", "dashboard", "bulk"], default="inventory"
     )
     args = parser.parse_args()
     if os.environ.get("NETBOX_RW_AGENT_EVAL") != "1":
@@ -445,6 +445,66 @@ def main():
         def one(resource, **filters):
             found = objects(resource, **filters)
             return found[0] if len(found) == 1 else {}
+
+        if args.scenario == "bulk":
+
+            def bulk_oracle(events):
+                sites = [one("dcim/sites/", slug=prefix + suffix) for suffix in ("-1", "-2")]
+                group = one("ipam/vlan-groups/", slug=prefix)
+                vlans = objects("ipam/vlans/", group_id=group["id"]) if group else []
+                operations = [
+                    json.loads(row[0])
+                    for row in svc.store.db.execute("SELECT document FROM resource_operations")
+                ]
+
+                def receipt(path, status):
+                    return [
+                        op
+                        for op in operations
+                        if op["path"] == "plugins/agent-support/" + path
+                        and (op.get("last_receipt") or {}).get("status") == status
+                    ]
+
+                return {
+                    "two_imported_sites_renamed": all(
+                        site and site["name"] == prefix + "-new-" + str(i) for i, site in enumerate(sites, 1)
+                    ),
+                    "bulk_fields_applied": all(
+                        site and site["description"] == "Bulk survey" and site["status"]["value"] == "planned"
+                        for site in sites
+                    ),
+                    "exact_vlan_range": sorted((v["vid"], v["name"]) for v in vlans)
+                    == [(i, prefix + "-vlan-" + str(i)) for i in range(3901, 3904)],
+                    "native_import_used": bool(receipt("imports/dcim.site/", 200)),
+                    "native_rename_used": bool(receipt("bulk-rename/dcim.site/", 200)),
+                    "native_bulk_edit_used": bool(receipt("bulk-edit/dcim.site/", 200)),
+                    "native_range_used": bool(receipt("pattern-create/ipam.vlan/", 200)),
+                    "stale_rename_rejected": bool(receipt("bulk-rename/dcim.site/", 409)),
+                    "atomic_range_rejection": any(
+                        len((op.get("requested") or {}).get("items", [])) == 2
+                        and "status" in str(op["last_receipt"].get("body"))
+                        for op in receipt("pattern-create/ipam.vlan/", 400)
+                    ),
+                    "task_summary_read": any(
+                        e["tool"] == "get_task" and not e.get("is_error") for e in events
+                    ),
+                    "no_website_calls": not any(e["tool"] in {"web_read", "web_submit"} for e in events),
+                    "no_uncertain_operations": not svc.observability()["unresolved"],
+                }
+
+            report["passed"] = phase(
+                "bulk",
+                f"""Qualify the companion bulk APIs in this disposable home lab using MCP only. Discover catalogs and native field schemas under plugins/agent-support/.
+Use imports/dcim.site/ to import two active sites as CSV, named {prefix}-old-1 and {prefix}-old-2, slugs {prefix}-1 and {prefix}-2.
+Use bulk-rename/dcim.site/ to preview and apply changing 'old-' to 'new-' in those two names. Then deliberately repeat the OLD preview guard with a NEW operation key; expect 409 and verify the sites are unchanged.
+Use bulk-edit/dcim.site/ to set description 'Bulk survey' and status planned on both sites, with the expected state from its validation step.
+Create a VLAN group named and slugged {prefix}. Use pattern-create/ipam.vlan/ to create VLANs 3901-3903 in that group with names {prefix}-vlan-{{vid}}, status active.
+Test atomic rollback in one pattern-create request containing TWO items: a valid range 3910-3911 in your group, followed by range 3920-3921 with deliberately invalid status 'not-a-status'. Expect native status validation rejection; verify none of 3910,3911,3920,3921 exists in your group.
+Verify the final two site names, slugs, descriptions and status, plus exactly three correctly named VLANs in your group. Preserve unrelated inventory. Read your task summary and report the two expected rejections separately from unresolved failures. Leave the successful synthetic objects for the independent oracle.""",
+                bulk_oracle,
+            )
+            print("Report: " + str(run / "report.json"), flush=True)
+            return 0 if report["passed"] else 1
 
         if args.scenario == "dashboard":
             path = "plugins/agent-support/self/dashboard/"

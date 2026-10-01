@@ -559,3 +559,24 @@ def test_schema_method_focus_expands_bulk_without_other_methods_or_filters(broad
             broad.get_schema("dcim/devices/", method=invalid)
     with pytest.raises(ValueError, match="Method not found"):
         broad.get_schema("dcim/devices/", method="DELETE")
+
+
+@pytest.mark.parametrize(
+    "resource", ["plugins/agent-support/imports/", "plugins/agent-support/imports/dcim.site/"]
+)
+def test_schema_resolves_parameterized_operation_families(broad, resource):
+    path = "/api/plugins/agent-support/imports/{model}/"
+    broad.catalog.schema = {
+        "paths": {
+            "/api/plugins/agent-support/imports/": {"get": {}},
+            path: {
+                "get": {"parameters": [{"in": "query", "name": "field", "schema": {"type": "string"}}]},
+                "post": {"requestBody": {"schema": {"$ref": "#/components/schemas/ImportWrite"}}},
+            },
+            "/api/plugins/agent-support/imports-other/": {"post": {}},
+        },
+        "components": {"schemas": {"ImportWrite": {"type": "object", "required": ["data"]}}},
+    }
+    result = broad.get_schema(resource, method="POST")
+    assert set(result["paths"]) == {path}
+    assert result["schemas"]["ImportWrite"]["required"] == ["data"]

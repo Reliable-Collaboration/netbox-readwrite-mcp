@@ -27,6 +27,10 @@ class RootView(APIView):
                     "config-revisions",
                     "self/dashboard",
                     "dashboard-widgets",
+                    "imports",
+                    "bulk-rename",
+                    "bulk-edit",
+                    "pattern-create",
                 )
             }
         )

@@ -150,3 +150,36 @@ Display structured receipts directly and retain task IDs/operation keys across
 agent sessions. Valid tool calls alone do not establish correct agent judgment
 or narration. Native permissions and MCP connection policy remain enforced even
 when an agent asks for an unsupported action.
+
+## Native imports and bulk forms
+
+Discover `plugins/agent-support/imports/`, `bulk-rename/`, `bulk-edit/`, and
+`pattern-create/`. Each catalog lists permitted models, with a model-specific
+URL such as `plugins/agent-support/imports/dcim.site/`. GET that URL for native
+field metadata; `get_schema` describes the POST envelope. Relationship lookup
+rules differ between imports (often names or slugs) and other forms (usually IDs).
+Large choice lists advertise a `field` query for fetching just that field.
+
+- Imports accept `{"format":"csv","data":"name,slug,status\nLab,lab,active\n"}`;
+  JSON/YAML documents are also accepted as strings. Include an `id` in a record
+  to update it, preserving omitted fields. An import is atomic but has no stale
+  write guard; prefer guarded object edits when concurrent updates matter.
+- Bulk rename accepts `ids`, `find`, `replace`, optional `use_regex` and `fields`.
+  POST first with `apply:false` (default), inspect `changes`, and copy `expected`
+  into the same request with `apply:true` and a new operation key. An old preview
+  returns 409. Rename writes are atomic.
+- Bulk edit accepts `ids`, `values` (native bulk form fields), and `nullify` (names
+  of native nullable fields to clear). POST without `apply` to validate inputs
+  and obtain `expected` state hashes; then send `apply:true` with those hashes.
+  Model validation runs when applying and rolls back the entire batch on failure.
+  Some component fields need `context`, e.g. `{"device":123}`.
+- Pattern creation accepts `items`, a list of native input objects. Each can
+  expand a range or component-name pattern; all items commit together. For
+  VLANs, an item can contain `pattern:"3901-3903"`, `name:"Lab-{vid}"`,
+  `status:"active"` and `group:<ID>`. Component input can contain
+  `name:"eth[1-3]"`, `type:"1000base-t"` and its parent ID. Discover the model's
+  fields first. A failure anywhere rolls back the whole request.
+
+Use task receipts and fresh native reads to verify results. Do not retry a lost
+response with a new key. Native changelogs correlate where the target model logs
+changes; catalogs and schema sweeps alone do not qualify every model lifecycle.
