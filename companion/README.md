@@ -11,10 +11,24 @@ configuration; ordinary inventory work does not require them.
 
 ## Install
 
-Build the separate distribution with `python -m build companion`, then install
-the wheel into NetBox's Python environment (or include it in your NetBox image).
-Add `netbox_agent_api` to your existing `PLUGINS` list and restart NetBox using
-your normal plugin installation process. Invalidate cached OpenAPI responses on
+From the repository root, build the separate distribution:
+
+```sh
+python -m pip install build
+python -m build companion
+```
+
+Install `companion/dist/netbox_agent_api-0.3.0-py3-none-any.whl` into the Python
+environment used by both NetBox web and worker processes, or include it in their
+shared NetBox image. For example, after copying the wheel to the NetBox host:
+
+```sh
+/opt/netbox/venv/bin/python -m pip install /path/to/netbox_agent_api-0.3.0-py3-none-any.whl
+```
+
+Replace those paths for your deployment. Add `netbox_agent_api` to your existing
+`PLUGINS` list and restart both NetBox web and worker processes using your normal
+plugin installation process. Invalidate cached OpenAPI responses on
 upgrade so clients discover new endpoints immediately (native schema URLs can be
 cached for a day); use your deployment cache maintenance procedure, not the job
 queue. For a deployment with no other plugins:
