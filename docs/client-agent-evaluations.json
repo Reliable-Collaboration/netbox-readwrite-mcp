@@ -3,7 +3,6 @@
   "mcp_server_repository": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp",
   "mcp_client_alias": "netbox",
   "scope": "Native CLI harnesses using DeepInfra GLM-5.3-Flash through LiteLLM, MCP 0.4.1 release and 0.4.2 candidate; real NetBox 4.7.2",
-  "mcp_release": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.1",
   "candidate_artifacts": [
     {
       "source_commit": "027b64e51fecad58b0c4b20248bf4916c130f3e7",
@@ -2704,5 +2703,30 @@
         }
       }
     }
-  ]
+  ],
+  "initial_mcp_release": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.1",
+  "published_runtime_equivalence": {
+    "release": "v0.4.2",
+    "source_commit": "3366fdffb32266f46b25fcd8d1f104e08689a246",
+    "unauthenticated_downloads": 9,
+    "checksums_verified": true,
+    "tested_candidate_zip_members_match": 22,
+    "tested_candidate_sha256": "ec76c6ce1d3b1c3df62dccc40c4aa479349a100a12ab6acefa74a2ec7ae3613d",
+    "published_application_sha256": "ce9fd21a67ccf1a2e4e155b2c8c03a25f6b064d181d34b841a48a877097eee15",
+    "wheel_python_modules_match_tag": {
+      "netbox_agent_api-0.4.2-py3-none-any.whl": 22,
+      "netbox_readwrite_mcp-0.4.2-py3-none-any.whl": 19
+    },
+    "downloaded_application_doctor": {
+      "netbox_version": "4.7.2",
+      "qualified": true,
+      "tested_versions": [
+        "4.7.2"
+      ],
+      "companion": "available",
+      "history": "readable",
+      "read_only": false
+    },
+    "downloaded_application_configuration": "Private configuration and usable OpenCode command produced; token absent from output."
+  }
 }

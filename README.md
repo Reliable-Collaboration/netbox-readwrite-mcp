@@ -201,8 +201,9 @@ If you configured a custom server configuration, append `--config /absolute/path
 to the server command. Other MCP clients can use the generic configuration
 printed by `client-config`.
 
-All three clients use the same server tools and built-in instructions. Recorded
-agent tests cover OpenCode, Claude Code and Codex using GLM through LiteLLM.
+All three clients use this unofficial read/write server's tools and built-in
+instructions. Local agent tests passed 24 Community workflow checks in each of
+OpenCode, Claude Code and Codex using GLM through LiteLLM.
 See the [evaluation record](docs/agent-evaluation.md) for tested workflows,
 failed attempts and limits.
 

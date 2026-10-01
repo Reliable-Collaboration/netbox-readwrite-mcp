@@ -1,5 +1,35 @@
 # Validation record
 
+## Release 0.4.2: three-client qualification and clearer recovery
+
+[Release v0.4.2](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.2)
+was built and published by [the gated CI workflow](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36936421631)
+from `3366fdf`. It passed **619 tests plus six subtests**: **387 unit tests** and
+**232 real-NetBox integration tests**, with **91.99% MCP runtime coverage**.
+The Python 3.11–3.14 matrix, standalone application checks and companion bundle
+loading on the unmodified upstream NetBox image also passed.
+
+Local GLM-5.3-Flash evaluations passed all **24 Community checks** in each of
+Claude Code 2.1.287, Codex 0.159.2 and OpenCode 1.18.33. All used **Reliable
+Collaboration's unofficial NetBox read/write MCP server**, its companion and the
+NetBox 4.7.2 lab. No external guide was injected and no outside tools were used.
+These targeted successes follow retained failed attempts; they do not establish
+a model success rate. See the [client evaluation record](agent-evaluation.md).
+
+All nine published assets were downloaded without authentication and their
+checksums verified. Every application archive member matches the locally tested
+candidate; the wheels' Python modules match the release revision. The downloaded
+application passed private setup and live `doctor` checks. Archive metadata gives
+the CI application a different SHA-256 from the local candidate; the code and
+built-in guidance are identical.
+
+Live agent/model tests run locally only. CI runs deterministic tests and packaging,
+with no model-provider credentials. The provider key was absent from reachable
+Git objects, tracked files, unpacked release assets and the completed release log.
+Exact hashes, test counts and boundaries are in
+[the 0.4.2 qualification record](release-validation-0.4.2.json). Previous release
+and parity records remain below.
+
 ## Release installation and built-in guidance (0.4.1)
 
 The [v0.4.1 release](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.1)

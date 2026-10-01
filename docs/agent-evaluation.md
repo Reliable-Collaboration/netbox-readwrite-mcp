@@ -464,7 +464,7 @@ versions but do not extend this 4.7.2 qualification to those versions.
 
 ## Native client release qualification
 
-The native-client runs use the **published 0.4.1 `.pyz`**, with SHA-256
+The initial native-client runs used the **published 0.4.1 `.pyz`**, with SHA-256
 `e4197911c41b1a5fd5d480b2931ba87d3819a7dc1e9461a2c357fe15189e651b`,
 and the existing Podman NetBox 4.7.2 test instance. Their model is
 `zai-org/GLM-5.3-Flash` through LiteLLM 1.103.1. This tests the clients' actual
@@ -570,3 +570,12 @@ All three used Reliable Collaboration's unofficial NetBox read/write MCP server,
 NetBox Community 4.7.2, and GLM-5.3-Flash through a local LiteLLM proxy. These are
 local model evaluations, separate from GitHub CI. The candidate application SHA-256
 is `ec76c6ce1d3b1c3df62dccc40c4aa479349a100a12ab6acefa74a2ec7ae3613d`.
+
+
+The CI-built [v0.4.2 application](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.2)
+was subsequently downloaded and all 22 archive members compared with the tested
+candidate; their contents match. The published application SHA-256 is
+`ce9fd21a67ccf1a2e4e155b2c8c03a25f6b064d181d34b841a48a877097eee15`.
+The model runs used the local candidate, with published runtime/guidance equivalence
+verified separately. [Release evidence](release-validation-0.4.2.json) records the
+CI and public-download checks.
