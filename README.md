@@ -13,8 +13,8 @@ The existing [read-only community MCP implementation](https://github.com/netboxl
 lets agents query NetBox. This unofficial server adds writes and broader
 open-source Community workflows so agents can maintain existing inventory,
 record new assets, connect hardware and virtual resources, run jobs, and verify
-results. It includes operation receipts, conditional edits, recovery evidence
-and a GitHub feedback path for diagnosing consuming-agent issues.
+results. It keeps a history of agent changes and supports GitHub issue reports
+when something needs investigation.
 
 Use it with **your existing NetBox installation**, obtained and maintained through
 NetBox's own repository, images or package distribution. This project distributes
@@ -25,18 +25,29 @@ are accepted but have not yet passed the recorded integration suite; changes to
 NetBox APIs or internals may require a compatibility update. Branching and
 commercial features are outside scope. Both packages are Apache-2.0 licensed.
 
-## What it provides
+## What you can do
 
-- Discovery of models, fields, relationships, filters and native actions. Agents
-  find IDs themselves, including when starting with an empty inventory.
-- Read, create, update and delete operations across physical, virtual and network
-  inventory, plus bulk operations, allocation, imports/exports and jobs.
-- Typed companion APIs for Community operations missing from native REST, using
-  NetBox's own validation and permissions instead of browser forms.
-- Durable task/write receipts, ETag-guarded edits, response-loss reconciliation
-  and conditional compensation where supported.
-- Built-in MCP instructions and examples. No guide needs to be pasted into an
-  agent's context, and no specific model/provider is required.
+Connect Claude Code, Codex or OpenCode to NetBox, then describe the inventory work
+you want done in plain language. Your agent can:
+
+- **Maintain equipment records:** add, update or remove sites, racks, devices,
+  interfaces, virtual machines and other inventory, using your existing records
+  or creating the records needed for a new installation.
+- **Document how everything connects:** record cables, trace connections, assign
+  IP addresses and manage network prefixes and VLANs.
+- **Handle routine administration:** import or export inventory, make changes to
+  multiple records, manage contacts and notes, and run NetBox jobs.
+- **Check its work and explain changes:** read back results and keep an operation
+  history that helps diagnose failures or interrupted requests.
+
+For example: “Use this equipment list to update our rack inventory, preserve
+existing serial numbers, and tell me which details are missing.” Or: “Find an
+available address in this subnet and assign it to this server's management port.”
+
+The server supplies its own tool instructions and examples through MCP. You do
+not need to give the agent a separate guide. Access follows the permissions of
+its NetBox account. The companion plugin adds APIs for supported Community
+workflows that would otherwise require website forms.
 
 See the [operation map](docs/api-completion.md) and [qualification record](docs/validation.md)
 for detailed coverage. Arbitrary third-party plugins need separate qualification.
@@ -61,9 +72,9 @@ python3 netbox-readwrite-mcp.pyz configure
 
 Keep the application at its installed path. Setup asks for the NetBox base URL,
 username and API token (hidden input), creates private configuration and a stable
-journal identity, and prints the client entry to paste into your MCP client.
-Use `configure --client opencode` for OpenCode's format. Existing configuration
-and tokens are preserved. The default directory is
+journal identity. It also prints a generic client configuration; use the
+client-specific connection instructions below. Existing configuration and tokens
+are preserved. The default directory is
 `~/.config/netbox-readwrite-mcp/`, or under `XDG_CONFIG_HOME` when set.
 
 If you already use pipx, you can install the wheel instead:
@@ -134,10 +145,62 @@ released wheel. [Deployment details](companion/README.md#install) explain the
 configuration overlay and upgrades. This is a deployment recipe, not a separately
 qualified Helm chart or Kubernetes operator.
 
-## 3. Check the connection and give the agent a task
+## 3. Connect your agent
+
+Choose your client below. Run its command from the directory containing the
+application you downloaded; `"$PWD/netbox-readwrite-mcp.pyz"` records its absolute
+path so the client can start it from any project. Keep that file in place.
+The NetBox token stays in the private server configuration.
+
+### Claude Code
+
+```sh
+claude mcp add --transport stdio --scope user netbox -- python3 "$PWD/netbox-readwrite-mcp.pyz"
+claude mcp get netbox
+```
+
+Restart Claude Code and use `/mcp` to check the connection. The user scope makes
+it available across projects. See [Claude Code's MCP documentation](https://code.claude.com/docs/en/mcp).
+
+### Codex
+
+```sh
+codex mcp add netbox -- python3 "$PWD/netbox-readwrite-mcp.pyz"
+codex mcp get netbox
+```
+
+Start a new Codex session and use `/mcp` to check the connection. See
+[Codex's MCP documentation](https://developers.openai.com/codex/mcp/).
+
+### OpenCode
+
+For OpenCode 2:
+
+```sh
+opencode mcp add netbox --global -- python3 "$PWD/netbox-readwrite-mcp.pyz"
+opencode mcp list
+```
+
+For OpenCode 1, including **1.18.33 used in our agent evaluation**, run
+`python3 netbox-readwrite-mcp.pyz client-config --client opencode` and merge the
+printed `mcp.netbox` entry into your `opencode.json`. Then run `opencode mcp list`.
+The released helper prints the version 1 format; version 2 uses `mcp.servers`
+instead. See [OpenCode's MCP documentation](https://opencode.ai/v2/docs/mcp-servers).
+
+For a pipx installation, replace `python3 "$PWD/netbox-readwrite-mcp.pyz"` in the
+commands above with the absolute path printed by `command -v netbox-readwrite-mcp`.
+If you configured a custom server configuration, append `--config /absolute/path/config.json`
+to the server command. Other MCP clients can use the generic configuration
+printed by `client-config`.
+
+All three clients use the same server tools and built-in instructions. The
+recorded autonomous inventory evaluation used OpenCode with GLM; equivalent
+model-driven evaluations in Claude Code and Codex are not yet recorded.
+
+## 4. Check the connection and give the agent a task
 
 Provision a dedicated NetBox user with view/add/change/delete/run permissions for
-the models it will manage, plus full read access to `core.view_objectchange`.
+the record types it will manage, plus full read access to `core.view_objectchange`.
 Add `render_config` and `sync` when those actions are required. Use a write-enabled
 API token for inventory management. Administrative operations still require
 native permissions; the companion grants none. Set `CHANGELOG_RETENTION = 0` and
@@ -154,12 +217,12 @@ required except on loopback. The configured username must match the token owner.
 
 Reconnect your MCP client and ask:
 
-> Inspect my NetBox connection and available models without changing anything.
+> Check my NetBox connection and summarize the inventory I can access. Do not change anything.
 
 Then give it your inventory task. For a small authorized trial:
 
 > Create a site named MCP Getting Started, slug mcp-getting-started, status active,
-> if it does not already exist. Verify it and report the operation receipts.
+> if it does not already exist. Verify it and summarize what you changed.
 > Repeat the check and confirm that no additional writes are needed.
 
 The server delivers instructions at initialization and through `capabilities`;
@@ -171,7 +234,7 @@ inventory; the agent cannot know which equipment you own without that input.
 
 ## Configuration and operations
 
-- `client-config --client opencode` reprints client settings without changing
+- `client-config --client opencode` reprints OpenCode 1 settings without changing
   identity; omit the client option for the common `mcpServers` format.
 - `configure --read-only` disables mutation tools. `--token-file PATH` supports
   unattended setup without putting a token in shell arguments.
