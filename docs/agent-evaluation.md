@@ -289,3 +289,17 @@ smaller API operation: PATCH adds/replaces only specified widget entries or
 removes IDs, preserving all other widgets on the server. The agent scenario now
 uses PATCH and explicitly requires the intended native content validation error.
 Neither failed run is counted as final qualification.
+
+Final-source PATCH run **`4b4e4e36c8`** passed in **868.20 seconds** on `5c13c56`.
+It initially sent a malformed UUID/scalar widget, recognized the unrelated error,
+corrected it and reached the required-content rejection. It then added its note,
+verified the stale guard, and removed only its note while preserving all nine
+native widgets. Trace review confirms GETs after both intended rejections and
+cleanup; canonical before/after JSON matches exactly. The later GET after the
+stale rejection also verifies the saved note. There were 13 MCP calls, no MCP tool
+errors, no truncated outputs and no uncertain operations. The three rejected
+HTTP operations include the extra malformed request, so this is recovery evidence,
+not flawless execution. No human completed or corrected the task. The native
+default dashboard was prepared before the run and removed only as fixture cleanup
+after the independent oracle passed. Exact source/harness/guide hashes and earlier
+attempts are retained in [the results](agent-evaluation-results.json).

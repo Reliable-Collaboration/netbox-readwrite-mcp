@@ -171,3 +171,10 @@ commit. Native `users/config/` preference PATCH is also tested for deep-merge
 semantics and isolation. MCP sends preference bodies unchanged, without inserting
 an audit marker into the user's data; native preferences have no ETag or native
 ObjectChange recovery contract.
+
+GLM also passed the per-widget PATCH scenario against nine existing native widgets
+in 868.20 seconds, including required-content and stale-ETag rejections, verification
+reads and exact restoration. It corrected one additional malformed request; that
+attempt remains in the evidence. No host/browser tools or manual task completion
+were used. See [agent evaluation](../docs/agent-evaluation.md) for the scoped proof
+and earlier failed attempts.

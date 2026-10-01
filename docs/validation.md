@@ -1,13 +1,15 @@
 # Validation record
 
-Version **0.3.0**, validated locally on **2026-09-30**, against **NetBox 4.7.2 only**.
+Version **0.3.0**, latest qualification on **2026-10-01**, against **NetBox 4.7.2 only**.
 This is observed test evidence, not a production certification or universal GUI coverage claim.
 Exact source/test hashes and numeric coverage are in [validation.json](validation.json).
 
-**Latest code qualification:** `f44e1c9` passed 437 tests (338 unit + 99 live),
-plus 6 subtests, with 92.69% MCP coverage on a fresh NetBox database.
-[Final-source CI](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36802962944)
-also passed Python 3.11–3.14 checks (86.85% offline coverage).
+**Latest code qualification:** `5c13c56` passed 458 tests (343 unit + 115 live),
+plus 6 subtests, with 92.75% MCP coverage on a fresh NetBox database.
+[Final-source CI](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36871366840)
+also passed Python 3.11–3.14 checks (86.99% offline coverage).
+The companion is qualified by live assertions; it is outside that coverage percentage.
+Dashboard extension evidence is under `dashboard_extension` in the JSON.
 
 The table below retains the original `5a953b6` baseline. The later configuration
 extension is recorded under `configuration_extension` in the JSON and in the
@@ -127,3 +129,31 @@ universal website/API parity. Queue mutations, self-service account operations,
 dashboard semantics and bulk/CSV equivalence still need action-level qualification.
 Configuration revisions have no native ObjectChange history or automatic undo;
 PostgreSQL and the native configuration cache are separate stores.
+
+## Personal-state follow-up (2026-10-01)
+
+The companion now supports native dashboard initialization/reset, validated full
+replacement and per-widget PATCH without recopying other widgets. Sixteen live
+personal-state cases cover preference deep merges without MCP marker pollution,
+all five built-in widget forms, user isolation, read-only tokens, guarded concurrent
+writes, response loss, and exact preservation (including omitted coordinates).
+Compact schemas expose object mutations; method-focused discovery exposes bulk
+inputs while retaining the existing 30 KB response budget. Full CI found and
+prevented a size regression during development.
+
+GLM run `4b4e4e36c8` passed the final-source dashboard scenario in **868.20 seconds**.
+It preserved all nine native widgets, corrected an extra malformed request,
+reached the intended content-required and stale-ETag rejections, and removed only
+its own note. The trace confirms verification GETs after both intended rejections
+and after cleanup. Canonical before/after JSON is identical. There were no MCP
+tool errors, truncated outputs, uncertain operations, inventory changes or website
+calls. No human completed or corrected the task. Its initial extra HTTP 400 is
+retained in the report; this was successful recovery, not flawless execution.
+Earlier failed runs and the uninitialized PUT state pass retain their own hashes
+and narrative limitations in [agent evaluation](agent-evaluation.md).
+
+Both final-source CI workflows passed. Both distributions built, and all wheel
+Python modules match the recorded source. Full GUI/API parity is still unfinished;
+queue task mutations, remaining account workflows and bulk/CSV equivalence remain
+explicit qualification work. Dashboards/preferences have no native ObjectChange
+history or automatic undo. Provider waits are observed separately from tool progress.

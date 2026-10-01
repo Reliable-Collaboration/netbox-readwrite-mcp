@@ -1640,5 +1640,409 @@
       "passed": true,
       "review": "Final configuration qualification passed on current runtime. Zero tool errors or truncations; one intentional 409. The agent created an extra empty revision, disclosed the mistake, created the correct banner revision, restored original overrides and deleted both of its temporary revisions. Existing revision data (apart from the expected active-flag transition) and inventory were preserved. No human completed or corrected the task. Privileged activation/restore and response loss are covered deterministically, not by this LLM scenario."
     }
-  ]
+  ],
+  "dashboard_runs": [
+    {
+      "qualification": "failed_preliminary",
+      "review": "Stopped after repeated malformed widget requests exposed missing PUT schema definitions and untyped widget config. No successful dashboard mutation. Its weak any-400 validation check is not qualification.",
+      "harness_sha256": {
+        "scripts/agent_eval.py": "b3095aa04b322512291dcbdc8eafefe3c14c36c6a8b631f25b932231f8b329ba",
+        "scripts/agent_gateway.py": "6ac8ff3815aa67f30d8b8b1442eda878c9a5c015670e371e3f2353c59bf7768b"
+      },
+      "instructions_sha256": "0d872bac1075c463f112537db344c0fc9957a2a3e9be2e90514f145a65bcc55a",
+      "source_sha256": {
+        "companion/netbox_agent_api/__init__.py": "d610a328fe8cd7510c38bb0c3f21bbcff94eefca4d2c38e2821cfc894da11090",
+        "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+        "companion/netbox_agent_api/api/dashboard.py": "d94308e864e8f2db133db33bfc08f08687417b81d627ef9875d447673dc12eb6",
+        "companion/netbox_agent_api/api/urls.py": "87204c5c88f1cfbf64712a1353b3a1a893e84081ca666e7519c76105e9e655c1",
+        "companion/netbox_agent_api/api/views.py": "84a1043da04cc9ab3f78126844de9a8b244dd2090bf121e5351e656bed0e92ed",
+        "src/netbox_readwrite_mcp/__init__.py": "cad430435741be9f74ef01978773af3e8d97be9ee74aae954630a042153d4e4b",
+        "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+        "src/netbox_readwrite_mcp/api.py": "71de09e364692bde02d0bbb33092b6f12266928fd53f10f83c7ab3bdcfeaa38d",
+        "src/netbox_readwrite_mcp/catalog.py": "407a8748fce708207d6f62694baab9ce875d13d7ed07d6bbc08a77f9099f487d",
+        "src/netbox_readwrite_mcp/compatibility.py": "4c6f8b708fa8d0a7114e7c002682f06bd1c34878ae490aeb1c658bcad0bc6ef7",
+        "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+        "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+        "src/netbox_readwrite_mcp/http_server.py": "f9b1bc2fe6e17e6c42e1b1d0650caef41cc2d3225a000e97345eeecd91246904",
+        "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+        "src/netbox_readwrite_mcp/recovery.py": "a786c7077cb8344deb64ceff9e285e6cea2c236977a2275610c6557235520c0d",
+        "src/netbox_readwrite_mcp/server.py": "f3e50a5e4eef928eb83cbb2bbe20eca3e50daa7b8e87bf75a47288666368a5cb",
+        "src/netbox_readwrite_mcp/service.py": "4620c2d0624c786cb2d87562221614cc0a1743908f5c8cfd25c161c89f1254ff",
+        "src/netbox_readwrite_mcp/store.py": "87776573cd99fb23282e2ba7ee4fc3b8259a0f80a2e9aa91c4780bad764956ab",
+        "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+        "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+        "src/netbox_readwrite_mcp/workspace.py": "bc7d7de22cb56f8de1c65b21ea61e656fe09b4ca4997d31f22cfceb512d81686"
+      },
+      "model": "zai-org/GLM-5.3-Flash",
+      "scenario": "dashboard",
+      "run": "33f3e2742b",
+      "netbox": "4.7.2",
+      "phases": [
+        {
+          "name": "dashboard",
+          "interruption": null,
+          "llm_activity_cumulative": {
+            "requests": 15,
+            "response_bytes": 213490,
+            "network_chunks": 864,
+            "content_chunks": 40,
+            "finished_choices": 14,
+            "finished_requests": 15,
+            "transport_errors": 1,
+            "reasoning_content_chunks": 567,
+            "tool_calls_chunks": 205,
+            "active_requests": [],
+            "last_network_age_seconds": 2.2,
+            "last_generation_age_seconds": 2.2
+          },
+          "seconds": 334.94,
+          "checks": {
+            "original_dashboard_restored": true,
+            "note_saved": false,
+            "invalid_widget_rejected": true,
+            "stale_write_rejected": false,
+            "task_summary_read": false,
+            "no_website_calls": true,
+            "no_uncertain_operations": true,
+            "preexisting_inventory_unchanged": true,
+            "client_exit_zero": false,
+            "used_mcp": true,
+            "no_client_error": true
+          },
+          "passed": false,
+          "tool_calls": {
+            "query": 5,
+            "discover_models": 1,
+            "begin_task": 1,
+            "execute_action": 7,
+            "get_schema": 1
+          },
+          "tool_errors": 1,
+          "tool_states": {
+            "200": 4,
+            "blocked": 1,
+            "failed": 7
+          },
+          "truncated_tool_outputs": 0,
+          "tokens": {
+            "total": 197877,
+            "input": 90579,
+            "output": 1711,
+            "reasoning": 1011
+          }
+        }
+      ],
+      "opencode": "1.18.33",
+      "limits": {
+        "phase_seconds": 14400,
+        "idle_seconds": 0,
+        "agent_steps": 160
+      },
+      "passed": false
+    },
+    {
+      "qualification": "historical_state_pass",
+      "review": "Passed the uninitialized-dashboard state oracle, recovering unknown-task and invalid-UUID errors. Narration overstated fresh verification reads. Predates the compact-schema size correction; not final-source qualification.",
+      "harness_sha256": {
+        "scripts/agent_eval.py": "64066f9b27b0f047707105a17b83afb1721b60ebbac614d7f36ce977514f0733",
+        "scripts/agent_gateway.py": "6ac8ff3815aa67f30d8b8b1442eda878c9a5c015670e371e3f2353c59bf7768b"
+      },
+      "instructions_sha256": "d01dd9ea4a91b2d493a538c3bdd4013a11f7d2a268902aa4e20a3115b43ed8d2",
+      "source_sha256": {
+        "companion/netbox_agent_api/__init__.py": "d610a328fe8cd7510c38bb0c3f21bbcff94eefca4d2c38e2821cfc894da11090",
+        "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+        "companion/netbox_agent_api/api/dashboard.py": "0003cb334b2809ff67cc0c29b3425412f051a661867cba125927e659e89927a8",
+        "companion/netbox_agent_api/api/urls.py": "87204c5c88f1cfbf64712a1353b3a1a893e84081ca666e7519c76105e9e655c1",
+        "companion/netbox_agent_api/api/views.py": "84a1043da04cc9ab3f78126844de9a8b244dd2090bf121e5351e656bed0e92ed",
+        "src/netbox_readwrite_mcp/__init__.py": "cad430435741be9f74ef01978773af3e8d97be9ee74aae954630a042153d4e4b",
+        "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+        "src/netbox_readwrite_mcp/api.py": "71de09e364692bde02d0bbb33092b6f12266928fd53f10f83c7ab3bdcfeaa38d",
+        "src/netbox_readwrite_mcp/catalog.py": "684312097846bb7430488fbd2436a8bd326d53237bab81d3bd63b666e57acae8",
+        "src/netbox_readwrite_mcp/compatibility.py": "4c6f8b708fa8d0a7114e7c002682f06bd1c34878ae490aeb1c658bcad0bc6ef7",
+        "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+        "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+        "src/netbox_readwrite_mcp/http_server.py": "f9b1bc2fe6e17e6c42e1b1d0650caef41cc2d3225a000e97345eeecd91246904",
+        "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+        "src/netbox_readwrite_mcp/recovery.py": "a786c7077cb8344deb64ceff9e285e6cea2c236977a2275610c6557235520c0d",
+        "src/netbox_readwrite_mcp/server.py": "f3e50a5e4eef928eb83cbb2bbe20eca3e50daa7b8e87bf75a47288666368a5cb",
+        "src/netbox_readwrite_mcp/service.py": "4620c2d0624c786cb2d87562221614cc0a1743908f5c8cfd25c161c89f1254ff",
+        "src/netbox_readwrite_mcp/store.py": "87776573cd99fb23282e2ba7ee4fc3b8259a0f80a2e9aa91c4780bad764956ab",
+        "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+        "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+        "src/netbox_readwrite_mcp/workspace.py": "bc7d7de22cb56f8de1c65b21ea61e656fe09b4ca4997d31f22cfceb512d81686"
+      },
+      "model": "zai-org/GLM-5.3-Flash",
+      "scenario": "dashboard",
+      "run": "261f4939fb",
+      "netbox": "4.7.2",
+      "phases": [
+        {
+          "name": "dashboard",
+          "interruption": null,
+          "llm_activity_cumulative": {
+            "requests": 12,
+            "response_bytes": 101840,
+            "network_chunks": 443,
+            "tool_calls_chunks": 142,
+            "finished_choices": 12,
+            "finished_requests": 12,
+            "transport_errors": 0,
+            "reasoning_content_chunks": 41,
+            "content_chunks": 213,
+            "active_requests": [],
+            "last_network_age_seconds": 2.6,
+            "last_generation_age_seconds": 2.6
+          },
+          "seconds": 905.17,
+          "checks": {
+            "original_dashboard_restored": true,
+            "note_saved": true,
+            "existing_widgets_preserved_in_write_receipts": true,
+            "invalid_widget_rejected": true,
+            "stale_write_rejected": true,
+            "task_summary_read": true,
+            "no_website_calls": true,
+            "no_uncertain_operations": true,
+            "preexisting_inventory_unchanged": true,
+            "client_exit_zero": true,
+            "used_mcp": true,
+            "no_client_error": true
+          },
+          "passed": true,
+          "tool_calls": {
+            "query": 3,
+            "get_schema": 1,
+            "execute_action": 6,
+            "begin_task": 1,
+            "get_task": 1
+          },
+          "tool_errors": 1,
+          "tool_states": {
+            "200": 3,
+            "blocked": 1,
+            "failed": 3,
+            "completed": 2
+          },
+          "truncated_tool_outputs": 0,
+          "tokens": {
+            "total": 86213,
+            "input": 59820,
+            "output": 1986,
+            "reasoning": 87
+          }
+        }
+      ],
+      "opencode": "1.18.33",
+      "limits": {
+        "phase_seconds": 14400,
+        "idle_seconds": 0,
+        "agent_steps": 160
+      },
+      "passed": true
+    },
+    {
+      "qualification": "failed_preliminary",
+      "review": "Restored all nine native widgets and used verification reads, but the negative request failed graph validation before reaching required note content. Prompted per-widget PATCH to avoid recopying the dashboard.",
+      "harness_sha256": {
+        "scripts/agent_eval.py": "258b1f28d20710e243048a9ee123852e754d6799ffa7f61193c420bf81727b90",
+        "scripts/agent_gateway.py": "6ac8ff3815aa67f30d8b8b1442eda878c9a5c015670e371e3f2353c59bf7768b"
+      },
+      "instructions_sha256": "f6e68531e9050bcbb6b8e363f515833e511d00aabb6413bea9a0f1d7f17d383f",
+      "source_sha256": {
+        "companion/netbox_agent_api/__init__.py": "d610a328fe8cd7510c38bb0c3f21bbcff94eefca4d2c38e2821cfc894da11090",
+        "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+        "companion/netbox_agent_api/api/dashboard.py": "0003cb334b2809ff67cc0c29b3425412f051a661867cba125927e659e89927a8",
+        "companion/netbox_agent_api/api/urls.py": "87204c5c88f1cfbf64712a1353b3a1a893e84081ca666e7519c76105e9e655c1",
+        "companion/netbox_agent_api/api/views.py": "84a1043da04cc9ab3f78126844de9a8b244dd2090bf121e5351e656bed0e92ed",
+        "src/netbox_readwrite_mcp/__init__.py": "cad430435741be9f74ef01978773af3e8d97be9ee74aae954630a042153d4e4b",
+        "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+        "src/netbox_readwrite_mcp/api.py": "71de09e364692bde02d0bbb33092b6f12266928fd53f10f83c7ab3bdcfeaa38d",
+        "src/netbox_readwrite_mcp/catalog.py": "3c618cdee5c4ef15e8babc00af4b504c920ba146e1b9aad5b5e829c799a54414",
+        "src/netbox_readwrite_mcp/compatibility.py": "4c6f8b708fa8d0a7114e7c002682f06bd1c34878ae490aeb1c658bcad0bc6ef7",
+        "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+        "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+        "src/netbox_readwrite_mcp/http_server.py": "f9b1bc2fe6e17e6c42e1b1d0650caef41cc2d3225a000e97345eeecd91246904",
+        "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+        "src/netbox_readwrite_mcp/recovery.py": "a786c7077cb8344deb64ceff9e285e6cea2c236977a2275610c6557235520c0d",
+        "src/netbox_readwrite_mcp/server.py": "dc45ff6989cd45bfe2f7d34c1b6dbf1cc4bcbd80fb1fafcfa3f74a9a7f23188c",
+        "src/netbox_readwrite_mcp/service.py": "4620c2d0624c786cb2d87562221614cc0a1743908f5c8cfd25c161c89f1254ff",
+        "src/netbox_readwrite_mcp/store.py": "87776573cd99fb23282e2ba7ee4fc3b8259a0f80a2e9aa91c4780bad764956ab",
+        "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+        "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+        "src/netbox_readwrite_mcp/workspace.py": "59b528b0e09147702fafb34bfe20c1c243fd778bcf77f6856501b36f8ea2a423"
+      },
+      "model": "zai-org/GLM-5.3-Flash",
+      "scenario": "dashboard",
+      "run": "8e995f1149",
+      "netbox": "4.7.2",
+      "phases": [
+        {
+          "name": "dashboard",
+          "interruption": null,
+          "llm_activity_cumulative": {
+            "requests": 12,
+            "response_bytes": 114772,
+            "network_chunks": 447,
+            "content_chunks": 179,
+            "finished_choices": 12,
+            "finished_requests": 12,
+            "transport_errors": 0,
+            "reasoning_content_chunks": 112,
+            "tool_calls_chunks": 111,
+            "active_requests": [],
+            "last_network_age_seconds": 3.4,
+            "last_generation_age_seconds": 3.4
+          },
+          "seconds": 583.06,
+          "checks": {
+            "original_dashboard_restored": true,
+            "note_saved": true,
+            "existing_widgets_preserved_in_write_receipts": true,
+            "invalid_widget_rejected": false,
+            "stale_write_rejected": true,
+            "task_summary_read": true,
+            "no_website_calls": true,
+            "no_uncertain_operations": true,
+            "preexisting_inventory_unchanged": true,
+            "client_exit_zero": true,
+            "used_mcp": true,
+            "no_client_error": true
+          },
+          "passed": false,
+          "tool_calls": {
+            "query": 5,
+            "get_schema": 1,
+            "begin_task": 1,
+            "execute_action": 4,
+            "get_task": 1
+          },
+          "tool_errors": 0,
+          "tool_states": {
+            "200": 5,
+            "failed": 2,
+            "completed": 2
+          },
+          "truncated_tool_outputs": 0,
+          "tokens": {
+            "total": 213019,
+            "input": 77546,
+            "output": 6328,
+            "reasoning": 249
+          }
+        }
+      ],
+      "opencode": "1.18.33",
+      "limits": {
+        "phase_seconds": 14400,
+        "idle_seconds": 0,
+        "agent_steps": 160
+      },
+      "passed": false
+    },
+    {
+      "qualification": "final_source_pass",
+      "review": "Per-widget PATCH on nine existing native widgets. Corrected one malformed request, then obtained the intended content-required and stale-ETag rejections. Trace confirms GET verification after both intended rejections and after cleanup. Canonical before/after JSON is identical; no human completed or corrected the task. Schema/tool transcript data is retained privately; native ObjectChange history does not exist for dashboards.",
+      "code_commit": "5c13c56d04f14b7e63b5c113e6090b28d7f40a3d",
+      "harness_sha256": {
+        "scripts/agent_eval.py": "2b8457210af61f4d961e65148211350dcc97fa5baeac972dc1c3e5c5a7366878",
+        "scripts/agent_gateway.py": "6ac8ff3815aa67f30d8b8b1442eda878c9a5c015670e371e3f2353c59bf7768b"
+      },
+      "instructions_sha256": "913a77f22f4c5fda822e111f7f9088d224c2c602757ce72c5dc47be1f4c01198",
+      "source_sha256": {
+        "companion/netbox_agent_api/__init__.py": "d610a328fe8cd7510c38bb0c3f21bbcff94eefca4d2c38e2821cfc894da11090",
+        "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+        "companion/netbox_agent_api/api/dashboard.py": "34ee81112d046d6b0d05181cc1070fb88157aa1214568ef09330886272983981",
+        "companion/netbox_agent_api/api/urls.py": "87204c5c88f1cfbf64712a1353b3a1a893e84081ca666e7519c76105e9e655c1",
+        "companion/netbox_agent_api/api/views.py": "84a1043da04cc9ab3f78126844de9a8b244dd2090bf121e5351e656bed0e92ed",
+        "src/netbox_readwrite_mcp/__init__.py": "cad430435741be9f74ef01978773af3e8d97be9ee74aae954630a042153d4e4b",
+        "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+        "src/netbox_readwrite_mcp/api.py": "71de09e364692bde02d0bbb33092b6f12266928fd53f10f83c7ab3bdcfeaa38d",
+        "src/netbox_readwrite_mcp/catalog.py": "3c618cdee5c4ef15e8babc00af4b504c920ba146e1b9aad5b5e829c799a54414",
+        "src/netbox_readwrite_mcp/compatibility.py": "4c6f8b708fa8d0a7114e7c002682f06bd1c34878ae490aeb1c658bcad0bc6ef7",
+        "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+        "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+        "src/netbox_readwrite_mcp/http_server.py": "f9b1bc2fe6e17e6c42e1b1d0650caef41cc2d3225a000e97345eeecd91246904",
+        "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+        "src/netbox_readwrite_mcp/recovery.py": "a786c7077cb8344deb64ceff9e285e6cea2c236977a2275610c6557235520c0d",
+        "src/netbox_readwrite_mcp/server.py": "dc45ff6989cd45bfe2f7d34c1b6dbf1cc4bcbd80fb1fafcfa3f74a9a7f23188c",
+        "src/netbox_readwrite_mcp/service.py": "4620c2d0624c786cb2d87562221614cc0a1743908f5c8cfd25c161c89f1254ff",
+        "src/netbox_readwrite_mcp/store.py": "87776573cd99fb23282e2ba7ee4fc3b8259a0f80a2e9aa91c4780bad764956ab",
+        "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+        "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+        "src/netbox_readwrite_mcp/workspace.py": "59b528b0e09147702fafb34bfe20c1c243fd778bcf77f6856501b36f8ea2a423"
+      },
+      "model": "zai-org/GLM-5.3-Flash",
+      "scenario": "dashboard",
+      "run": "4b4e4e36c8",
+      "netbox": "4.7.2",
+      "phases": [
+        {
+          "name": "dashboard",
+          "interruption": null,
+          "llm_activity_cumulative": {
+            "requests": 12,
+            "response_bytes": 103852,
+            "network_chunks": 447,
+            "content_chunks": 202,
+            "finished_choices": 12,
+            "finished_requests": 12,
+            "transport_errors": 0,
+            "tool_calls_chunks": 126,
+            "reasoning_content_chunks": 74,
+            "active_requests": [],
+            "last_network_age_seconds": 2.9,
+            "last_generation_age_seconds": 2.9
+          },
+          "seconds": 868.2,
+          "checks": {
+            "original_dashboard_restored": true,
+            "note_saved": true,
+            "existing_widgets_preserved_in_write_receipts": true,
+            "invalid_widget_rejected": true,
+            "stale_write_rejected": true,
+            "task_summary_read": true,
+            "no_website_calls": true,
+            "no_uncertain_operations": true,
+            "preexisting_inventory_unchanged": true,
+            "client_exit_zero": true,
+            "used_mcp": true,
+            "no_client_error": true
+          },
+          "passed": true,
+          "tool_calls": {
+            "query": 5,
+            "get_schema": 1,
+            "begin_task": 1,
+            "execute_action": 5,
+            "get_task": 1
+          },
+          "tool_errors": 0,
+          "tool_states": {
+            "200": 5,
+            "failed": 3,
+            "completed": 2
+          },
+          "truncated_tool_outputs": 0,
+          "tokens": {
+            "total": 159479,
+            "input": 77024,
+            "output": 2001,
+            "reasoning": 198
+          }
+        }
+      ],
+      "opencode": "1.18.33",
+      "limits": {
+        "phase_seconds": 14400,
+        "idle_seconds": 0,
+        "agent_steps": 160
+      },
+      "passed": true
+    }
+  ],
+  "dashboard_evaluation_date": "2026-10-01"
 }
