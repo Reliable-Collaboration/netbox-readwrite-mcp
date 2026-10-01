@@ -167,3 +167,7 @@ def community_read_checks(events, prefix, interface_ids):
             for item in queries
         ),
     }
+
+
+def consecutive_error_limit_reached(events, limit):
+    return bool(limit) and len(events) >= limit and all(event.get("is_error") for event in events[-limit:])

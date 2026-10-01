@@ -19,6 +19,12 @@ class Activity:
     def begin(self, body):
         with self.lock:
             self.counts["requests"] += 1
+            self.counts["request_bytes"] += len(json.dumps(body).encode())
+            for field in ("instructions", "tools", "input", "messages"):
+                size = len(json.dumps(body.get(field, "")).encode())
+                self.counts["largest_" + field + "_bytes"] = max(
+                    self.counts["largest_" + field + "_bytes"], size
+                )
             ident = self.counts["requests"]
             self.active[ident] = {
                 "started": time.time(),
@@ -43,6 +49,15 @@ class Activity:
                 except (ValueError, UnicodeDecodeError):
                     continue
                 kind = event.get("type", "")
+                if kind in {"response.completed", "response.incomplete", "response.failed"}:
+                    response = event.get("response") or {}
+                    status = response.get("status", "unknown")
+                    if status in {"completed", "incomplete", "failed", "unknown"}:
+                        self.counts["response_" + status] += 1
+                if kind == "message_delta":
+                    reason = (event.get("delta") or {}).get("stop_reason")
+                    if reason in {"end_turn", "tool_use", "max_tokens", "stop_sequence"}:
+                        self.counts["stop_" + reason] += 1
                 delta = event.get("delta")
                 if kind == "content_block_delta" and isinstance(delta, dict):
                     for field, counter in (
@@ -64,6 +79,8 @@ class Activity:
                             self.last_generation = now
                     if choice.get("finish_reason"):
                         self.counts["finished_choices"] += 1
+                        if choice["finish_reason"] in {"stop", "length", "tool_calls", "content_filter"}:
+                            self.counts["finish_" + choice["finish_reason"]] += 1
 
     def end(self, ident, error=False):
         with self.lock:

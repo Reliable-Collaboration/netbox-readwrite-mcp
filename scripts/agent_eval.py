@@ -23,10 +23,22 @@ import uuid
 
 if __package__:
     from .agent_gateway import Gateway
-    from .agent_clients import native_command, client_failed, used_host_tools, community_read_checks
+    from .agent_clients import (
+        native_command,
+        client_failed,
+        used_host_tools,
+        community_read_checks,
+        consecutive_error_limit_reached,
+    )
 else:
     from agent_gateway import Gateway
-    from agent_clients import native_command, client_failed, used_host_tools, community_read_checks
+    from agent_clients import (
+        native_command,
+        client_failed,
+        used_host_tools,
+        community_read_checks,
+        consecutive_error_limit_reached,
+    )
 
 from netbox_readwrite_mcp.config import load_config
 from netbox_readwrite_mcp.server import build_service
@@ -161,6 +173,12 @@ def main():
     parser.add_argument("--timeout", type=int, default=14400)
     parser.add_argument("--idle-timeout", type=int, default=0)
     parser.add_argument(
+        "--max-consecutive-tool-errors",
+        type=int,
+        default=12,
+        help="Stop a run stuck in repeated failed MCP calls; 0 disables",
+    )
+    parser.add_argument(
         "--scenario",
         choices=[
             "inventory",
@@ -174,6 +192,8 @@ def main():
         default="inventory",
     )
     args = parser.parse_args()
+    if args.max_consecutive_tool_errors < 0:
+        parser.error("--max-consecutive-tool-errors must be nonnegative")
     if os.environ.get("NETBOX_RW_AGENT_EVAL") != "1":
         parser.error("Set NETBOX_RW_AGENT_EVAL=1: incurs provider charges and writes disposable lab data")
     client_bin = args.client_bin or args.opencode
@@ -275,6 +295,7 @@ def main():
     report["limits"] = {
         "phase_seconds": args.timeout,
         "idle_seconds": args.idle_timeout,
+        "max_consecutive_tool_errors": args.max_consecutive_tool_errors,
         "agent_steps": 160 if args.client == "opencode" else None,
     }
     try:
@@ -461,6 +482,10 @@ def main():
                                 progress_log.write(json.dumps(progress) + "\n")
                             print(json.dumps(progress), flush=True)
                             heartbeat = now
+                        calls = tool_events(Path(cfg["journal"]))[before:]
+                        if consecutive_error_limit_reached(calls, args.max_consecutive_tool_errors):
+                            interruption = "consecutive_tool_errors"
+                            break
                         if now - started > args.timeout:
                             interruption = "phase_timeout"
                             break

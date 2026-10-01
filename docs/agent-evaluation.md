@@ -56,7 +56,10 @@ NETBOX_RW_AGENT_EVAL=1 .venv/bin/python scripts/agent_eval.py \
 
 The runner starts/stops its own loopback proxy. Use `--port` to choose a free port.
 `--timeout` bounds each phase (default four hours); the agent also has a 160-step
-limit. Idle termination is disabled by default (`--idle-timeout 0`). Quiet client
+limit. Idle termination is disabled by default (`--idle-timeout 0`). Twelve consecutive
+failed MCP calls stop a run with `consecutive_tool_errors`; use
+`--max-consecutive-tool-errors` to adjust this or `0` to disable it. Valid calls
+reset that error streak, so slow generation alone does not trigger this limit. Quiet client
 output alone is not treated as a stall. A loopback observation gateway records
 stream byte/chunk counts, reasoning/content/tool fragment counts, active request
 ages, and completed MCP calls once a minute in `progress.json`/`progress.jsonl`.
@@ -485,3 +488,29 @@ The 0.4.2 candidate adds the interface trace endpoint directly to the `query` to
 description and built-in guide, including the requirement to inspect the successful
 response before disconnecting. This is a server-supplied clarification, not extra
 instructions added to the consuming agent's prompt.
+
+The first Codex 0.4.2 candidate attempt (`cbd476a625`) successfully traced its own
+cable and passed the corrected trace assertion, but ended its turn before the
+remaining chassis/VM/contact/export work. It **failed** overall: nine assertions
+were false. A zero exit code and a successful individual feature check do not
+qualify an incomplete scenario. No transport error was observed. Later attempts
+retain the same prompt and independent acceptance criteria.
+
+These runs show a distinction between MCP feature coverage and model reliability.
+The same GLM model made malformed requests, sometimes recovered autonomously, and
+in Codex also produced an unsupported completion claim and an early stop. A later
+successful run demonstrates the tested workflow, not an error-free success rate.
+Operation receipts and independent state checks remain the evidence for completion;
+model narration alone is insufficient.
+
+Codex retry `1e952eba10` traced its cable successfully but entered a loop appending
+`bookmark/` repeatedly to an invalid route, with no inventory progress. The
+operator stopped it after repeated failed reads; the run is **failed**, and its
+nonzero client exit is preserved. This led to the consecutive-error limit above.
+It also exposed weak error recovery guidance: read failures mentioned write
+receipts and offered no nearby route. The next candidate identifies read errors
+as non-mutations and supplies up to five matching GET paths from the already-loaded
+API schema. It performs no extra network requests while generating suggestions,
+does not redirect missing-object or permission failures, and retains write
+recovery semantics. Unit tests and a real NetBox bookmark/missing-device check
+exercise those boundaries.

@@ -109,3 +109,14 @@ def test_trace_requires_successful_response_for_own_cable(client):
     )["native_trace_used"]
     assert not community_read_checks(transcript("completed", payload), "other", [7])["native_trace_used"]
     assert not community_read_checks(transcript("completed", payload), "test", [8])["native_trace_used"]
+
+
+def test_error_budget_requires_consecutive_failures_and_can_be_disabled():
+    from scripts.agent_clients import consecutive_error_limit_reached
+
+    failed = {"is_error": True}
+    ok = {"is_error": False}
+    assert consecutive_error_limit_reached([ok, failed, failed, failed], 3)
+    assert not consecutive_error_limit_reached([failed, failed, ok, failed], 3)
+    assert not consecutive_error_limit_reached([failed], 3)
+    assert not consecutive_error_limit_reached([failed] * 20, 0)

@@ -97,6 +97,44 @@ class Catalog:
             self.schema = response["body"]
         return self.schema
 
+    def route_hints(self, path):
+        """Suggest cached GET routes for a wrong path, never a missing object or denied read."""
+        if not isinstance(path, str) or not self.schema:
+            return []
+        requested = ("/api/" + path).split("/")
+        routes = [
+            route
+            for route, spec in self.schema.get("paths", {}).items()
+            if route.startswith("/api/") and "get" in spec
+        ]
+        if any(
+            len(route.split("/")) == len(requested)
+            and all(
+                a == b or (a.startswith("{") and a.endswith("}")) for a, b in zip(route.split("/"), requested)
+            )
+            for route in routes
+        ):
+            return []
+
+        def terms(value):
+            return [
+                part.rstrip("s")
+                for part in value.strip("/").split("/")
+                if part and not part.isdecimal() and not part.startswith("{")
+            ]
+
+        wanted = terms(path)
+        if not wanted:
+            return []
+        candidates = []
+        for route in routes:
+            relative = route[len("/api/") :]
+            words = terms(relative)
+            if words and words[-1] == wanted[-1]:
+                score = len(set(wanted) & set(words))
+                candidates.append((-score, "{" in relative, len(relative), relative))
+        return [item[-1] for item in sorted(candidates)[:5]]
+
     def native_filters(self, resource):
         response = self.api.request(
             "GET", "plugins/agent-support/filter-schema/?" + query_string({"resource": resource})

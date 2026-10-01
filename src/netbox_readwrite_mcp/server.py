@@ -441,13 +441,34 @@ def error_result(service, params, exc):
     from .errors import describe
 
     out = describe(exc)
+    descriptor = next((item for item in TOOLS if item["name"] == params.get("name")), {})
+    read_only = descriptor.get("annotations", {}).get("readOnlyHint", False)
+    arguments = params.get("arguments", {})
+    if read_only:
+        out["mutation_outcome"] = "not_applicable"
+        if "HTTP 404" in str(exc):
+            out["action"] = (
+                "Check the exact API route with discover_models and get_schema. "
+                "A valid detail route returning 404 can mean the object is absent or hidden by permissions. "
+                "Do not append guessed path segments or substitute an unrelated object."
+            )
+            if isinstance(arguments, dict):
+                path = arguments.get("path", arguments.get("object_type"))
+                try:
+                    hints = service.catalog.route_hints(path)
+                    if hints:
+                        out["candidate_paths"] = hints
+                        out["candidate_paths_source"] = (
+                            "previously loaded API schema; permissions still apply"
+                        )
+                except (AttributeError, TypeError, ValueError):
+                    pass  # Optional hints must not replace the original error.
     try:
         with service.store.lock():
             service.store.event(
                 "tool_refused", {"tool": params.get("name"), "code": out["code"], "reason": out["warning"]}
             )
-        arguments = params.get("arguments", {})
-        key = arguments.get("operation_key") if isinstance(arguments, dict) else None
+        key = arguments.get("operation_key") if isinstance(arguments, dict) and not read_only else None
         if key:
             out["receipt_lookup"] = service.find_operation(key)
     except Exception:

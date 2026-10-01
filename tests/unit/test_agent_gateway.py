@@ -96,3 +96,21 @@ def test_gateway_forwards_stream_incrementally_without_retaining_body(endpoint, 
         server.shutdown()
         server.server_close()
         worker.join(timeout=5)
+
+
+def test_activity_reports_terminal_status_and_sizes_without_content():
+    activity = Activity()
+    ident = activity.begin({"instructions": "private instructions", "tools": [], "input": "private input"})
+    activity.chunk(
+        ident,
+        b"x",
+        [
+            b'data: {"type":"response.incomplete","response":{"status":"incomplete","output":"private output"}}'
+        ],
+    )
+    activity.chunk(ident, b"x", [b'data: {"type":"message_delta","delta":{"stop_reason":"max_tokens"}}'])
+    state = activity.snapshot()
+    assert state["response_incomplete"] == 1
+    assert state["stop_max_tokens"] == 1
+    assert state["request_bytes"] > state["largest_instructions_bytes"] > 0
+    assert "private" not in json.dumps(state)
