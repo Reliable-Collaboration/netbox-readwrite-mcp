@@ -267,3 +267,9 @@ oracle accepted any HTTP 400 as the intended validation test; the revised oracle
 requires the native required-content error and also checks note dimensions/color
 and preservation of original widgets in successful write receipts. The preliminary
 run is retained as failure evidence, not qualification.
+
+Full CI then caught oversized device/interface responses when expanding all bulk
+mutation schemas by default. Compact discovery now expands object mutations and
+POST bulk alternatives; `get_schema(method="PATCH")` expands the complete bulk
+update contract without unrelated methods and filters. The existing 30 KB client
+budget is retained and tested for both default and focused responses.

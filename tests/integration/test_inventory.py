@@ -672,6 +672,12 @@ def test_agent_schema_response_fits_client_context(service, resource):
         compact["paths"]["/api/" + resource]["post"]["request"]
         == (full["paths"]["/api/" + resource]["post"]["requestBody"]["content"]["application/json"]["schema"])
     )
+    focused = service.get_schema(resource, method="PATCH")
+    assert len(json.dumps(focused).encode()) < 30000
+    assert focused["filters"] == {}
+    request = focused["paths"]["/api/" + resource]["patch"]["request"]
+    assert request["items"]["$ref"].rsplit("/", 1)[1] in focused["schemas"]
+    assert all(set(methods) == {"patch"} for methods in focused["paths"].values())
 
 
 def test_agent_can_inspect_allocation_action_without_full_schema(service):

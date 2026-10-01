@@ -171,7 +171,20 @@ class Catalog:
                 "Inspect get_schema filters and use a supported exact-match filter; never retry by dropping the intended constraint."
             )
 
-    def describe(self, resource, full=False, action=None):
+    def describe(self, resource, full=False, action=None, method=None):
+        if method is not None and not isinstance(method, str):
+            raise ValueError("method must be a string")
+        selected_method = method.lower() if isinstance(method, str) else method
+        if selected_method is not None and selected_method not in {
+            "get",
+            "post",
+            "put",
+            "patch",
+            "delete",
+            "head",
+            "options",
+        }:
+            raise ValueError("method must be GET, POST, PUT, PATCH, DELETE, HEAD or OPTIONS")
         resource = self.resolve(resource)
         options = self.api.request("OPTIONS", resource)
         self.load_schema()
@@ -184,6 +197,14 @@ class Catalog:
             paths = {p: value for p, value in paths.items() if p.endswith("/" + action + "/")}
             if not paths:
                 raise ValueError("Action not found in this resource's schema")
+        if selected_method is not None:
+            paths = {
+                p: {selected_method: value[selected_method]}
+                for p, value in paths.items()
+                if selected_method in value
+            }
+            if not paths:
+                raise ValueError("Method not found in this resource's schema")
         refs = set()
         schemas = {}
 
@@ -230,7 +251,12 @@ class Catalog:
                         "patch",
                         "delete",
                     }:
-                        collect(request_schema)
+                        if selected_method or method == "post" or request_schema.get("type") != "array":
+                            collect(request_schema)
+                        else:
+                            entry["schema_expansion"] = (
+                                f"Use get_schema(method='{method.upper()}') for bulk inputs."
+                            )
                 compact_paths[path][method] = entry
                 if path == "/api/" + resource and method == "get":
                     for parameter in spec.get("parameters", []):
@@ -239,7 +265,7 @@ class Catalog:
                                 "type", "see full schema"
                             )
 
-        if action is None:
+        if action is None and selected_method in {None, "get"}:
             for name, metadata in (self.native_filters(resource) or {}).items():
                 filters.setdefault(name, metadata.get("type", "native filter"))
 
@@ -260,5 +286,5 @@ class Catalog:
             "paths": compact_paths,
             "schemas": compact(schemas),
             "filters": filters,
-            "guidance": "Schemas expand mutation inputs (including bulk alternatives). Use action='available-ips', for example, to focus on a named action without a large response. Updates use writable fields with a fresh ETag. full=true includes full OPTIONS, filter choices, descriptions and response schemas.",
+            "guidance": "Schemas expand object mutations and POST bulk alternatives. Use method='PATCH' for complete bulk update inputs without unrelated methods/filters, or action='available-ips' for a named action. Updates need a fresh ETag. full=true includes full OPTIONS, descriptions and response schemas.",
         }

@@ -129,8 +129,16 @@ TOOLS += [
     ),
     tool(
         "get_schema",
-        "Inspect compact writable schemas, required fields, choices, filters and action paths. Use action='available-ips' to get one action's inputs. full=true returns large full OPTIONS/response schemas.",
-        {"object_type": STR, "full": BOOL, "action": STR},
+        "Inspect compact writable schemas, required fields, choices, filters and action paths. Use method='PUT' to focus on a mutation (including complete bulk inputs), or action='available-ips' for one action. full=true returns large full OPTIONS/response schemas.",
+        {
+            "object_type": STR,
+            "full": BOOL,
+            "action": STR,
+            "method": {
+                "type": "string",
+                "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+            },
+        },
         ["object_type"],
     ),
     tool(

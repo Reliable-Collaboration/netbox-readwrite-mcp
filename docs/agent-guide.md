@@ -93,13 +93,16 @@ uncertain. Restoration has a separate native administrative permission.
 
 ## Personal dashboards and preferences
 
-Use `plugins/agent-support/self/dashboard/` and `dashboard-widgets/` for your own
-dashboard. GET has no initialization side effect; POST initializes native defaults,
+Use `plugins/agent-support/self/dashboard/` and
+`plugins/agent-support/dashboard-widgets/` for your own dashboard. GET has no initialization side effect; POST initializes native defaults,
 PUT replaces the complete `layout` and `config`, and DELETE resets to uninitialized.
 Every write requires the fresh ETag via `expected_etag`. Preserve existing widget
 IDs and configuration when adding/removing another widget. The `initialized`
-response field is not a PUT input. Use `query` on `dashboard-widgets/` to read the
-actual widget catalog, and `get_schema` on `self/dashboard/` for the PUT shape.
+response field is not a PUT input. Use `query` on `plugins/agent-support/dashboard-widgets/` to read the
+actual widget catalog, and `get_schema` with
+`object_type="plugins/agent-support/self/dashboard/", method="PUT"` for the shape.
+Keep the full plugin prefix in every tool call.
+Begin a task with `begin_task` before writing; use its returned ID.
 For example, one note uses a UUID in both places:
 
 ```json

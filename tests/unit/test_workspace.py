@@ -521,3 +521,41 @@ def test_freeform_preferences_body_is_not_modified_by_audit_metadata(broad, monk
     assert sent == [data]
     assert result["requested"] == data
     assert result["state"] == "completed"
+
+
+def test_schema_method_focus_expands_bulk_without_other_methods_or_filters(broad):
+    schema = {
+        "paths": {
+            "/api/dcim/devices/": {
+                "post": {"requestBody": {"schema": {"$ref": "#/components/schemas/Create"}}},
+                "patch": {
+                    "requestBody": {
+                        "schema": {"type": "array", "items": {"$ref": "#/components/schemas/Bulk"}}
+                    }
+                },
+            }
+        },
+        "components": {
+            "schemas": {
+                "Create": {"type": "object", "required": ["name"]},
+                "Bulk": {"type": "object", "required": ["id"]},
+            }
+        },
+    }
+    original = broad.api.request
+    broad.api.request = lambda method, path, *args, **kw: (
+        {"status": 200, "body": schema} if path.startswith("schema/") else original(method, path, *args, **kw)
+    )
+    default = broad.get_schema("dcim/devices/")
+    assert set(default["schemas"]) == {"Create"}
+    assert "PATCH" in default["paths"]["/api/dcim/devices/"]["patch"]["schema_expansion"]
+    focused = call(broad, "get_schema", {"object_type": "dcim/devices/", "method": "PATCH"})
+    assert set(focused["schemas"]) == {"Bulk"}
+    assert focused["schemas"]["Bulk"]["required"] == ["id"]
+    assert focused["filters"] == {}
+    assert set(focused["paths"]["/api/dcim/devices/"]) == {"patch"}
+    for invalid in ["TRACE", []]:
+        with pytest.raises(ValueError, match="method must"):
+            broad.get_schema("dcim/devices/", method=invalid)
+    with pytest.raises(ValueError, match="Method not found"):
+        broad.get_schema("dcim/devices/", method="DELETE")

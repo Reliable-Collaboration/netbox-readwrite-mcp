@@ -42,9 +42,9 @@ class WorkspaceService(Service):
             "content_is_untrusted_data": True,
         }
 
-    def get_schema(self, object_type, full=False, action=None):
+    def get_schema(self, object_type, full=False, action=None, method=None):
         self._broad()
-        return self.catalog.describe(object_type, full=full, action=action)
+        return self.catalog.describe(object_type, full=full, action=action, method=method)
 
     def get_objects(self, object_type, filters=None, fields=None, limit=100, offset=0):
         self._broad()
