@@ -246,7 +246,7 @@ p.object_types.add(ObjectType.objects.get(app_label='core', model='configrevisio
         initial = admin.get(PATH)["body"]
         # An add permission for some objects must not allow an out-of-scope revision
         # to activate before the permission check rolls back its database insert.
-        assert create(actor)["status"] == 403
+        assert create(actor, expected=initial["active_revision"])["status"] == 403
         assert admin.get(PATH)["body"] == initial
         shell(f"""
 from netbox.config import get_config, clear_config
