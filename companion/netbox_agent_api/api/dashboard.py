@@ -30,9 +30,22 @@ class LayoutItem(StrictSerializer):
     y = serializers.IntegerField(min_value=0, allow_null=True, default=None)
 
 
+class DashboardWidget(StrictSerializer):
+    title = serializers.CharField(required=False, allow_blank=True, allow_null=True, trim_whitespace=False)
+    color = serializers.CharField(required=False, allow_blank=True, allow_null=True, trim_whitespace=False)
+    config = serializers.DictField(required=False)
+
+    def get_fields(self):
+        fields = super().get_fields()
+        fields["class"] = serializers.ChoiceField(
+            choices=[name for name in registry["widgets"] if name.startswith("extras.")]
+        )
+        return fields
+
+
 class DashboardWrite(StrictSerializer):
     layout = LayoutItem(many=True)
-    config = serializers.DictField(child=serializers.DictField())
+    config = serializers.DictField(child=DashboardWidget())
     changelog_message = serializers.CharField(required=False, write_only=True)
 
     def validate(self, data):

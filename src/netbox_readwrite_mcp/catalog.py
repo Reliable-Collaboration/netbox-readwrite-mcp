@@ -224,7 +224,12 @@ class Catalog:
                     request_schema = request.get("schema")
                 if request_schema:
                     entry["request"] = request_schema
-                    if (action is not None or path == "/api/" + resource) and method == "post":
+                    if (action is not None or path == "/api/" + resource) and method in {
+                        "post",
+                        "put",
+                        "patch",
+                        "delete",
+                    }:
                         collect(request_schema)
                 compact_paths[path][method] = entry
                 if path == "/api/" + resource and method == "get":
@@ -255,5 +260,5 @@ class Catalog:
             "paths": compact_paths,
             "schemas": compact(schemas),
             "filters": filters,
-            "guidance": "Schemas expand POST inputs (including bulk alternatives). Use action='available-ips', for example, to focus on a named action without a large response. Updates use writable fields with a fresh ETag. full=true includes full OPTIONS, filter choices, descriptions and response schemas.",
+            "guidance": "Schemas expand mutation inputs (including bulk alternatives). Use action='available-ips', for example, to focus on a named action without a large response. Updates use writable fields with a fresh ETag. full=true includes full OPTIONS, filter choices, descriptions and response schemas.",
         }

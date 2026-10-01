@@ -243,3 +243,27 @@ scenario does not qualify those paths. PostgreSQL and the native configuration
 cache are separate stores, and configuration revisions have no native ObjectChange
 history or automatic undo. It remains a targeted acceptance test, not universal
 GUI parity or a reliability rate.
+
+## Personal dashboard scenario
+
+Run `--scenario dashboard --model zai-org/GLM-5.3-Flash` with the same runner
+and credentials arrangement. The agent discovers the companion dashboard and
+widget schemas, retains the original state, submits an intentionally invalid
+note, adds and verifies a valid note, exercises a stale ETag, and restores the
+original state (including uninitialized state). The independent oracle checks
+receipts, exact final dashboard equality, inventory preservation, task-summary
+inspection, and absence of website calls and uncertain operations. Native
+ObjectChange history and automatic undo do not apply to personal dashboards.
+The deterministic suite separately covers all five widgets, multiple users,
+concurrent first use, token restrictions and response loss.
+
+The first dashboard attempt (`33f3e2742b`) was stopped after repeated rejected
+payloads, with no successful dashboard mutation. It exposed two discovery gaps:
+compact schemas expanded POST but omitted PUT request definitions, and widget
+configuration was an untyped dictionary. Both are corrected: mutation request
+definitions are expanded and widget entries expose their class/title/color/config
+structure. The guide now includes a concrete payload example. The preliminary
+oracle accepted any HTTP 400 as the intended validation test; the revised oracle
+requires the native required-content error and also checks note dimensions/color
+and preservation of original widgets in successful write receipts. The preliminary
+run is retained as failure evidence, not qualification.

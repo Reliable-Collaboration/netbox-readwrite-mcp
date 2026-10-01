@@ -98,7 +98,16 @@ dashboard. GET has no initialization side effect; POST initializes native defaul
 PUT replaces the complete `layout` and `config`, and DELETE resets to uninitialized.
 Every write requires the fresh ETag via `expected_etag`. Preserve existing widget
 IDs and configuration when adding/removing another widget. The `initialized`
-response field is not a PUT input. Native widget forms validate the configuration.
+response field is not a PUT input. Use `query` on `dashboard-widgets/` to read the
+actual widget catalog, and `get_schema` on `self/dashboard/` for the PUT shape.
+For example, one note uses a UUID in both places:
+
+```json
+{"layout":[{"id":"11111111-1111-4111-8111-111111111111","w":4,"h":3,"x":0,"y":0}],"config":{"11111111-1111-4111-8111-111111111111":{"class":"extras.NoteWidget","title":"Notes","color":"blue","config":{"content":"Inventory notes"}}}}
+```
+
+Append to the existing layout/config; do not replace other widgets with this example.
+Native widget forms validate the configuration.
 These operations have receipts but no native ObjectChange history or automatic undo.
 `users/config/` remains the native preference API: PATCH deep-merges its entire
 JSON body, so use only intended preference data. It has no ETag guard or automatic

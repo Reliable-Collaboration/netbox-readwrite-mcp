@@ -466,12 +466,31 @@ def main():
                         and any(
                             w.get("class") == "extras.NoteWidget"
                             and w.get("title") == prefix
+                            and w.get("color") == "blue"
                             and w.get("config", {}).get("content") == prefix
-                            for w in (r.get("body") or {}).get("config", {}).values()
+                            and any(
+                                item.get("id") == key and item.get("w") == 4 and item.get("h") == 3
+                                for item in (r.get("body") or {}).get("layout", [])
+                            )
+                            for key, w in (r.get("body") or {}).get("config", {}).items()
                         )
                         for r in receipts
                     ),
-                    "invalid_widget_rejected": any(r.get("status") == 400 for r in receipts),
+                    "existing_widgets_preserved_in_write_receipts": all(
+                        all(
+                            r["body"].get("config", {}).get(key) == widget
+                            for key, widget in original["config"].items()
+                        )
+                        and all(item in r["body"].get("layout", []) for item in original["layout"])
+                        for r in receipts
+                        if r.get("status") == 200 and isinstance(r.get("body"), dict)
+                    ),
+                    "invalid_widget_rejected": any(
+                        r.get("status") == 400
+                        and "content" in json.dumps(r.get("body"))
+                        and "required" in json.dumps(r.get("body"))
+                        for r in receipts
+                    ),
                     "stale_write_rejected": any(r.get("status") == 412 for r in receipts),
                     "task_summary_read": any(
                         e["tool"] == "get_task" and not e.get("is_error") for e in events

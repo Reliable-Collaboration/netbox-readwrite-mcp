@@ -183,6 +183,13 @@ def test_dashboard_cold_schema_and_widget_catalog(people):
     a, _ = people[0]
     schema = a.api.get("schema/?format=json&dashboard=" + uuid.uuid4().hex)["body"]
     assert set(schema["paths"]["/api/" + DASHBOARD]) >= {"get", "put", "post", "delete"}
+    a.catalog.schema = schema
+    compact = a.get_schema(DASHBOARD)
+    write = compact["schemas"]["DashboardWriteRequest"]
+    assert write["properties"]["config"]["additionalProperties"]["$ref"].endswith("DashboardWidgetRequest")
+    widget = compact["schemas"]["DashboardWidgetRequest"]
+    assert "class" in widget["required"]
+    assert "config" in widget["properties"]
     widgets = a.query("plugins/agent-support/dashboard-widgets/")["body"]
     assert widgets["extras.NoteWidget"]["fields"]["content"]["required"]
 

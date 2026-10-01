@@ -397,7 +397,8 @@ def test_general_observers_use_one_snapshot(broad):
     assert broad.get_task(broad.task)["operations"][0]["id"] == op["id"]
 
 
-def test_schema_default_excludes_response_graph_and_preserves_write_contract(broad):
+@pytest.mark.parametrize("method", ["post", "put", "patch", "delete"])
+def test_schema_default_excludes_response_graph_and_preserves_write_contract(broad, method):
     write = {
         "type": "object",
         "required": ["name"],
@@ -413,7 +414,7 @@ def test_schema_default_excludes_response_graph_and_preserves_write_contract(bro
                     "parameters": [{"in": "query", "name": "name", "schema": {"type": "string"}}],
                     "responses": {"200": {"schema": {"$ref": "#/components/schemas/LargeResponse"}}},
                 },
-                "post": {
+                method: {
                     "requestBody": {
                         "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Write"}}}
                     }
