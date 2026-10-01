@@ -8,6 +8,21 @@ from urllib.parse import urlparse
 from urllib.request import Request, build_opener, HTTPRedirectHandler
 
 
+HISTORY_FIELDS = (
+    "id",
+    "time",
+    "user_name",
+    "request_id",
+    "action",
+    "changed_object_type",
+    "changed_object_id",
+    "object_repr",
+    "message",
+    "prechange_data",
+    "postchange_data",
+)
+
+
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, *args, **kwargs):
         return None
@@ -82,7 +97,7 @@ class NetBox:
     def history(self):
         # Archive immutable evidence only. Expanded changed_object/user references
         # reflect live state and can fail while related objects are changed/deleted.
-        fields = "id,time,user_name,request_id,action,changed_object_type,changed_object_id,object_repr,message,prechange_data,postchange_data"
+        fields = ",".join(HISTORY_FIELDS)
         path = "core/object-changes/?limit=1000&ordering=id&fields=" + fields
         records = []
         visited = set()

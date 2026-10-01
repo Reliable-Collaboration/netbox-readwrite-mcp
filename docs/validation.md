@@ -47,7 +47,8 @@ provider, Branching plugin or commercial integration participates in these tests
 The companion's API discovery and cold OpenAPI generation are included in the
 425-case run. Fresh CI exposed an earlier schema-generation defect hidden by
 NetBox's one-day schema cache; the corrected plugin now has a unique-URL cold
-schema regression. The plugin has no inventory mutation endpoint. Coverage
+schema regression. At that baseline the plugin had no inventory mutation endpoint; subsequent
+companion families now expose native inventory operations. Coverage
 percentages measure the MCP package, not plugin Python execution inside the
 NetBox container or the evaluation harness.
 
@@ -133,8 +134,9 @@ that finding led to the explicit action-body schema and pre-dispatch validation.
 Both reports and source/harness/guide hashes are preserved.
 
 This closes the confirmed configuration-revision API gap. It does not establish
-universal website/API parity. Queue mutations, self-service account operations,
-dashboard semantics and bulk/CSV equivalence still need action-level qualification.
+universal website/API parity. At that revision, queue mutations, self-service
+account operations, dashboards and bulk/CSV equivalence still needed qualification.
+Later evidence is recorded above and in the current operation worklist.
 Configuration revisions have no native ObjectChange history or automatic undo;
 PostgreSQL and the native configuration cache are separate stores.
 
@@ -161,7 +163,7 @@ Earlier failed runs and the uninitialized PUT state pass retain their own hashes
 and narrative limitations in [agent evaluation](agent-evaluation.md).
 
 Both final-source CI workflows passed. Both distributions built, and all wheel
-Python modules match the recorded source. Full GUI/API parity is still unfinished;
-queue task mutations, remaining account workflows and bulk/CSV equivalence remain
-explicit qualification work. Dashboards/preferences have no native ObjectChange
+Python modules match the recorded source. At that revision, queue task mutations,
+account workflows and bulk/CSV equivalence remained qualification work; see the
+current operation worklist for their later results. Dashboards/preferences have no native ObjectChange
 history or automatic undo. Provider waits are observed separately from tool progress.

@@ -1,9 +1,10 @@
 # NetBox-wide agent operations: requirements and implementation design
 
-Status: product requirements. Version 0.3.0 implements general discovery, CRUD,
-actions, workflows and native website forms; see feature-matrix.md for measured
-coverage. Universal action qualification and original-ID graph recovery remain
-separate acceptance work, not implied by a generic transport.
+Status: design record. Version 0.3.0 implements discovery, CRUD, native actions
+and typed companion APIs for stock Community operation families. See
+[the current operation map](api-completion.md) and [qualification](validation.md).
+Original-ID graph recovery is a separate capability beyond stock website parity;
+it is not implied by this implementation.
 
 ## Required outcome
 

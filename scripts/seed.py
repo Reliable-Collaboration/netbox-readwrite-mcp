@@ -6,7 +6,7 @@ import secrets
 import subprocess
 import uuid
 from netbox_readwrite_mcp.api import NetBox
-from lab import STATE, PREFIX, URL
+from lab import STATE, PREFIX, URL, ready_api
 
 os.umask(0o077)
 STATE.mkdir(mode=0o700, exist_ok=True)
@@ -14,6 +14,7 @@ admin = json.loads((STATE / "secrets.json").read_text())["token"]
 # Cold API initialization on small CI runners can exceed the runtime timeout.
 # This longer bound is only for disposable fixture setup; writes are never retried.
 api = NetBox(URL, admin, timeout=120)
+ready_api(api)
 
 
 def ensure(path, name, data):

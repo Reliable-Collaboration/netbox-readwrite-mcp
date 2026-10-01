@@ -21,7 +21,12 @@ The table maps capabilities, not identical tool signatures.
 | Personal preferences | Native users/config plus companion self/preferences | Native merge plus validated partial updates, table clearing, ETag guards and isolation |
 | GraphQL | graphql | Real query; no GraphQL mutation bypass |
 | Single CRUD | create_object, update_object, delete_object | Real lifecycle fixtures across inventory domains |
-| Native bulk requests | execute_action | Real list POST; records all correlated native rows |
+| Native bulk requests | execute_action | List creation and protected bulk deletion; records correlated native rows and rollback |
+| Native imports/bulk forms/patterns | Companion imports, bulk-rename, bulk-edit, pattern-create | Nested templates, scoped permissions, atomic batches, all component forms and stale guards |
+| Export and file download | Companion exports and media | Native CSV/table/YAML/template output, image/DataFile chunks and hash guards |
+| Account and personal state | Companion self APIs plus native own-object REST | Password/preferences/notifications, tokens/bookmarks/subscriptions, association disconnection and isolation |
+| Operational administration | Native jobs/queues plus companion system/queue/script metadata | Worker-backed lifecycle, scheduling, registry state, native permissions |
+| Chassis, disconnection and synchronized data | Native relationships and guarded companion batch APIs | Atomic swaps, all disconnect types, native sync hooks, source hashes and rollback |
 | Resumable bulk workflow | bulk | Ordered per-step keys, partial failures and replay |
 | Code mode | run_workflow | Bounded interpreted Python syntax, not full Python; control flow, aggregation and API helpers |
 | IPs, prefixes, VLANs, ASNs | query, execute_action on native availability endpoints | Live allocation scenarios; schemas expose required inputs |

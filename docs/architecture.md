@@ -14,7 +14,10 @@ repeating the write.
 - workspace.py handles general reads, writes, tasks, jobs, workflows and diagnostics.
 - service.py retains the qualified narrow device compensation engine.
 - recovery.py assesses general field compensation and graph-recovery conflicts.
-- web.py handles authenticated native forms with cookies and CSRF.
+- The companion package exposes native Community forms/models through typed REST,
+  enforcing native permissions and validation inside NetBox.
+- feedback.py exposes the optional constrained GitHub issue bridge with a durable outbox.
+- web.py retains experimental authenticated forms with cookies and CSRF.
 - workflow.py interprets a bounded Python-syntax language without host access.
 - store.py owns append-only evidence, integrity verification, snapshots and backup.
 

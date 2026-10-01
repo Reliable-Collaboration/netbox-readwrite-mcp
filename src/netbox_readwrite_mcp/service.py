@@ -4,6 +4,7 @@ import json
 import re
 import time
 import uuid
+from .api import HISTORY_FIELDS
 from .store import Store, encode, digest, consistent_read
 from .compatibility import normalization_profile
 from .normalization import canonical_changes, exact_inverse, exact_correction
@@ -21,20 +22,7 @@ def values(device):
 
 def native_record(row):
     # Exclude live expanded references, which change after a rename/delete.
-    keys = [
-        "id",
-        "time",
-        "user_name",
-        "request_id",
-        "action",
-        "changed_object_type",
-        "changed_object_id",
-        "object_repr",
-        "message",
-        "prechange_data",
-        "postchange_data",
-    ]
-    return {k: row[k] for k in keys}
+    return {k: row[k] for k in HISTORY_FIELDS}
 
 
 class Service:

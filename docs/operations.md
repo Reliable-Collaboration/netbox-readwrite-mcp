@@ -77,3 +77,13 @@ Never rewrite archived evidence or start a new journal to suppress them.
 The target deployment is a small home lab (roughly 1000 or fewer assets).
 Full history scans favor a simple implementation. High availability, distributed
 storage and large-estate throughput are not current qualification targets.
+
+## Native history serialization
+
+History synchronization requests immutable audit fields explicitly: IDs, time,
+actor name, request ID, action, object type/ID, stored representation/message and
+before/after snapshots. It omits live expanded object/user references. NetBox
+4.7.2 can return HTTP 500 while expanding a live port-mapping change record; its
+immutable fields remain readable. These are the same fields already retained in
+the journal, so this transport change does not alter archived record hashes or
+require resetting history. The client still fails closed if audit reads fail.

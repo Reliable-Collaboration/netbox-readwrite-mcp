@@ -152,6 +152,27 @@ def ready():
     raise RuntimeError("NetBox did not become ready; inspect project logs")
 
 
+def ready_api(api, timeout=120):
+    """Wait for authenticated REST initialization before any fixture mutation."""
+    if api.url != URL:
+        raise ValueError("Readiness probe is restricted to the disposable lab")
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            response = api.request("GET", "dcim/sites/?limit=1")
+        except OSError:
+            print("Waiting for lab REST transport", flush=True)
+        else:
+            status = response["status"]
+            if status == 200:
+                return
+            if status < 500:
+                raise RuntimeError(f"Lab REST readiness rejected: HTTP {status}")
+            print(f"Waiting for authenticated lab REST readiness: HTTP {status}", flush=True)
+        time.sleep(2)
+    raise RuntimeError("Lab REST did not initialize; no fixture writes were attempted")
+
+
 def bootstrap():
     c = config()
     if "admin_password" not in c:

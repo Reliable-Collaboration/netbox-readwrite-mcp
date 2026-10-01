@@ -73,3 +73,24 @@ The pytest percentage measures MCP package coverage; it does not measure Python
 line coverage inside the NetBox container.
 The companion schema test uses a unique schema URL to force cold OpenAPI
 generation despite NetBox's one-day response cache.
+
+## Stock operation audit and combined agent acceptance
+
+Run `python scripts/parity_audit.py` to check the pinned website route map; use
+`--write docs/netbox-4.7-parity.json` after deliberately updating its mappings.
+The offline test rejects unknown routes and missing mapped native CRUD verbs.
+This audit is not counted as successful lifecycle execution.
+
+The live suite includes all native component pattern forms, nested imports,
+constrained permissions, bulk deltas/deletion/disconnection, source worker sync,
+account state, queue administration, real signed webhook delivery and binary
+file exports. Device/VM rendering requires the native `render_config` permission;
+the lab grants it explicitly without making the inventory actor a superuser.
+
+Use `scripts/agent_eval.py --scenario community` with the documented OpenCode,
+LiteLLM and private-key arguments for combined physical/virtual inventory,
+nested templates, multi-parent creation, topology, chassis swaps, self-service
+state and exports. The oracle verifies both final state and required operation
+usage. `--scenario feedback` separately qualifies GitHub publication, duplicate
+prevention and reading a maintainer reply. Do not run mutating integration tests
+against the same lab during an agent evaluation.

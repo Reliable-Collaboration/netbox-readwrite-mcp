@@ -423,5 +423,8 @@ def test_history_uses_immutable_evidence_without_live_object_expansion(graph):
         assert row["postchange_data"]["name"] == prefix + "-history"
         assert row["changed_object_id"] == pk and row["changed_object_type"] == "dcim.site"
         assert row["request_id"] == result["native_changes"][0]["request_id"]
+        visible = service.get_changelogs({"changed_object_type": "dcim.portmapping"})["data"]["results"]
+        assert any(item["postchange_data"].get("front_port") == front["id"] for item in visible)
+        assert all("changed_object" not in item for item in visible)
     finally:
         assert service.api.request("DELETE", f"dcim/sites/{pk}/")["status"] == 204

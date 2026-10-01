@@ -360,3 +360,19 @@ interface templates separately instead of using the requested nested import.
 This is retained as development evidence, not combined-scenario acceptance.
 The follow-up oracle explicitly checks correlated nested-import history, one
 multi-parent pattern request and use of native tracing.
+
+Strict run **`1ef1df9269` on `80a6892` passed all 23 checks in 555.70 seconds**.
+Its 56 MCP calls completed the nested import (one device type plus two correlated
+interface-template changes), one multi-parent component request, successful
+interface trace, guarded disconnect, atomic chassis swap, VM primary MAC, contacts,
+journal, own bookmark, search and exact two-device CSV export. Pre-existing
+inventory remained unchanged; there were no truncated outputs, unresolved
+operations or website calls. No human completed or corrected its task.
+
+This was autonomous recovery, not flawless execution: three tool errors and
+eight definite HTTP 400 rejections preceded corrected requests. The journal ended
+with 21 applied, eight failed and three completed operations. Manual review
+confirmed the successful trace request, not just a textual mention of tracing.
+The final answer contained a confused site device-count aside; independent state
+checks establish the actual two-device/one-VM relationships. This remains a
+targeted acceptance proof rather than a statistical reliability guarantee.

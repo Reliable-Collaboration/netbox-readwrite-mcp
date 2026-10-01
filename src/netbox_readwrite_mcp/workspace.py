@@ -5,6 +5,7 @@ import re
 import time
 import uuid
 
+from .api import HISTORY_FIELDS
 from .catalog import Catalog, api_path, query_string
 from .compatibility import NETBOX_VERSION, normalization_profile
 from .service import Service
@@ -77,7 +78,7 @@ class WorkspaceService(Service):
         }
 
     def get_changelogs(self, filters=None, limit=100, offset=0):
-        return self.get_objects("core/object-changes/", filters, None, limit, offset)
+        return self.get_objects("core/object-changes/", filters, list(HISTORY_FIELDS), limit, offset)
 
     def query(self, path, filters=None):
         self._broad()
