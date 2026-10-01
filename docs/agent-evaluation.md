@@ -6,7 +6,7 @@ and their limits at the time; [validation](validation.md) records the current
 deterministic qualification.
 
 This is an opt-in, paid-provider test, separate from deterministic integration tests.
-It runs OpenCode through a loopback LiteLLM proxy backed by DeepInfra, with the
+It runs OpenCode, Claude Code or Codex through a loopback LiteLLM proxy backed by DeepInfra, with the
 real MCP server connected to the disposable Podman NetBox 4.7.2 lab.
 
 Current runs receive the MCP tool catalog and a natural-language task; usage
@@ -17,7 +17,7 @@ preselected NetBox IDs or recipe of tool calls. Credentials are never included i
 the prompt. The provider receives synthetic lab inventory and tool results.
 
 An independent REST reader checks final state. A correct-sounding final answer
-alone cannot pass. Each phase starts a new OpenCode session against the same
+alone cannot pass. Each phase starts a new client session against the same
 persistent inventory and journal:
 
 | Phase | Independent checks |
@@ -73,6 +73,41 @@ client events, a durable MCP journal and redacted proxy logs. Reports include
 source hashes, tool counts/errors, truncations, duration and client-reported token
 usage. Token totals are cumulative across turns and can include cached input;
 OpenCode's zero cost field is not evidence that provider usage was free.
+
+## Claude Code and Codex evaluation
+
+The same runner supports native Claude Code and Codex clients. Select `--client
+claude` or `--client codex` and supply `--client-bin /absolute/path/to/client` in
+place of `--opencode`. Use `--mcp-app /absolute/path/netbox-readwrite-mcp.pyz` to
+exercise a downloaded release instead of the source checkout. For example:
+
+```sh
+NETBOX_RW_AGENT_EVAL=1 .venv/bin/python scripts/agent_eval.py \
+  --client claude --client-bin /absolute/path/to/claude \
+  --litellm /path/to/isolated-venv/bin/litellm \
+  --key-file /private/path/deepinfra.key \
+  --mcp-app /absolute/path/netbox-readwrite-mcp.pyz \
+  --scenario inventory-core
+```
+
+`inventory-core` checks creation and a second pass with no additional writes;
+`community` checks the combined companion workflow. Both use the same independent
+REST assertions across clients. The `feedback` scenario currently requires OpenCode.
+
+Claude Code uses LiteLLM's Messages endpoint; Codex uses its Responses endpoint.
+The observation gateway counts incremental output for both protocols without
+retaining content in activity counters. Native clients load the test MCP only;
+Claude Code uses a private configuration directory, while Codex ignores user
+configuration and uses invocation-scoped settings, including explicit write approval
+for the disposable lab NetBox MCP. `approval_policy="never"` alone rejects MCP
+writes that would need approval; it does not preapprove them. Neither adapter changes normal
+client settings. Shell tools are disabled, and the task restricts work to NetBox
+MCP. These are client policies, not an OS isolation boundary. Native-client
+transcripts are also checked for host tool execution.
+
+Native clients do not expose OpenCode's tool-output truncation metadata, so the
+report records that measurement as unavailable rather than claiming zero.
+Their runs use the phase time limit, without OpenCode's 160-step cap.
 
 ## Findings and changes
 

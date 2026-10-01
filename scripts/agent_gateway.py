@@ -22,7 +22,7 @@ class Activity:
             ident = self.counts["requests"]
             self.active[ident] = {
                 "started": time.time(),
-                "messages": len(body.get("messages", [])),
+                "messages": len(body.get("messages", body.get("input", []))),
                 "tools": len(body.get("tools", [])),
                 "response_bytes": 0,
             }
@@ -42,6 +42,20 @@ class Activity:
                     event = json.loads(line[5:])
                 except (ValueError, UnicodeDecodeError):
                     continue
+                kind = event.get("type", "")
+                delta = event.get("delta")
+                if kind == "content_block_delta" and isinstance(delta, dict):
+                    for field, counter in (
+                        ("text", "content"),
+                        ("thinking", "reasoning"),
+                        ("partial_json", "tool_calls"),
+                    ):
+                        if delta.get(field):
+                            self.counts[counter + "_chunks"] += 1
+                            self.last_generation = now
+                if kind.startswith("response.") and kind.endswith(".delta") and delta:
+                    self.counts["response_delta_chunks"] += 1
+                    self.last_generation = now
                 for choice in event.get("choices", []):
                     delta = choice.get("delta") or {}
                     for key in ("content", "reasoning_content", "reasoning", "tool_calls"):
@@ -87,7 +101,12 @@ class Gateway:
                 pass
 
             def do_POST(self):
-                if self.path != "/v1/chat/completions":
+                if self.path.split("?")[0] not in {
+                    "/v1/chat/completions",
+                    "/v1/messages",
+                    "/v1/messages/count_tokens",
+                    "/v1/responses",
+                }:
                     self.send_error(404)
                     return
                 size = int(self.headers.get("Content-Length", "0"))
@@ -111,6 +130,8 @@ class Gateway:
                         headers={
                             "Content-Type": "application/json",
                             "Authorization": self.headers.get("Authorization", ""),
+                            "x-api-key": self.headers.get("x-api-key", ""),
+                            "anthropic-version": self.headers.get("anthropic-version", "2023-06-01"),
                         },
                     )
                     response = upstream.getresponse()

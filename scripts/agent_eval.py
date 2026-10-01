@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Opt-in real OpenCode -> LiteLLM -> DeepInfra -> MCP -> disposable NetBox evaluation.
+"""Opt-in real MCP client -> LiteLLM -> DeepInfra -> MCP -> disposable NetBox evaluation.
 
 Credentials stay in the proxy environment. The agent gets only MCP and synthetic data.
 Each phase uses a fresh agent session; an independent REST oracle grades real state.
@@ -23,8 +23,10 @@ import uuid
 
 if __package__:
     from .agent_gateway import Gateway
+    from .agent_clients import native_command, client_failed, used_host_tools
 else:
     from agent_gateway import Gateway
+    from agent_clients import native_command, client_failed, used_host_tools
 
 from netbox_readwrite_mcp.config import load_config
 from netbox_readwrite_mcp.server import build_service
@@ -148,7 +150,10 @@ def changed_existing(before, after):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--opencode", type=Path, required=True)
+    parser.add_argument("--client", choices=["opencode", "claude", "codex"], default="opencode")
+    parser.add_argument("--client-bin", type=Path)
+    parser.add_argument("--opencode", type=Path, help="Legacy alias for --client-bin with OpenCode")
+    parser.add_argument("--mcp-app", type=Path, help="Test a downloaded .pyz instead of the checkout")
     parser.add_argument("--litellm", type=Path, required=True)
     parser.add_argument("--key-file", type=Path, required=True)
     parser.add_argument("--model", default="zai-org/GLM-5.3-Flash")
@@ -157,12 +162,26 @@ def main():
     parser.add_argument("--idle-timeout", type=int, default=0)
     parser.add_argument(
         "--scenario",
-        choices=["inventory", "configuration", "dashboard", "bulk", "feedback", "community"],
+        choices=[
+            "inventory",
+            "inventory-core",
+            "configuration",
+            "dashboard",
+            "bulk",
+            "feedback",
+            "community",
+        ],
         default="inventory",
     )
     args = parser.parse_args()
     if os.environ.get("NETBOX_RW_AGENT_EVAL") != "1":
         parser.error("Set NETBOX_RW_AGENT_EVAL=1: incurs provider charges and writes disposable lab data")
+    client_bin = args.client_bin or args.opencode
+    if client_bin is None:
+        parser.error("--client-bin is required")
+    client_bin = client_bin.resolve()
+    if args.client != "opencode" and args.scenario == "feedback":
+        parser.error("The GitHub feedback scenario currently requires OpenCode")
     os.umask(0o077)
     stamp = uuid.uuid4().hex[:10]
     prefix = "agent-" + stamp
@@ -222,7 +241,7 @@ def main():
     report = {
         "harness_sha256": {
             str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
-            for p in (Path(__file__), ROOT / "scripts/agent_gateway.py")
+            for p in (Path(__file__), ROOT / "scripts/agent_gateway.py", ROOT / "scripts/agent_clients.py")
         },
         "instructions_sha256": hashlib.sha256(
             (ROOT / "src/netbox_readwrite_mcp/agent-guide.md").read_bytes()
@@ -239,11 +258,25 @@ def main():
         "run": stamp,
         "netbox": "4.7.2",
         "phases": [],
-        "opencode": subprocess.check_output([str(args.opencode.resolve()), "--version"], text=True).strip(),
+        "client": args.client,
+        "client_version": subprocess.check_output([str(client_bin), "--version"], text=True).strip(),
+        "mcp_application_sha256": hashlib.sha256(args.mcp_app.read_bytes()).hexdigest()
+        if args.mcp_app
+        else None,
     }
+    mcp_command = (
+        [sys.executable, str(args.mcp_app.resolve())]
+        if args.mcp_app
+        else [sys.executable, "-m", "netbox_readwrite_mcp"]
+    )
+    mcp_command += ["--config", str(run / "mcp.json")]
     gateway = None
     print("Run: " + str(run), flush=True)
-    report["limits"] = {"phase_seconds": args.timeout, "idle_seconds": args.idle_timeout, "agent_steps": 160}
+    report["limits"] = {
+        "phase_seconds": args.timeout,
+        "idle_seconds": args.idle_timeout,
+        "agent_steps": 160 if args.client == "opencode" else None,
+    }
     try:
         for _ in range(120):
             try:
@@ -285,13 +318,7 @@ def main():
             "mcp": {
                 "netbox": {
                     "type": "local",
-                    "command": [
-                        sys.executable,
-                        "-m",
-                        "netbox_readwrite_mcp",
-                        "--config",
-                        str(run / "mcp.json"),
-                    ],
+                    "command": mcp_command,
                     "enabled": True,
                     "timeout": 120000,
                 }
@@ -357,6 +384,18 @@ def main():
             }
         )
 
+        if args.client == "claude":
+            env.update(
+                {
+                    "CLAUDE_CONFIG_DIR": str(run / "claude-config"),
+                    "ANTHROPIC_BASE_URL": f"http://127.0.0.1:{gateway.port}",
+                    "ANTHROPIC_API_KEY": master,
+                    "ANTHROPIC_MODEL": "inventory-model",
+                    "ANTHROPIC_SMALL_FAST_MODEL": "inventory-model",
+                    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+                }
+            )
+
         def phase(name, prompt, oracle):
             (run / (name + "-prompt.txt")).write_text(prompt)
             before = len(tool_events(Path(cfg["journal"])))
@@ -367,9 +406,9 @@ def main():
                 (run / (name + "-events.jsonl")).open("w") as out,
                 (run / (name + "-stderr.log")).open("w") as err,
             ):
-                process = subprocess.Popen(
+                command = (
                     [
-                        str(args.opencode.resolve()),
+                        str(client_bin),
                         "run",
                         "--pure",
                         "--agent",
@@ -379,7 +418,14 @@ def main():
                         "--format",
                         "json",
                         prompt,
-                    ],
+                    ]
+                    if args.client == "opencode"
+                    else native_command(
+                        args.client, client_bin, mcp_command, run, gateway.port, prompt, args.timeout
+                    )
+                )
+                process = subprocess.Popen(
+                    command,
                     cwd=agent_dir,
                     env=env,
                     stdout=out,
@@ -439,7 +485,7 @@ def main():
                 for line in (run / (name + "-events.jsonl")).read_text().splitlines()
                 if line.startswith("{")
             ]
-            checks["no_client_error"] = not any(e.get("type") == "error" for e in transcript)
+            checks["no_client_error"] = not client_failed(transcript)
             if name == "greenfield":
                 checks["task_summary_read"] = any(
                     e["tool"] == "get_task" and not e.get("is_error") for e in events
@@ -449,11 +495,19 @@ def main():
                     and e.get("part", {}).get("state", {}).get("metadata", {}).get("truncated")
                     for e in transcript
                 )
+            if args.client != "opencode":
+                # These clients do not expose OpenCode's truncation metadata.
+                checks.pop("task_summary_not_truncated", None)
+                checks["no_host_tool_calls"] = not used_host_tools(transcript)
             usage = Counter()
             for event in transcript:
                 if event.get("type") == "step_finish":
                     tokens = event["part"].get("tokens", {})
                     usage.update({k: v for k, v in tokens.items() if isinstance(v, (int, float))})
+                elif event.get("type") in {"result", "turn.completed"}:
+                    usage.update(
+                        {k: v for k, v in event.get("usage", {}).items() if isinstance(v, (int, float))}
+                    )
             item = {
                 "name": name,
                 "interruption": interruption,
@@ -472,7 +526,9 @@ def main():
                 ),
                 "tool_errors": sum(e["is_error"] for e in events),
                 "tool_states": dict(Counter(e["state"] for e in events if e.get("state") is not None)),
-                "truncated_tool_outputs": sum(
+                "truncated_tool_outputs": None
+                if args.client != "opencode"
+                else sum(
                     bool(e.get("part", {}).get("state", {}).get("metadata", {}).get("truncated"))
                     for e in transcript
                 ),
@@ -948,6 +1004,10 @@ If you performed writes, inspect the compact get_task summary before reporting c
                 + "\nThis is a second inventory pass. The desired inventory may already exist; do not recreate or edit matching state.",
                 replay_oracle,
             )
+
+        if args.scenario == "inventory-core":
+            report["passed"] = len(report["phases"]) == 2 and all(p["passed"] for p in report["phases"])
+            return 0 if report["passed"] else 1
 
         def website_oracle(events):
             calls = Counter(e["tool"] for e in events)

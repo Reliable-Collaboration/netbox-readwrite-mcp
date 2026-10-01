@@ -5,6 +5,8 @@ import json
 import threading
 import urllib.request
 
+import pytest
+
 from scripts.agent_gateway import Activity, Gateway
 
 
@@ -23,9 +25,28 @@ def test_activity_distinguishes_keepalive_from_generation():
     assert not activity.snapshot()["active_requests"]
 
 
-def test_gateway_forwards_stream_incrementally_without_retaining_body():
+@pytest.mark.parametrize(
+    "endpoint,first,counter",
+    [
+        (
+            "/v1/chat/completions",
+            b'data: {"choices":[{"delta":{"content":"private payload"}}]}\n\n',
+            "content_chunks",
+        ),
+        (
+            "/v1/messages?beta=true",
+            b'data: {"type":"content_block_delta","delta":{"type":"thinking_delta","thinking":"private payload"}}\n\n',
+            "reasoning_chunks",
+        ),
+        (
+            "/v1/responses",
+            b'data: {"type":"response.output_text.delta","delta":"private payload"}\n\n',
+            "response_delta_chunks",
+        ),
+    ],
+)
+def test_gateway_forwards_stream_incrementally_without_retaining_body(endpoint, first, counter):
     first_read = threading.Event()
-    first = b'data: {"choices":[{"delta":{"content":"private payload"}}]}\n\n'
     last = b"data: [DONE]\n\n"
 
     class Upstream(BaseHTTPRequestHandler):
@@ -33,6 +54,8 @@ def test_gateway_forwards_stream_incrementally_without_retaining_body():
             pass
 
         def do_POST(self):
+            assert self.path == endpoint
+            assert self.headers["x-api-key"] == "test-anthropic-secret"
             assert self.headers["Authorization"] == "Bearer test-secret"
             self.rfile.read(int(self.headers["Content-Length"]))
             self.send_response(200)
@@ -50,14 +73,18 @@ def test_gateway_forwards_stream_incrementally_without_retaining_body():
     gateway = Gateway(server.server_port, timeout=5)
     try:
         req = urllib.request.Request(
-            f"http://127.0.0.1:{gateway.port}/v1/chat/completions",
+            f"http://127.0.0.1:{gateway.port}{endpoint}",
             data=json.dumps({"messages": [], "stream": True}).encode(),
-            headers={"Authorization": "Bearer test-secret", "Content-Type": "application/json"},
+            headers={
+                "Authorization": "Bearer test-secret",
+                "x-api-key": "test-anthropic-secret",
+                "Content-Type": "application/json",
+            },
         )
         with urllib.request.urlopen(req, timeout=5) as response:
             assert response.readline() == first.splitlines(keepends=True)[0]
             snapshot = gateway.activity.snapshot()
-            assert snapshot["content_chunks"] == 1
+            assert snapshot[counter] == 1
             assert snapshot["active_requests"]
             assert "private payload" not in json.dumps(snapshot)
             assert "test-secret" not in json.dumps(snapshot)

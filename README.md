@@ -260,6 +260,7 @@ experimental HTML adapter is unnecessary for mapped Community workflows.
 | --- | --- |
 | Client cannot start the MCP | Reprint `client-config`; ensure the application, Python and private config remain at the configured paths. |
 | A manually started stdio process waits silently | Connect it through the MCP client; it is waiting for protocol input. |
+| Codex refuses MCP writes because approval is required | Allow the intended NetBox tools in the client's MCP approval settings. Noninteractive `approval_policy="never"` does not grant write approval. |
 | HTTP 401/403 or missing objects | Check token validity, write enablement and model/object permissions. |
 | Companion missing | Verify the package/mount and effective configuration on both web and worker; restart or roll out both. |
 | Unknown filter or stale schema | Inspect live schema and companion metadata; follow the deployment's schema-cache refresh procedure after upgrades. |
