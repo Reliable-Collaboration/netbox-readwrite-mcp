@@ -358,6 +358,11 @@ class WorkspaceService(Service):
     def execute_action(self, task_id, operation_key, method, path, data=None, expected_etag=None, files=None):
         if method not in {"POST", "PUT", "PATCH", "DELETE"}:
             raise ValueError("Use query for GET; mutation methods are POST, PUT, PATCH, DELETE")
+        if data is not None and not isinstance(data, (dict, list)):
+            raise ValueError(
+                "data must be a JSON object or array, not a JSON-encoded string or scalar. "
+                "Pass structured data directly; this request was not sent to NetBox."
+            )
         return self._execute(task_id, operation_key, method, api_path(path), data, expected_etag, files)
 
     def bulk(self, task_id, operation_key, operations):

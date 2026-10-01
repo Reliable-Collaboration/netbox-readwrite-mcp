@@ -490,3 +490,15 @@ def test_bulk_invalid_later_action_is_rejected_before_any_mutation(broad):
         broad.bulk(broad.task, key(), operations)
     assert len(broad.api.devices) == before
     assert broad.store.db.execute("SELECT count(*) FROM resource_operations").fetchone()[0] == 0
+
+
+@pytest.mark.parametrize("data", ['{"parameters": {}}', 42, True])
+def test_action_rejects_encoded_or_scalar_json_before_dispatch(broad, monkeypatch, data):
+    def unexpected(*args, **kwargs):
+        pytest.fail("Invalid action data must not make any NetBox request")
+
+    monkeypatch.setattr(broad.api, "request", unexpected)
+    monkeypatch.setattr(broad.api, "get", unexpected)
+    with pytest.raises(ValueError, match="structured data directly; this request was not sent"):
+        broad.execute_action(broad.task, key(), "POST", "extras/action/", data)
+    assert broad.store.db.execute("SELECT count(*) FROM resource_operations").fetchone()[0] == 0

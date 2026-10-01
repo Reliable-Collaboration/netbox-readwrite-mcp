@@ -194,8 +194,14 @@ TOOLS += [
                 "type": "string",
                 "description": "Relative to /api/, e.g. ipam/prefixes/123/available-ips/. No leading /api/ or api/.",
             },
-            "data": {},
-            "expected_etag": STR,
+            "data": {
+                "anyOf": [{"type": "object"}, {"type": "array"}, {"type": "null"}],
+                "description": "Structured JSON request body. Pass an object or array directly, never a JSON-encoded string.",
+            },
+            "expected_etag": {
+                "type": "string",
+                "description": "Copy the fresh ETag header verbatim, including its surrounding quote characters.",
+            },
             "files": ARRAY,
         },
         ["task_id", "operation_key", "method", "path"],

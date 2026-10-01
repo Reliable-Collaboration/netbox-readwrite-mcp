@@ -11,7 +11,7 @@ RULES = [
     (
         "Stale",
         "STALE_STATE",
-        "Read the device again. Compare current values before making a new deliberate edit.",
+        "Read the target object again and preserve its exact ETag. Compare current values before making a new deliberate edit.",
     ),
     (
         "Idempotency",
