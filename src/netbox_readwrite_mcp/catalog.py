@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 def api_path(path):
     if (
         not isinstance(path, str)
-        or not re.fullmatch(r"[A-Za-z0-9_./-]+/", path)
+        or not re.fullmatch(r"[A-Za-z0-9_./@+-]+/", path)
         or ".." in path
         or path.startswith(("/", "api/"))
     ):

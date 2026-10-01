@@ -254,3 +254,18 @@ def test_bad_tool_arguments_do_not_claim_storage_outage(service):
     result = error_result(service, {"name": "read_device", "arguments": []}, ValueError("Invalid arguments"))
     assert "journal_available" not in result["structuredContent"]
     assert service.observability()["event_counts"]["tool_refused"] == 1
+
+
+def test_catalog_accepts_native_worker_names_without_accepting_external_paths():
+    from netbox_readwrite_mcp.catalog import api_path
+
+    path = "core/background-workers/worker@host+1/"
+    assert api_path(path) == path
+    for unsafe in [
+        "https://user@evil.invalid/",
+        "//user@evil.invalid/",
+        "../worker@host/",
+        "core/workers/x?y=1/",
+    ]:
+        with pytest.raises(ValueError):
+            api_path(unsafe)

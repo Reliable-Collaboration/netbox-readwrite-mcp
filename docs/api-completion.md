@@ -43,8 +43,18 @@ of the running pinned image established these examples:
 | Inventory CRUD and relationships | Native model REST endpoints | No HTML or new plugin required for the evaluated greenfield task |
 | Data-source synchronization | `POST /api/core/data-sources/{id}/sync/` | Existing custom action checks `core.sync_datasource`; do not duplicate it |
 | Current user's dashboard | `/api/extras/dashboard/`, a custom RetrieveUpdateDestroyAPIView | A model/ViewSet-only inventory falsely suggests an API gap |
+| Background queues, workers and task administration | Native `core/background-queues/`, `background-workers/`, and task `enqueue`, `requeue`, `stop`, `delete` actions | No duplicate plugin needed; worker-name lookup is live-tested, queue mutation lifecycles still need qualification |
+| Current user's preferences | Native `GET` / `PATCH users/config/` | Existing custom ViewSet; qualify merge semantics and authorization rather than adding an endpoint |
+| Synchronized contexts, context profiles and templates | Native per-object `sync/` from `SyncedDataMixin` | Existing API checks native `sync` permission; bulk composition and failure semantics still need qualification |
+| Notifications, subscriptions, bookmarks and account management | Native extras/users APIs | Routes exist; self-service versus administrative permissions still need action-level equivalence tests |
 | Configuration revisions | Companion `config-revisions/` and `configuration-schema/` | Native validation/activation, permission constraints, stale-write guards, restore and inactive deletion tested against real NetBox; no native ObjectChange history or automatic undo |
 | CSV import, bulk rename, rendering and other specialized views | Some have native actions or can be composed from CRUD | Audit their transaction, validation and result semantics before declaring equivalence |
+
+Worker names illustrate a transport gap rather than a missing NetBox API: native
+routes permit `@` and `+`, which the MCP path validator previously rejected.
+It now accepts those characters while retaining the relative-path boundary.
+A real synthetic RQ worker verifies lookup through MCP and the native denial
+for a non-superuser. This does not qualify all RQ task state transitions.
 
 ## What full coverage would require
 
