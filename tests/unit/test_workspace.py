@@ -580,6 +580,8 @@ def test_schema_resolves_parameterized_operation_families(broad, resource):
     result = broad.get_schema(resource, method="POST")
     assert set(result["paths"]) == {path}
     assert result["schemas"]["ImportWrite"]["required"] == ["data"]
+    assert "related_objects" in result["import_guidance"]
+    assert "CSV cannot encode nested templates" in result["import_guidance"]
 
 
 def test_own_password_intent_is_redacted_but_dispatch_and_replay_are_exact(broad, monkeypatch):

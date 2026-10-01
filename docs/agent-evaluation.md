@@ -514,3 +514,18 @@ API schema. It performs no extra network requests while generating suggestions,
 does not redirect missing-object or permission failures, and retains write
 recovery semantics. Unit tests and a real NetBox bookmark/missing-device check
 exercise those boundaries.
+
+Codex run `03b33417c8` satisfied the NetBox state assertions but **failed** the
+MCP-only requirement: it called an inherited Context7 App. Ignoring the user's
+configuration alone did not disable Codex Apps. The runner now explicitly disables
+Apps, plugins, hooks and host skill discovery for this disposable evaluation.
+A local startup probe captured nine tool definitions (23,102 serialized bytes),
+with no Apps, before any paid model request. Existing user settings are unchanged.
+
+The isolated retry `dad0ddead0` used no outside tools and completed the final
+inventory, but **failed** the required nested-import check. After a rejected CSV
+import, it created interface templates separately instead of using the supported
+nested JSON/YAML import. The compact `get_schema` response now carries import
+instructions directly: inspect the model-specific GET metadata, use its related
+keys, and serialize nested lists as JSON or YAML. The acceptance criterion remains
+unchanged; matching final inventory alone does not prove the requested operation.

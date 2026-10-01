@@ -48,7 +48,17 @@ class WorkspaceService(Service):
 
     def get_schema(self, object_type, full=False, action=None, method=None):
         self._broad()
-        return self.catalog.describe(object_type, full=full, action=action, method=method)
+        result = self.catalog.describe(object_type, full=full, action=action, method=method)
+        if result["resource"].startswith("plugins/agent-support/imports/"):
+            result["import_guidance"] = (
+                "Before importing, query the model-specific import URL with GET for native fields, "
+                "relationship lookups and related_objects. The POST schema describes only the envelope. "
+                "Nested templates require format=json or yaml with data containing a serialized document: "
+                "put child lists under the parent's related key, for example "
+                "interfaces:[{name: eth1, type: 1000base-t}]. CSV cannot encode nested templates. "
+                "NetBox supplies parent references; child models need not have their own import handler."
+            )
+        return result
 
     def get_objects(self, object_type, filters=None, fields=None, limit=100, offset=0):
         self._broad()

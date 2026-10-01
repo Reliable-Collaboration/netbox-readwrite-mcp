@@ -63,6 +63,10 @@ def native_command(client, binary, mcp_command, run, gateway_port, prompt, timeo
         "mcp_servers.netbox.required": True,
         # This runner authorizes writes only to the disposable lab MCP.
         "mcp_servers.netbox.default_tools_approval_mode": "approve",
+        "features.apps": False,
+        "features.plugins": False,
+        "features.hooks": False,
+        "features.skip_host_skill_discovery": True,
         "features.shell_tool": False,
         "features.multi_agent": False,
         "web_search": "disabled",

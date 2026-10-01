@@ -120,3 +120,21 @@ def test_error_budget_requires_consecutive_failures_and_can_be_disabled():
     assert not consecutive_error_limit_reached([failed, failed, ok, failed], 3)
     assert not consecutive_error_limit_reached([failed], 3)
     assert not consecutive_error_limit_reached([failed] * 20, 0)
+
+
+def test_codex_evaluation_explicitly_disables_apps_plugins_and_hooks(tmp_path):
+    import tomllib
+    from pathlib import Path
+    from scripts.agent_clients import native_command
+
+    command = native_command(
+        "codex", Path("/bin/codex"), ["python3", "server.pyz"], tmp_path, 14003, "Task", 60
+    )
+    settings = tomllib.loads("\n".join(command[i + 1] for i, value in enumerate(command) if value == "-c"))
+    assert settings["features"]["apps"] is False
+    assert settings["features"]["plugins"] is False
+    assert settings["features"]["hooks"] is False
+    assert settings["features"]["skip_host_skill_discovery"] is True
+    assert set(settings["mcp_servers"]) == {"netbox"}
+    assert "--ignore-user-config" in command and "--ephemeral" in command
+    assert not list(tmp_path.iterdir())
