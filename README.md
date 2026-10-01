@@ -4,12 +4,15 @@ An agent interface for discovering and maintaining a greenfield NetBox inventory
 with durable operation receipts and recovery evidence.
 
 **Compatibility: NetBox 4.7.2 only**, the latest stable 4.7 release checked on
-2026-09-30. Python 3.11+ on POSIX. No pre-known device IDs or application-level
+2026-10-01 against the [upstream release](https://github.com/netbox-community/netbox/releases/tag/v4.7.2). Python 3.11+ on POSIX. No pre-known device IDs or application-level
 model allowlist is required: NetBox permissions define the agent's scope.
 
 The server provides object discovery, filtered/paginated reads, live schemas,
 GraphQL, CRUD, bulk workflows, IPAM allocation, native API actions, file uploads,
-script/job tracking, and an experimental authenticated HTML-form fallback. Installed open-source plugin APIs can use the same discovery and action tools.
+script/job tracking, and typed companion APIs for stock Community website operations
+missing from REST. The mapped workflows need no HTML session. An optional HTML
+adapter remains experimental. Installed open-source plugin APIs can use the same
+discovery and action tools.
 Branching and commercial integrations are explicitly outside the product scope.
 See the [feature matrix](docs/feature-matrix.md) and [validation](docs/validation.md).
 
@@ -29,7 +32,9 @@ python -m pip install -e '.[test,dev]'
 ```
 
 Use a dedicated NetBox identity with the view/add/change/delete/run permissions
-needed for inventory work and full view access to native change history. Do not
+needed for inventory work and full view access to native change history. Add
+`render_config` for device/VM configuration rendering and `sync` for synchronized
+data actions when those capabilities are required. Do not
 default to a superuser. Set `CHANGELOG_RETENTION = 0` and disable independent
 purge jobs. Store its write-enabled API token in a protected file.
 

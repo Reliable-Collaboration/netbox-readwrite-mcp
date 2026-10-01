@@ -1,8 +1,11 @@
 # NetBox Agent API Support
 
 An Apache-2.0 companion plugin for **NetBox Community 4.7.2 only**. It exposes the
-running resource's native filter definitions as JSON, including custom-field
-filters omitted from OpenAPI, and provides APIs for native configuration revisions and personal dashboards.
+native filter definitions omitted from OpenAPI and typed APIs for Community
+operations missing from native REST: imports and bulk forms, component patterns,
+exports and file downloads, configuration revisions, dashboards, account actions,
+search, synchronized data, chassis swaps and guarded deletion. See the
+[operation map](../docs/api-completion.md) and [agent guide](../docs/agent-guide.md).
 It adds no database models. Configuration endpoints can change the running NetBox
 configuration; ordinary inventory work does not require them.
 
@@ -214,9 +217,9 @@ full feature qualification. These endpoints do not imply universal automatic
 undo or that every native form combination has been tested. On response loss,
 retain the operation key and reconcile native history before another mutation.
 
-Additional API families cover own profile/preferences/password/notifications,
+Additional API families cover own profile/preferences/password/notifications and external-account disconnection,
 permission-scoped native search and Markdown preview, system/database/queue
-metadata, authenticated image downloads, native table/CSV/YAML/template exports,
+metadata, authenticated image and data-file downloads, native table/CSV/YAML/template exports,
 atomic cable disconnection and data-file synchronization, atomic virtual-chassis
 position swaps, script form/source discovery, and guarded deletion of data files,
 job records and script modules. Discover `api/plugins/agent-support/` for paths

@@ -136,7 +136,7 @@ FAMILIES = {
         "native device/VM config_context and local_context_data; native context/profile CRUD",
         "test_inventory.py",
     ),
-    "render-config": ("native device/VM render-config actions", "test_inventory.py"),
+    "render-config": ("native device/VM render-config actions", "test_inventory.py;test_domains.py"),
     "scripts": (
         "native uploads, replacement, execution, scheduling and job results; companion variable schemas and class source",
         "test_scripts.py;test_inventory.py",
@@ -166,7 +166,10 @@ FAMILIES = {
     ),
     "graphql": ("native GraphQL through the graphql MCP tool", "test_inventory.py"),
     "sync": ("native single-object sync plus guarded atomic companion bulk-sync", "test_batch_actions.py"),
-    "disconnect": ("guarded atomic companion bulk-disconnect", "test_batch_actions.py"),
+    "disconnect": (
+        "guarded atomic companion bulk-disconnect",
+        "test_batch_actions.py;test_action_permissions.py",
+    ),
     "patterns": (
         "native range/component forms through pattern-create; items compose multiple parents atomically",
         "test_patterns.py;test_component_patterns.py",
@@ -178,9 +181,9 @@ FAMILIES = {
     "rename": ("native literal/regex rename with companion preview and stale guards", "test_rename.py"),
     "bulk-edit": (
         "native bulk forms and save hooks with companion preview and stale guards",
-        "test_bulk_edit.py",
+        "test_bulk_edit.py;test_domains.py;test_action_permissions.py",
     ),
-    "bulk-delete": ("native REST bulk DELETE; durable generic action receipts", "test_inventory.py"),
+    "bulk-delete": ("native REST bulk DELETE; durable generic action receipts", "test_domains.py"),
     "crud": ("native REST object creation, retrieval, update and deletion", "test_inventory.py"),
     "history": ("native core/object-changes and MCP retained correlated history", "test_inventory.py"),
     "journals": ("native extras/journal-entries filtered by assigned object", "test_domains.py"),

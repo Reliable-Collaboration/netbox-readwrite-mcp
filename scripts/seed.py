@@ -127,7 +127,7 @@ from core.models import ObjectType
 u,_ = get_user_model().objects.get_or_create(username='inventory-agent', defaults={'is_superuser':False})
 u.set_password(PASSWORD); u.save()
 Token.objects.get_or_create(plaintext=TOKEN, defaults={'token':TOKEN,'version':1,'user':u,'write_enabled':True})
-p,_ = ObjectPermission.objects.update_or_create(name='inventory-management', defaults={'actions':['view','add','change','delete','run','render','sync']})
+p,_ = ObjectPermission.objects.update_or_create(name='inventory-management', defaults={'actions':['view','add','change','delete','run','render','render_config','sync']})
 p.users.add(u)
 p.object_types.set(ObjectType.objects.exclude(app_label__in=['users','sessions','auth','contenttypes']).exclude(app_label='core', model='objectchange'))
 p,_ = ObjectPermission.objects.update_or_create(name='inventory-evidence', defaults={'actions':['view']})

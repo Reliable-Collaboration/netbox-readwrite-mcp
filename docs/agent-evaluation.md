@@ -349,3 +349,14 @@ search found no issue. Explicit host-side `--gh-config-dir` fixed the connection
 Both reports and exact source hashes are retained in the machine-readable results.
 The bridge publishes enum fields and minimal receipt metadata only. Reviewed
 free-text reproduction remains an operator/connector workflow.
+
+## Combined Community workflow
+
+Run `98fea39956` on `63f5ea6` completed in 582.97 seconds with all original
+final-state checks passing, no unrelated changes and no unresolved operations.
+It made 51 MCP calls, with one tool error and five definite rejected writes,
+and recovered to the requested inventory state. Review found that it created
+interface templates separately instead of using the requested nested import.
+This is retained as development evidence, not combined-scenario acceptance.
+The follow-up oracle explicitly checks correlated nested-import history, one
+multi-parent pattern request and use of native tracing.

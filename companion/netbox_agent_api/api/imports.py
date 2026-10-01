@@ -147,6 +147,7 @@ class ImportView(APIView):
                 "related_objects": {
                     name: field_schema(cls()) for name, cls in view.related_object_forms.items()
                 },
+                "nested_import": "For related_objects, use JSON or YAML: place each related key (for example interfaces) on the parent record with a list of child records. Parent references are supplied by NetBox. CSV cannot encode nested lists. Child models need not have a standalone import handler.",
                 "update": "Include id to update; omitted fields are preserved. Requires change permission. Imports have no conditional-write guard.",
                 "atomic": True,
             }

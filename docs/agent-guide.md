@@ -164,6 +164,10 @@ Large choice lists advertise a `field` query for fetching just that field.
   JSON/YAML documents are also accepted as strings. Include an `id` in a record
   to update it, preserving omitted fields. An import is atomic but has no stale
   write guard; prefer guarded object edits when concurrent updates matter.
+  Nested templates require JSON or YAML: put a list under the parent record's
+  `related_objects` key name, such as `interfaces:[{"name":"eth1","type":"1000base-t"}]`.
+  NetBox supplies each child's parent reference. CSV cannot carry these lists;
+  a child model need not have its own import handler.
 - Bulk rename accepts `ids`, `find`, `replace`, optional `use_regex` and `fields`.
   POST first with `apply:false` (default), inspect `changes`, and copy `expected`
   into the same request with `apply:true` and a new operation key. An old preview

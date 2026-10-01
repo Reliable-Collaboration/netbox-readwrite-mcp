@@ -80,7 +80,10 @@ class NetBox:
         return result
 
     def history(self):
-        path = "core/object-changes/?limit=1000&ordering=id"
+        # Archive immutable evidence only. Expanded changed_object/user references
+        # reflect live state and can fail while related objects are changed/deleted.
+        fields = "id,time,user_name,request_id,action,changed_object_type,changed_object_id,object_repr,message,prechange_data,postchange_data"
+        path = "core/object-changes/?limit=1000&ordering=id&fields=" + fields
         records = []
         visited = set()
         while path:

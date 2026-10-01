@@ -2432,5 +2432,144 @@
       "source_commit": "bbd6886be96b04d1de19f09e67e9a8c46cfc2626",
       "scope": "Structured issue feedback only. The first run failed because client XDG isolation hid gh configuration; the corrected run published, replayed, read a maintainer reply, reported its verification code and closed issue #3. This does not qualify arbitrary free-text publication or every NetBox workflow."
     }
+  ],
+  "community_runs": [
+    {
+      "harness_sha256": {
+        "scripts/agent_eval.py": "8ef2eaad84c1949e956fcfd8adc89ea0964fab1cfdc0c58e311d4cd63d6f38b5",
+        "scripts/agent_gateway.py": "6ac8ff3815aa67f30d8b8b1442eda878c9a5c015670e371e3f2353c59bf7768b"
+      },
+      "instructions_sha256": "a9f01f9c8e82dc791004169ba2ba8ffb7a408b75c5a6074add01f75e047c9fb5",
+      "source_sha256": {
+        "companion/netbox_agent_api/__init__.py": "9718c842c0af90108bfaf569496791b264c2cca5bb9349a9eafd31394c1b55e2",
+        "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "companion/netbox_agent_api/api/account.py": "51d86801d7aba8403c84f7d025eed1b9e8ba4b70f38b1e4b67ba463956f75f7f",
+        "companion/netbox_agent_api/api/administration.py": "7c2a60d87a06fc8172107087d2594ec307bc314a3b492ac503092fc9832a4883",
+        "companion/netbox_agent_api/api/batch_actions.py": "ba198506b46fbf48197cff52d65836c9f1d900a69d4716d841e3261451e95084",
+        "companion/netbox_agent_api/api/bulk_edit.py": "6f70d4f100e3667cfb71db2e1614e3aa5fa9539f1b4fd79200d4bb4e9684fb74",
+        "companion/netbox_agent_api/api/chassis.py": "2bd57ac01cf28905639894c6f48ff4af279f99884d7d7efc95f273bc1388a44d",
+        "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+        "companion/netbox_agent_api/api/connections.py": "d6351a2eb91e935deb3d3e5a2390de4a44aecabd65f407f2d21bf0642ddbd800",
+        "companion/netbox_agent_api/api/dashboard.py": "34ee81112d046d6b0d05181cc1070fb88157aa1214568ef09330886272983981",
+        "companion/netbox_agent_api/api/deletion.py": "ae142a6401bc4d1dcb1052ea20e1e70c4de21a7f70b14c4a9303f64cb167a7c8",
+        "companion/netbox_agent_api/api/exports.py": "a77d0a7eb062188632e36161adadc24a8870fbc041eac3a512b44e100723f1c8",
+        "companion/netbox_agent_api/api/imports.py": "9c49bfe9e068d753f586cea6039673ce06b005b6472d80ce62dbd358944ad281",
+        "companion/netbox_agent_api/api/media.py": "5c55fef7c83ab5b1720515cd44d32f655b462f1e8cb6b7c26e58254c2fdb1aac",
+        "companion/netbox_agent_api/api/patterns.py": "a58f092c50979b8d8e71b78ca9599f86cd14e1efc26db4cf4d448156f568034d",
+        "companion/netbox_agent_api/api/rename.py": "2ed08aa8af26d611155f2f658c9c7406cf5b794a245c85175f9fcf388f8415ba",
+        "companion/netbox_agent_api/api/scripts.py": "e0f7e63c85b41ad6ffc0cdbf3f29bb62125ae45de8486a888fc4643fe945a9c2",
+        "companion/netbox_agent_api/api/urls.py": "7e65fbcd94d9527baa8a427d977a4b0237e0de4d9809ff82ce359352b7d9788e",
+        "companion/netbox_agent_api/api/utilities.py": "08706c789327f81db634a22d662edfcc5e9bdbe9cec47a5364812b0a36b4d745",
+        "companion/netbox_agent_api/api/views.py": "0f147ff5a3fa032284ffc9c51a38f622f237192242e2393239e0ef226a990fb3",
+        "src/netbox_readwrite_mcp/__init__.py": "cad430435741be9f74ef01978773af3e8d97be9ee74aae954630a042153d4e4b",
+        "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+        "src/netbox_readwrite_mcp/api.py": "71de09e364692bde02d0bbb33092b6f12266928fd53f10f83c7ab3bdcfeaa38d",
+        "src/netbox_readwrite_mcp/catalog.py": "dd3fec35994414b4b28fa633024476a371c07a8debd12bc47259422d040f0851",
+        "src/netbox_readwrite_mcp/compatibility.py": "4c6f8b708fa8d0a7114e7c002682f06bd1c34878ae490aeb1c658bcad0bc6ef7",
+        "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+        "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+        "src/netbox_readwrite_mcp/feedback.py": "45a8d9a440b73df98d0127601550fd030420ff380f042baf30d0afa90d0d91f5",
+        "src/netbox_readwrite_mcp/http_server.py": "f9b1bc2fe6e17e6c42e1b1d0650caef41cc2d3225a000e97345eeecd91246904",
+        "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+        "src/netbox_readwrite_mcp/recovery.py": "a786c7077cb8344deb64ceff9e285e6cea2c236977a2275610c6557235520c0d",
+        "src/netbox_readwrite_mcp/server.py": "dc45ff6989cd45bfe2f7d34c1b6dbf1cc4bcbd80fb1fafcfa3f74a9a7f23188c",
+        "src/netbox_readwrite_mcp/service.py": "4620c2d0624c786cb2d87562221614cc0a1743908f5c8cfd25c161c89f1254ff",
+        "src/netbox_readwrite_mcp/store.py": "87776573cd99fb23282e2ba7ee4fc3b8259a0f80a2e9aa91c4780bad764956ab",
+        "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+        "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+        "src/netbox_readwrite_mcp/workspace.py": "347d3de7b94bd69b5fbd8d6bcb96c67079a2be050765d39ad3610dd482e00771"
+      },
+      "model": "zai-org/GLM-5.3-Flash",
+      "scenario": "community",
+      "run": "98fea39956",
+      "netbox": "4.7.2",
+      "phases": [
+        {
+          "name": "community",
+          "interruption": null,
+          "llm_activity_cumulative": {
+            "requests": 45,
+            "response_bytes": 453682,
+            "network_chunks": 1857,
+            "reasoning_content_chunks": 563,
+            "content_chunks": 398,
+            "tool_calls_chunks": 718,
+            "finished_choices": 45,
+            "finished_requests": 45,
+            "transport_errors": 0,
+            "active_requests": [],
+            "last_network_age_seconds": 6.1,
+            "last_generation_age_seconds": 6.1
+          },
+          "seconds": 582.97,
+          "checks": {
+            "two_owned_devices": true,
+            "native_template_interfaces": true,
+            "multi_parent_power_ports": true,
+            "chassis_positions_swapped": true,
+            "chassis_atomic_api_used": true,
+            "disconnect_api_used": true,
+            "cable_removed": true,
+            "vm_primary_mac": true,
+            "contact_assignment": true,
+            "physical_journal": true,
+            "own_bookmark": true,
+            "native_csv_export": true,
+            "search_api_used": true,
+            "task_summary_read": true,
+            "no_website_calls": true,
+            "no_unresolved_operations": true,
+            "preexisting_inventory_unchanged": true,
+            "client_exit_zero": true,
+            "used_mcp": true,
+            "no_client_error": true
+          },
+          "passed": true,
+          "tool_calls": {
+            "capabilities": 1,
+            "discover_models": 1,
+            "get_schema": 6,
+            "query": 7,
+            "begin_task": 1,
+            "run_workflow": 5,
+            "get_objects": 9,
+            "execute_action": 13,
+            "get_object_by_id": 2,
+            "update_object": 2,
+            "get_operation": 2,
+            "get_task": 2
+          },
+          "feedback_tool_calls": {},
+          "tool_errors": 1,
+          "tool_states": {
+            "200": 6,
+            "completed": 6,
+            "applied": 9,
+            "failed": 5,
+            "blocked": 1,
+            "partial_or_blocked": 2
+          },
+          "truncated_tool_outputs": 0,
+          "tokens": {
+            "total": 1842582,
+            "input": 272181,
+            "output": 5425,
+            "reasoning": 1200
+          }
+        }
+      ],
+      "opencode": "1.18.33",
+      "limits": {
+        "phase_seconds": 14400,
+        "idle_seconds": 0,
+        "agent_steps": 160
+      },
+      "passed": true,
+      "source_commit": "63f5ea674d898e24ec9a83aa39aac83a4f4e9eee",
+      "qualification_review": {
+        "accepted_for_combined_scenario": false,
+        "reason": "Final-state oracle passed, but transcript review found templates created separately rather than through the requested nested import. The next harness adds explicit nested-import, multi-parent-request and trace checks."
+      }
+    }
   ]
 }

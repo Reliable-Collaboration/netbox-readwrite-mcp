@@ -18,7 +18,7 @@ The table maps capabilities, not identical tool signatures.
 | Native dynamic filter definitions | Optional Apache-2.0 companion filter-schema API | Real custom-field changes, target permissions, discovery and cold OpenAPI generation; unknown filters rejected before inventory queries |
 | Configuration revisions | Companion configuration API through `query` / `execute_action` | Live lifecycle, native cache activation, permissions, concurrency, conditional deletion and response-loss tests; no native changelog/automatic undo; GLM create/reset/cleanup qualification; privileged restore tested deterministically |
 | Personal dashboards | Companion self/dashboard and dashboard-widgets APIs | All five native widgets, per-widget changes, first use/reset, exact preservation, user isolation, token permissions, concurrency, stale guards and response loss live-tested; no native history/automatic undo |
-| Personal preferences | Native users/config GET/PATCH | Live deep-merge and isolation checks; body preserved without MCP audit-marker pollution |
+| Personal preferences | Native users/config plus companion self/preferences | Native merge plus validated partial updates, table clearing, ETag guards and isolation |
 | GraphQL | graphql | Real query; no GraphQL mutation bypass |
 | Single CRUD | create_object, update_object, delete_object | Real lifecycle fixtures across inventory domains |
 | Native bulk requests | execute_action | Real list POST; records all correlated native rows |
@@ -28,12 +28,12 @@ The table maps capabilities, not identical tool signatures.
 | Cable tracing and rack elevations | query | Native REST paths |
 | Configuration rendering | execute_action | Native rendering endpoint |
 | Script upload/execution and jobs | execute_action, query, reconcile | Real multipart upload, worker execution, acceptance/completion distinction |
-| Open-source plugin/custom models | discovered resource/action paths and website forms | Native discovery; each installed open-source plugin needs its own qualification |
+| Open-source plugin/custom models | discovered resource/action paths | Native discovery; each installed open-source plugin needs its own qualification |
 | Branching and commercial products | Excluded | Explicitly outside product scope; no dependencies or dedicated endpoints |
 | Experimental HTML fallback | web_read, web_submit | Native session/CSRF forms; representative tests only, no JavaScript, conditional writes or automatic undo |
 | Read-only connections | read_only configuration | Enforced across mutation paths |
 | stdio and Streamable HTTP | CLI transports | Official SDK interoperability; HTTP bearer auth and origin checks |
-| Issue feedback | diagnostic_report, GitHub connector or scripts/issues.py | Inventory-free attachment and issue template |
+| Issue feedback | diagnostic_report, optional feedback MCP or scripts/issues.py | Inventory-free structured reports; GLM publish/replay/read-maintainer-reply proof |
 | Task progress and audit lookup | get_task, get_operation, observability | Compact paginated task receipts with whole-task state counts; full evidence retained for lookup and recovery |
 
 A transport capable of submitting an action does not prove every model, GUI view,

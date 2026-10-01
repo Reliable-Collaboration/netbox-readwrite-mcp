@@ -129,7 +129,8 @@
       "routes": 2,
       "implementation": "native device/VM render-config actions",
       "integration_files": [
-        "test_inventory.py"
+        "test_inventory.py",
+        "test_domains.py"
       ],
       "scope": "semantic mapping; see validation evidence for qualification"
     },
@@ -224,7 +225,8 @@
       "routes": 8,
       "implementation": "guarded atomic companion bulk-disconnect",
       "integration_files": [
-        "test_batch_actions.py"
+        "test_batch_actions.py",
+        "test_action_permissions.py"
       ],
       "scope": "semantic mapping; see validation evidence for qualification"
     },
@@ -258,7 +260,9 @@
       "routes": 128,
       "implementation": "native bulk forms and save hooks with companion preview and stale guards",
       "integration_files": [
-        "test_bulk_edit.py"
+        "test_bulk_edit.py",
+        "test_domains.py",
+        "test_action_permissions.py"
       ],
       "scope": "semantic mapping; see validation evidence for qualification"
     },
@@ -266,7 +270,7 @@
       "routes": 131,
       "implementation": "native REST bulk DELETE; durable generic action receipts",
       "integration_files": [
-        "test_inventory.py"
+        "test_domains.py"
       ],
       "scope": "semantic mapping; see validation evidence for qualification"
     },

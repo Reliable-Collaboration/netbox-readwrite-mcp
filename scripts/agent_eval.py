@@ -552,6 +552,25 @@ def main():
                         and device["serial"] == prefix + "-serial-" + str(i)
                         for i, device in enumerate(devices, 1)
                     ),
+                    "nested_template_import_used": any(
+                        op["path"] == "plugins/agent-support/imports/dcim.devicetype/"
+                        and op["state"] == "applied"
+                        and {row["changed_object_type"] for row in op["native_changes"]}
+                        >= {"dcim.devicetype", "dcim.interfacetemplate"}
+                        and sum(
+                            row["changed_object_type"] == "dcim.interfacetemplate"
+                            for row in op["native_changes"]
+                        )
+                        == 2
+                        for op in operations
+                    ),
+                    "multi_parent_single_request": any(
+                        op["path"] == "plugins/agent-support/pattern-create/dcim.powerport/"
+                        and op["state"] == "applied"
+                        and len(op["requested"].get("items", [])) == 2
+                        for op in operations
+                    ),
+                    "native_trace_used": "/trace/" in transcript,
                     "native_template_interfaces": all(
                         {row["name"] for row in rows} == {"eth1", "eth2"} for rows in interfaces
                     ),
