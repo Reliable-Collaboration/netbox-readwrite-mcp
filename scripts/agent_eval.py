@@ -503,11 +503,12 @@ def main():
                 "dashboard",
                 f"""Qualify your own dashboard through the companion API under plugins/agent-support/ using only MCP API tools.
 Read the dashboard and widget schemas and retain the exact original dashboard state, including whether it was initialized. Preserve every existing widget while doing this task.
-Make one deliberately invalid update attempting to add a NoteWidget with blank required content. Verify rejection without a dashboard change.
+Use per-widget PATCH operations so you do not need to recopy existing widgets.
+Make one deliberately invalid update attempting to add a NoteWidget with blank required content. Include its UUID in both layout and config. The intended rejection must specifically say content is required; correct unrelated shape errors and retry this check if necessary. Verify rejection without a dashboard change.
 Then add a blue NoteWidget titled {prefix} with content {prefix}, width 4 and height 3. Verify the saved widget.
-Make one deliberately stale PUT using the ETag you read BEFORE adding the note. Verify rejection without changes.
+Make one deliberately stale PATCH using the ETag you read BEFORE adding the note. Verify rejection without changes.
 Use a dashboard GET after each of the two intended rejections and compare it with the last known state.
-Finally remove your note and restore the exact original dashboard state. If it originally did not exist, reset it back to uninitialized. If it existed, preserve its original layout and config exactly. Use fresh ETags for intended writes.
+Finally remove your note and restore the exact original dashboard state. If it originally did not exist, reset it back to uninitialized. If it existed, remove only your widget with PATCH and preserve its original layout and config exactly. Use fresh ETags for intended writes.
 Inspect your task summary and report receipts accurately, distinguishing the two expected rejections from unresolved outcomes. Do not use website tools or modify inventory. Dashboards have no native ObjectChange history or automatic undo.""",
                 dashboard_oracle,
             )

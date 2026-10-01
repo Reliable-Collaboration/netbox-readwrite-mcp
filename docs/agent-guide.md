@@ -95,12 +95,14 @@ uncertain. Restoration has a separate native administrative permission.
 
 Use `plugins/agent-support/self/dashboard/` and
 `plugins/agent-support/dashboard-widgets/` for your own dashboard. GET has no initialization side effect; POST initializes native defaults,
-PUT replaces the complete `layout` and `config`, and DELETE resets to uninitialized.
+PATCH changes only specified widgets, PUT replaces the complete `layout` and
+`config`, and DELETE resets to uninitialized. Prefer PATCH for individual widget
+changes; other widgets are preserved on the server.
 Every write requires the fresh ETag via `expected_etag`. Preserve existing widget
 IDs and configuration when adding/removing another widget. The `initialized`
 response field is not a PUT input. Use `query` on `plugins/agent-support/dashboard-widgets/` to read the
 actual widget catalog, and `get_schema` with
-`object_type="plugins/agent-support/self/dashboard/", method="PUT"` for the shape.
+`object_type="plugins/agent-support/self/dashboard/", method="PATCH"` for the shape.
 Keep the full plugin prefix in every tool call.
 Begin a task with `begin_task` before writing; use its returned ID.
 For example, one note uses a UUID in both places:
@@ -109,7 +111,13 @@ For example, one note uses a UUID in both places:
 {"layout":[{"id":"11111111-1111-4111-8111-111111111111","w":4,"h":3,"x":0,"y":0}],"config":{"11111111-1111-4111-8111-111111111111":{"class":"extras.NoteWidget","title":"Notes","color":"blue","config":{"content":"Inventory notes"}}}}
 ```
 
-Append to the existing layout/config; do not replace other widgets with this example.
+Send that example via PATCH to add only this widget. Each specified layout or
+config entry is a complete replacement for that entry; omitted widgets remain
+unchanged. A new widget needs the same UUID in both layout and config. Update an
+existing widget's config or layout by sending just that entry. Remove a widget
+with `{"remove":["11111111-1111-4111-8111-111111111111"]}`. Empty patches, duplicate
+IDs, missing widgets to remove, and changing/removing the same ID are rejected.
+If using PUT instead, include every widget you intend to retain.
 Native widget forms validate the configuration.
 These operations have receipts but no native ObjectChange history or automatic undo.
 A receipt body is not a separate verification read. Report only reads you actually

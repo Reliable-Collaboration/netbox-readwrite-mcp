@@ -135,11 +135,18 @@ not by that LLM scenario. See [agent evaluation](../docs/agent-evaluation.md).
 
 `GET plugins/agent-support/self/dashboard/` returns only the current user's
 `initialized`, `layout` and `config`, plus an ETag. Reading an absent dashboard
-has no side effects. `POST` initializes native defaults if absent; `PUT` replaces
-the complete layout/config; `DELETE` resets to uninitialized. Every mutation
+has no side effects. `POST` initializes native defaults if absent; `PATCH` changes
+only specified widgets; `PUT` replaces the complete layout/config; `DELETE` resets
+to uninitialized. Every mutation
 requires the exact `If-Match` ETag from a fresh read and a write-enabled token.
 No administrative dashboard permission or browser visit is needed. No user ID
-input is accepted. Preserve existing widget IDs and configurations when editing.
+input is accepted. Prefer PATCH for one-widget edits: send only the entries to
+add/replace in `layout` and `config`, or `{"remove":["widget-uuid"]}`. New widgets
+need matching IDs in both layout and config. Specified entries are complete
+replacements for those entries; other entries and their order are retained.
+Empty patches, duplicate IDs, removing an unknown widget, and changing/removing
+the same widget together are rejected. PUT still replaces the whole graph and
+requires preserving every desired existing widget explicitly.
 
 `GET plugins/agent-support/dashboard-widgets/` describes the five built-in
 Community widget types, native defaults, fields and choices. New/changed widget
@@ -158,7 +165,8 @@ replay or automatic undo. No HTML is used.
 
 Live tests cover first use, reset, empty layouts, all five widgets with valid and
 invalid inputs, preservation of native defaults, user isolation, read-only tokens,
-concurrent initialization, stale guards, fresh OpenAPI, and response loss after
+concurrent initialization, stale guards, per-widget PATCH lifecycle and preservation,
+fresh OpenAPI, and response loss after
 commit. Native `users/config/` preference PATCH is also tested for deep-merge
 semantics and isolation. MCP sends preference bodies unchanged, without inserting
 an audit marker into the user's data; native preferences have no ETag or native

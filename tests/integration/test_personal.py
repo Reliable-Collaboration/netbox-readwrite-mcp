@@ -136,31 +136,33 @@ assert widgets[0].config['content'] == 'Test note'
     assert a.query(DASHBOARD)["body"] == initial["body"]
 
 
-def test_dashboard_rejects_invalid_fields_and_readonly_token(people):
+@pytest.mark.parametrize("method", ["PUT", "PATCH"])
+def test_dashboard_rejects_invalid_fields_and_readonly_token(people, method):
     from netbox_readwrite_mcp.api import NetBox
 
     a, readonly = people[0]
     before = a.query(DASHBOARD)
     headers = {"If-Match": before["headers"]["etag"]}
-    assert NetBox(URL, readonly).request("PUT", DASHBOARD, note(), headers)["status"] == 403
-    assert a.api.request("PUT", DASHBOARD, note())["status"] == 428
+    assert NetBox(URL, readonly).request(method, DASHBOARD, note(), headers)["status"] == 403
+    assert a.api.request(method, DASHBOARD, note())["status"] == 428
     bad = note()
     bad["layout"][0]["id"] = str(uuid.uuid4())
-    assert a.api.request("PUT", DASHBOARD, bad, headers)["status"] == 400
+    assert a.api.request(method, DASHBOARD, bad, headers)["status"] == 400
     for config in [{"content": ""}, {"content": "ok", "invented": 1}]:
         bad = note()
         next(iter(bad["config"].values()))["config"] = config
-        assert a.api.request("PUT", DASHBOARD, bad, headers)["status"] == 400
+        assert a.api.request(method, DASHBOARD, bad, headers)["status"] == 400
     bad = note()
     next(iter(bad["config"].values()))["class"] = "commercial.NotAllowed"
-    assert a.api.request("PUT", DASHBOARD, bad, headers)["status"] == 400
+    assert a.api.request(method, DASHBOARD, bad, headers)["status"] == 400
     bad = note()
     bad["user"] = 1
-    assert a.api.request("PUT", DASHBOARD, bad, headers)["status"] == 400
+    assert a.api.request(method, DASHBOARD, bad, headers)["status"] == 400
     assert a.query(DASHBOARD)["body"] == before["body"]
 
 
-def test_dashboard_concurrent_first_writes_and_empty_layout(people):
+@pytest.mark.parametrize("method", ["PUT", "PATCH"])
+def test_dashboard_concurrent_first_writes_and_empty_layout(people, method):
     from concurrent.futures import ThreadPoolExecutor
 
     a, _ = people[0]
@@ -168,7 +170,7 @@ def test_dashboard_concurrent_first_writes_and_empty_layout(people):
     headers = {"If-Match": before["headers"]["etag"]}
     with ThreadPoolExecutor(max_workers=2) as pool:
         responses = list(
-            pool.map(lambda text: a.api.request("PUT", DASHBOARD, note(text), headers), ["one", "two"])
+            pool.map(lambda text: a.api.request(method, DASHBOARD, note(text), headers), ["one", "two"])
         )
     assert sorted(r["status"] for r in responses) == [200, 412], responses
     current = a.query(DASHBOARD)
@@ -182,7 +184,7 @@ def test_dashboard_concurrent_first_writes_and_empty_layout(people):
 def test_dashboard_cold_schema_and_widget_catalog(people):
     a, _ = people[0]
     schema = a.api.get("schema/?format=json&dashboard=" + uuid.uuid4().hex)["body"]
-    assert set(schema["paths"]["/api/" + DASHBOARD]) >= {"get", "put", "post", "delete"}
+    assert set(schema["paths"]["/api/" + DASHBOARD]) >= {"get", "put", "patch", "post", "delete"}
     a.catalog.schema = schema
     compact = a.get_schema(DASHBOARD)
     write = compact["schemas"]["DashboardWriteRequest"]
@@ -190,6 +192,9 @@ def test_dashboard_cold_schema_and_widget_catalog(people):
     widget = compact["schemas"]["DashboardWidgetRequest"]
     assert "class" in widget["required"]
     assert "config" in widget["properties"]
+    patch = a.get_schema(DASHBOARD, method="PATCH")
+    patch_type = patch["paths"]["/api/" + DASHBOARD]["patch"]["request"]["$ref"].rsplit("/", 1)[1]
+    assert {"layout", "config", "remove"} <= set(patch["schemas"][patch_type]["properties"])
     widgets = a.query("plugins/agent-support/dashboard-widgets/")["body"]
     assert widgets["extras.NoteWidget"]["fields"]["content"]["required"]
 
@@ -232,7 +237,8 @@ assert widgets[0].name == {"extras." + widget!r}
     assert a.query(DASHBOARD)["body"] == saved["body"]
 
 
-def test_dashboard_response_loss_is_uncertain_without_blind_replay(people, monkeypatch):
+@pytest.mark.parametrize("verb", ["PUT", "PATCH"])
+def test_dashboard_response_loss_is_uncertain_without_blind_replay(people, monkeypatch, verb):
     a, _ = people[0]
     before = a.query(DASHBOARD)
     task = a.begin_task("Lost dashboard response")["task_id"]
@@ -240,18 +246,18 @@ def test_dashboard_response_loss_is_uncertain_without_blind_replay(people, monke
 
     def lose(method, path, *args, **kwargs):
         response = original(method, path, *args, **kwargs)
-        if method == "PUT" and path == DASHBOARD:
+        if method == verb and path == DASHBOARD:
             assert response["status"] == 200
             raise OSError("Lost response after commit")
         return response
 
     monkeypatch.setattr(a.api, "request", lose)
     body = note()
-    result = a.execute_action(task, "dashboard-loss", "PUT", DASHBOARD, body, before["headers"]["etag"])
+    result = a.execute_action(task, "dashboard-loss", verb, DASHBOARD, body, before["headers"]["etag"])
     assert result["state"] == "uncertain"
     assert a.query(DASHBOARD)["body"] == {"initialized": True, **body}
     assert (
-        a.execute_action(task, "dashboard-loss", "PUT", DASHBOARD, body, before["headers"]["etag"])["id"]
+        a.execute_action(task, "dashboard-loss", verb, DASHBOARD, body, before["headers"]["etag"])["id"]
         == result["id"]
     )
 
@@ -279,3 +285,62 @@ def test_dashboard_preserves_existing_native_defaults_when_adding_widget(people)
     )
     assert restored["status"] == 200
     assert restored["body"] == original["body"]
+
+
+def test_dashboard_widget_patch_preserves_every_other_widget(people):
+    from copy import deepcopy
+
+    a, _ = people[0]
+    initial = a.query(DASHBOARD)
+    original = a.api.request("POST", DASHBOARD, {}, {"If-Match": initial["headers"]["etag"]})
+    task = a.begin_task("One widget at a time")["task_id"]
+    # A native stored layout may omit optional coordinates. PATCH must not
+    # normalize an unrelated entry by adding serializer defaults to it.
+    shell(f"""
+from django.contrib.auth import get_user_model
+d = get_user_model().objects.get(username={a.actor!r}).dashboard
+d.layout[0].pop('x', None)
+d.save(update_fields=['layout'])
+""")
+    original = a.query(DASHBOARD)
+    addition = note()
+    pk = addition["layout"][0]["id"]
+    saved = a.execute_action(
+        task, "widget-addition", "PATCH", DASHBOARD, addition, original["headers"]["etag"]
+    )
+    assert saved["state"] == "completed"
+    current = a.query(DASHBOARD)
+    assert current["body"]["layout"] == original["body"]["layout"] + addition["layout"]
+    assert current["body"]["config"] == {**original["body"]["config"], **addition["config"]}
+    stale = a.execute_action(
+        task, "widget-stale-remove", "PATCH", DASHBOARD, {"remove": [pk]}, original["headers"]["etag"]
+    )
+    assert stale["last_receipt"]["status"] == 412
+    changed = deepcopy(addition["config"])
+    changed[pk]["config"]["content"] = "Changed only this widget"
+    for patch in [{"config": changed}, {"layout": [{"id": pk, "w": 6, "h": 4, "x": 0, "y": 0}]}]:
+        response = a.api.request("PATCH", DASHBOARD, patch, {"If-Match": current["headers"]["etag"]})
+        assert response["status"] == 200, response
+        current = a.query(DASHBOARD)
+        assert current["body"]["layout"][:-1] == original["body"]["layout"]
+        assert {k: v for k, v in current["body"]["config"].items() if k != pk} == original["body"]["config"]
+    assert current["body"]["config"][pk] == changed[pk]
+    assert current["body"]["layout"][-1]["w"] == 6
+    restored = a.execute_action(
+        task, "widget-remove-own", "PATCH", DASHBOARD, {"remove": [pk]}, current["headers"]["etag"]
+    )
+    assert restored["last_receipt"]["body"] == original["body"]
+    before = a.query(DASHBOARD)
+    unknown = str(uuid.uuid4())
+    existing = original["body"]["layout"][0]["id"]
+    for patch in [
+        {},
+        {"remove": [unknown]},
+        {"remove": [existing, existing]},
+        {"layout": addition["layout"] * 2, "config": addition["config"]},
+        {**addition, "remove": [pk]},
+        {"config": addition["config"]},
+    ]:
+        response = a.api.request("PATCH", DASHBOARD, patch, {"If-Match": before["headers"]["etag"]})
+        assert response["status"] == 400, response
+        assert a.query(DASHBOARD)["body"] == before["body"]

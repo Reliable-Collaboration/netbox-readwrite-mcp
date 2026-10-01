@@ -273,3 +273,19 @@ mutation schemas by default. Compact discovery now expands object mutations and
 POST bulk alternatives; `get_schema(method="PATCH")` expands the complete bulk
 update contract without unrelated methods and filters. The existing 30 KB client
 budget is retained and tested for both default and focused responses.
+
+The subsequent PUT run `261f4939fb` passed the state oracle in 905.17 seconds,
+including the intended native content error and a stale ETag, and reset the
+originally absent dashboard. It recovered an unknown-task error and an invalid
+UUID, and had no output truncations. Its final narrative overstated fresh reads
+after rejections; the trace, not that wording, is authoritative. This run preceded
+the method-focused schema size correction.
+
+Existing-dashboard run `8e995f1149` preserved and restored all nine native widgets
+in 583.06 seconds and verified its writes/rejections with reads. It nevertheless
+failed the stricter oracle: its negative request omitted the new layout entry,
+so validation stopped before testing required note content. This prompted a
+smaller API operation: PATCH adds/replaces only specified widget entries or
+removes IDs, preserving all other widgets on the server. The agent scenario now
+uses PATCH and explicitly requires the intended native content validation error.
+Neither failed run is counted as final qualification.

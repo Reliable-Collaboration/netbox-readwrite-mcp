@@ -98,6 +98,43 @@ class EmptyWrite(StrictSerializer):
     changelog_message = serializers.CharField(required=False, write_only=True)
 
 
+class DashboardPatch(StrictSerializer):
+    layout = LayoutItem(many=True, required=False, default=list)
+    config = serializers.DictField(child=DashboardWidget(), required=False, default=dict)
+    remove = serializers.ListField(child=serializers.UUIDField(), required=False, default=list)
+    changelog_message = serializers.CharField(required=False, write_only=True)
+
+    def validate(self, data):
+        ids = [str(item["id"]) for item in data["layout"]]
+        removed = [str(pk) for pk in data["remove"]]
+        changed = set(ids) | set(data["config"])
+        if not changed and not removed:
+            raise ValidationError("Supply layout/config entries to change, or widget IDs to remove.")
+        if len(ids) != len(set(ids)) or len(removed) != len(set(removed)):
+            raise ValidationError("Duplicate widget IDs are not allowed.")
+        if changed & set(removed):
+            raise ValidationError("A widget cannot be changed and removed in the same request.")
+        existing = self.context["existing"]
+        if set(removed) - set(existing):
+            raise ValidationError("Cannot remove a widget that does not exist.")
+        updates = {str(item["id"]): item for item in data["layout"]}
+        layout = [
+            updates.pop(item["id"], item) for item in self.context["layout"] if item["id"] not in removed
+        ]
+        layout.extend(updates.values())
+        config = {pk: widget for pk, widget in existing.items() if pk not in removed}
+        config.update(data["config"])
+        # Validate the composed graph with the same native forms as full PUT.
+        # Only requested entries change; callers need not recopy other widgets.
+        complete = DashboardWrite(data={"layout": layout, "config": config}, context=self.context)
+        complete.is_valid(raise_exception=True)
+        validated = complete.validated_data
+        # Optional layout defaults must not rewrite entries the caller omitted.
+        unchanged = {item["id"]: item for item in self.context["layout"] if item["id"] not in ids}
+        validated["layout"] = [unchanged.get(item["id"], item) for item in validated["layout"]]
+        return validated
+
+
 def state(dashboard):
     return {
         "initialized": dashboard is not None,
@@ -124,7 +161,8 @@ class DashboardView(APIView):
         return Response(value, headers={"ETag": etag(value)})
 
     def write(self, request):
-        body = DashboardWrite(data=request.data) if request.method == "PUT" else EmptyWrite(data=request.data)
+        serializer = {"PUT": DashboardWrite, "PATCH": DashboardPatch}.get(request.method, EmptyWrite)
+        body = serializer(data=request.data)
         with transaction.atomic():
             # Lock the user too: there may not be a dashboard row yet. Existing
             # dashboards are locked against ordinary native UPDATE/DELETE writes.
@@ -138,6 +176,7 @@ class DashboardView(APIView):
             if request.headers["If-Match"] != etag(current):
                 return Response({"detail": "Dashboard changed; read it again."}, status=412)
             body.context["existing"] = current["config"]
+            body.context["layout"] = current["layout"]
             body.is_valid(raise_exception=True)
             if request.method == "DELETE":
                 if dashboard:
@@ -167,6 +206,11 @@ class DashboardView(APIView):
     @extend_schema(request=DashboardWrite, parameters=GUARD, responses={200: OpenApiTypes.OBJECT})
     def put(self, request):
         """Replace layout and widget configuration after native form validation."""
+        return self.write(request)
+
+    @extend_schema(request=DashboardPatch, parameters=GUARD, responses={200: OpenApiTypes.OBJECT})
+    def patch(self, request):
+        """Add/replace specified layout/config entries or remove widget IDs, preserving all others."""
         return self.write(request)
 
     @extend_schema(request=EmptyWrite, parameters=GUARD, responses={204: None})
