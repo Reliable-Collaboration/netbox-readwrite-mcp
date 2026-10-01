@@ -175,6 +175,16 @@ for name, value in parameters.items():
         )["status"]
         == 412
     )
+    empty = admin.request(
+        "POST",
+        PATH,
+        {
+            "expected_active_revision": replacement["id"],
+            "parameters": {"BANNER_TOP": "", "ALLOWED_URL_SCHEMES": [], "PREFER_IPV4": False},
+        },
+    )
+    assert empty["status"] == 201
+    assert empty["body"]["data"] == {"PREFER_IPV4": False}
 
 
 def test_configuration_concurrent_writers_have_one_winner(admin):
@@ -188,6 +198,32 @@ def test_configuration_concurrent_writers_have_one_winner(admin):
         admin.request("DELETE", PATH + f"{winner['id']}/", {"expected_active_revision": expected})["status"]
         == 409
     )
+
+
+def test_configuration_preserves_excluded_and_static_overrides(admin):
+    shell("""
+from core.models import ConfigRevision
+ConfigRevision.objects.create(comment='Native existing settings',
+    data={'COPILOT_ENABLED': False, 'CHANGELOG_RETENTION': 17, 'BANNER_TOP': 'existing'})
+""")
+    original = admin.get(PATH)["body"]["active_revision"]
+    created = create(admin, "updated")["body"]
+    assert created["data"] == {
+        "COPILOT_ENABLED": False,
+        "CHANGELOG_RETENTION": 17,
+        "BANNER_TOP": "updated",
+    }
+    # Simulate an old saved revision containing a commercial flag without ever
+    # activating that flag. The OSS extension must not activate it indirectly.
+    shell(f"""
+from core.models import ConfigRevision
+ConfigRevision.objects.filter(pk={original}).update(data={{'COPILOT_ENABLED': True}})
+""")
+    result = admin.request(
+        "POST", PATH + f"{original}/activate/", {"expected_active_revision": created["id"]}
+    )
+    assert result["status"] == 409
+    assert admin.get(PATH)["body"]["active_revision"] == created["id"]
 
 
 def test_configuration_restricted_identity_and_readonly_token(admin):

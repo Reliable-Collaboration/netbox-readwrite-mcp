@@ -11,7 +11,10 @@ configuration; ordinary inventory work does not require them.
 Build the separate distribution with `python -m build companion`, then install
 the wheel into NetBox's Python environment (or include it in your NetBox image).
 Add `netbox_agent_api` to your existing `PLUGINS` list and restart NetBox using
-your normal plugin installation process. For a deployment with no other plugins:
+your normal plugin installation process. Invalidate cached OpenAPI responses on
+upgrade so clients discover new endpoints immediately (native schema URLs can be
+cached for a day); use your deployment cache maintenance procedure, not the job
+queue. For a deployment with no other plugins:
 
 ```python
 PLUGINS = ["netbox_agent_api"]
@@ -83,9 +86,14 @@ Creation example (discover the current revision first):
 `null` means no active revision exists. Otherwise supply its integer ID. Every
 mutation requires `expected_active_revision`; a stale value returns 409 without
 writing. `parameters` is a **complete replacement of dynamic overrides**, not a
-patch. Preserve desired existing overrides explicitly. Omitted settings fall back
-to native defaults; static deployment settings remain authoritative. JSON arrays,
-booleans and integers must have their actual JSON types. Unknown, static and
+patch. Preserve desired existing writable overrides explicitly. Omitted writable
+settings fall back to native defaults. Existing static and excluded commercial
+overrides are retained unchanged; omit them from `parameters`. Static deployment
+settings remain authoritative. Restoration refuses revisions that would change
+the excluded commercial setting. JSON arrays,
+booleans and integers must have their actual JSON types. Native form rendering
+omits empty strings, nulls and empty arrays (resetting those overrides); false
+booleans and empty JSON objects remain explicit values. Unknown, static and
 commercial Copilot settings are rejected. The server uses native field validators;
 it does not claim additional semantic validation beyond NetBox's own fields.
 

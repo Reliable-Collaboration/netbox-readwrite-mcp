@@ -137,7 +137,18 @@ def validated_parameters(parameters):
             errors[name] = exc.messages
     if errors:
         raise ValidationError({"parameters": errors})
-    return cleaned
+    form.cleaned_data = cleaned
+    return form.render_json()
+
+
+def protected_overrides():
+    """Retain existing settings this extension is not allowed to change."""
+    current = ConfigRevision.objects.filter(active=True).first()
+    form = ConfigRevisionForm()
+    protected = {name for name, field in form.fields.items() if field.disabled} | {"COPILOT_ENABLED"}
+    return (
+        {name: value for name, value in (current.data or {}).items() if name in protected} if current else {}
+    )
 
 
 class ConfigurationSchemaView(APIView):
@@ -189,7 +200,10 @@ class RevisionCollectionView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         with guarded_write(data["expected_active_revision"]) as alias:
-            revision = ConfigRevision(comment=data["comment"], data=validated_parameters(data["parameters"]))
+            revision = ConfigRevision(
+                comment=data["comment"],
+                data={**protected_overrides(), **validated_parameters(data["parameters"])},
+            )
             revision.full_clean()
             # Native save's signal activates BEFORE object-permission validation.
             # Insert without signals, validate the persisted object's constraints,
@@ -247,6 +261,10 @@ class RevisionActivateView(APIView):
         serializer.is_valid(raise_exception=True)
         with guarded_write(serializer.validated_data["expected_active_revision"]):
             revision = get_object_or_404(visible(request), pk=pk)
+            if (revision.data or {}).get("COPILOT_ENABLED", False) != protected_overrides().get(
+                "COPILOT_ENABLED", False
+            ):
+                raise Conflict("This revision would change an excluded commercial setting.")
             revision.activate()
             revision.active = True
         return Response(RevisionResult(revision).data)
