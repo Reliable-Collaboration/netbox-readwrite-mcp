@@ -34,7 +34,7 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
     def log_message(self, *args):
         pass
-HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
+HTTPServer(("0.0.0.0", 8089), Handler).serve_forever()
 """
     subprocess.run(
         [
@@ -44,8 +44,11 @@ HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
             "--rm",
             "--name",
             receiver,
+            # Joining the existing worker namespace avoids registering/removing
+            # a DNS entry: some Podman versions briefly disrupt project DNS
+            # when an ephemeral container leaves the bridge during teardown.
             "--network",
-            PREFIX,
+            "container:" + PREFIX + "-worker",
             "--entrypoint",
             "/opt/netbox/venv/bin/python",
             image,
@@ -62,7 +65,7 @@ HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
         webhook = create(
             service,
             "extras/webhooks/",
-            {"name": prefix, "payload_url": f"http://{receiver}:8080/", "secret": secret},
+            {"name": prefix, "payload_url": f"http://{PREFIX}-worker:8089/", "secret": secret},
         )
         rule = create(
             service,
