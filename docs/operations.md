@@ -1,7 +1,9 @@
 # Operations
 
-Use NetBox 4.7.2 only. The version is exact, not an automatically expanding minor
-release range. Upgrade the runtime policy, pinned image and tests together.
+The runtime accepts stable NetBox 4.7.x and later. NetBox 4.7.2 is the tested
+release; later versions are accepted without claiming equivalent qualification.
+Check discovery, affected workflows and recovery behavior against a test instance
+before upgrading an existing deployment. The CI lab remains pinned to 4.7.2.
 
 ## Identities and credentials
 

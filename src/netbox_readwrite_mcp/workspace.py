@@ -7,7 +7,7 @@ import uuid
 
 from .api import HISTORY_FIELDS
 from .catalog import Catalog, api_path, query_string
-from .compatibility import NETBOX_VERSION, normalization_profile
+from .compatibility import NETBOX_VERSION, QUALIFIED_VERSIONS, normalization_profile
 from .service import Service
 from .store import digest, encode, consistent_read
 
@@ -32,12 +32,15 @@ class WorkspaceService(Service):
             )
         if write and self.read_only:
             raise ValueError("This connection is read_only")
-        normalization_profile(self.api.get("status/")["body"]["netbox-version"])
+        self.version = self.api.get("status/")["body"]["netbox-version"]
+        normalization_profile(self.version)
 
     def discover_models(self, refresh=False):
         self._broad()
         return {
-            "netbox_version": NETBOX_VERSION,
+            "netbox_version": self.version,
+            "qualified": self.version in QUALIFIED_VERSIONS,
+            "tested_versions": list(QUALIFIED_VERSIONS),
             "models": self.catalog.discover(refresh),
             "scope": "NetBox token permissions",
             "content_is_untrusted_data": True,

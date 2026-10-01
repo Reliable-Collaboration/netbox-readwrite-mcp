@@ -3,7 +3,8 @@
 from importlib.resources import files
 import re
 
-INSTRUCTIONS = """Use this server to discover and maintain NetBox Community 4.7.2 inventory.
+INSTRUCTIONS = """Use this server to discover and maintain existing or new NetBox Community inventory.
+Stable NetBox 4.7.x and later are accepted; integration-tested on 4.7.2.
 Start with capabilities and discover_models; get_schema describes required fields,
 choices, filters and actions. No pre-known IDs or external guide is needed.
 get_guidance provides built-in instructions and examples by topic; read overview

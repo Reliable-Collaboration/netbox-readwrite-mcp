@@ -25,11 +25,8 @@ def test_stable_version_write_and_exact_undo(service, edit, version):
 @pytest.mark.parametrize(
     "version",
     [
-        "4.7.0",
-        "4.7.1",
-        "4.7.3",
-        "4.8.0",
-        "5.0.0",
+        "4.5.9",
+        "3.7.2",
         "4.7",
         "4.7.01",
         "4.7.-1",
@@ -48,7 +45,7 @@ def test_stable_version_write_and_exact_undo(service, edit, version):
 )
 def test_unsupported_version_refused_before_dispatch(service, edit, version):
     service.api.version = version
-    with pytest.raises(RuntimeError, match="Unsupported NetBox version.*exactly 4.7.2"):
+    with pytest.raises(RuntimeError, match="Unsupported NetBox version.*stable release >=4.7.0"):
         edit()
     assert service.api.patches == 0
     assert service.store.db.execute("SELECT count(*) FROM operations").fetchone()[0] == 0
@@ -56,6 +53,15 @@ def test_unsupported_version_refused_before_dispatch(service, edit, version):
 
 def test_capabilities_distinguish_acceptance_from_qualification():
     policy = capabilities()["netbox_versions"]
-    assert policy["accepted"] == "4.7.2"
+    assert policy["accepted"] == ">=4.7.0 (stable releases)"
     assert policy["qualified"] == list(QUALIFIED_VERSIONS)
     assert "4.7.100" not in policy["qualified"]
+
+
+@pytest.mark.parametrize("version", ["4.7.0", "4.7.1", "4.7.3", "4.8.0", "5.0.0"])
+def test_newer_stable_versions_accepted_without_claiming_qualification(service, edit, version):
+    service.api.version = version
+    op = edit({"description": "compatible edit"})
+    assert op["state"] == "applied"
+    assert version not in QUALIFIED_VERSIONS
+    assert normalization_profile(version) == "netbox-4.7-device-v1"

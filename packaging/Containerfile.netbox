@@ -1,5 +1,0 @@
-FROM docker.io/netboxcommunity/netbox@sha256:06e6389565bce8e65ce68aed7d5e7871606ebd79b35da9af9a08f989761aa18a
-COPY companion/dist/netbox_agent_api-0.4.0-py3-none-any.whl /tmp/agent-api/
-RUN /usr/local/bin/uv pip install --python /opt/netbox/venv/bin/python --no-deps /tmp/agent-api/*.whl && rm -rf /tmp/agent-api
-ENV NETBOX_CONFIGURATION=netbox_agent_api_configuration
-LABEL org.opencontainers.image.source="https://github.com/Reliable-Collaboration/netbox-readwrite-mcp"

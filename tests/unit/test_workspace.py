@@ -609,3 +609,11 @@ def test_own_password_intent_is_redacted_but_dispatch_and_replay_are_exact(broad
         broad.execute_action(broad.task, operation_key, "POST", path, {**body, "new_password1": "different"})
     for row in broad.store.db.execute("SELECT payload FROM events"):
         assert "old-private-value" not in row[0] and "new-private-value" not in row[0]
+
+
+def test_discovery_reports_actual_untested_version(broad):
+    broad.api.version = "4.8.0"
+    result = broad.discover_models()
+    assert result["netbox_version"] == "4.8.0"
+    assert result["qualified"] is False
+    assert result["tested_versions"] == ["4.7.2"]

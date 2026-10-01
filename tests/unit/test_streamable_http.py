@@ -46,7 +46,7 @@ def test_official_sdk_http_initialization_discovery_and_local_tools(http_mcp):
                     tools = await session.list_tools()
                     assert "create_object" in [x.name for x in tools.tools]
                     cap = await session.call_tool("capabilities", {})
-                    assert cap.structuredContent["netbox_versions"]["accepted"] == "4.7.2"
+                    assert cap.structuredContent["netbox_versions"]["accepted"] == ">=4.7.0 (stable releases)"
                     task = await session.call_tool("begin_task", {"purpose": "HTTP SDK test"})
                     assert task.structuredContent["task_id"]
                     refused = await session.call_tool("begin_task", {})

@@ -8,6 +8,8 @@ import subprocess
 import tempfile
 import tomllib
 import zipapp
+import zipfile
+import tarfile
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -40,11 +42,19 @@ def main():
             compressed=True,
         )
     shutil.copyfile(ROOT / "packaging/compose.agent-api.yaml", output / "compose.agent-api.yaml")
+    with tempfile.TemporaryDirectory() as stage:
+        bundle = Path(stage) / "netbox-agent-api"
+        with zipfile.ZipFile(output / f"netbox_agent_api-{version}-py3-none-any.whl") as wheel:
+            wheel.extractall(bundle / "plugin")
+        shutil.copyfile(ROOT / "packaging/compose.agent-api.yaml", bundle / "compose.agent-api.yaml")
+        with tarfile.open(output / "netbox-agent-api-container.tar.gz", "w:gz") as archive:
+            archive.add(bundle, arcname="netbox-agent-api")
     manifest = {
         "version": version,
         "netbox_version": "4.7.2",
         "source_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
-        "image": "ghcr.io/reliable-collaboration/netbox-agent-api:" + version + "-netbox4.7.2",
+        "netbox_accepted": ">=4.7.0",
+        "container_bundle": "Plugin only; retains the operator-selected upstream NetBox image",
     }
     (output / "release.json").write_text(json.dumps(manifest, indent=2) + "\n")
     assets = sorted(p for p in output.iterdir() if p.name != "SHA256SUMS")

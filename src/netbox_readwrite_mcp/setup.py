@@ -63,7 +63,7 @@ def configure(path, url, actor, token, read_only=False):
 
 def doctor(path):
     from .api import NetBox
-    from .compatibility import normalization_profile
+    from .compatibility import QUALIFIED_VERSIONS, normalization_profile
 
     cfg = load_config(path)
     api = NetBox(cfg["netbox_url"], Path(cfg["token_file"]).read_text())
@@ -73,6 +73,8 @@ def doctor(path):
     api.get("core/object-changes/?limit=1&fields=id")
     return {
         "netbox_version": version,
+        "qualified": version in QUALIFIED_VERSIONS,
+        "tested_versions": list(QUALIFIED_VERSIONS),
         "companion": "available",
         "history": "readable",
         "read_only": cfg.get("read_only", False),

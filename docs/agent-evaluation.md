@@ -388,3 +388,23 @@ confirmed the successful trace request, not just a textual mention of tracing.
 The final answer contained a confused site device-count aside; independent state
 checks establish the actual two-device/one-VM relationships. This remains a
 targeted acceptance proof rather than a statistical reliability guarantee.
+
+## MCP-delivered guidance (0.4.0 release work)
+
+Run `d08a04442d` on `6525bc6` passed all 23 strict Community checks in
+**426.14 seconds**, with no guide injected into the OpenCode agent prompt. The
+client received only the task and execution constraints; the MCP supplied usage
+instructions through initialization and tools. GLM called `capabilities`,
+`discover_models` and `get_guidance` itself. There were 54 MCP calls, three tool
+errors, zero output truncations and no unresolved operations. The independent
+oracle verified the requested relationships and unchanged pre-existing inventory
+in its 15 core collections, plus scenario-specific assertions.
+
+The journal retained 21 applied operations, three completed exchanges and six
+definite failed requests, all corrected or superseded without human assistance.
+Its final narration incorrectly called the first import rejection 422 in one
+place; the receipt and its final accounting identify the 400 rejections. This
+qualifies the autonomous workflow and built-in guidance, not flawless narration.
+[Exact source/harness hashes and results](release-agent-evaluation.json) preserve
+that revision. Subsequent compatibility-policy changes accept later stable NetBox
+versions but do not extend this 4.7.2 qualification to those versions.

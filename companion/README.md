@@ -1,6 +1,6 @@
 # NetBox Agent API Support
 
-An Apache-2.0 companion plugin for **NetBox Community 4.7.2 only**. It exposes the
+An Apache-2.0 companion plugin for **NetBox Community 4.7.x and later**, tested on 4.7.2. It exposes the
 native filter definitions omitted from OpenAPI and typed APIs for Community
 operations missing from native REST: imports and bulk forms, component patterns,
 exports and file downloads, configuration revisions, dashboards, account actions,
@@ -11,8 +11,9 @@ configuration; ordinary inventory work does not require them.
 
 ## Install
 
-Use the [two-command release installation](../README.md#install-and-enable-the-companion).
-The prebuilt container image includes and enables the companion on web and worker.
+Use the [release installation](../README.md#2-add-the-companion-to-your-existing-netbox).
+The container bundle mounts the plugin into your existing upstream image and
+enables it on web and worker. It contains no NetBox distribution.
 Traditional installs use the downloadable wheel followed by
 `netbox-agent-api-enable --config PATH`, then a deployment-managed restart.
 The enable command appends to the selected configuration file without executing
@@ -20,14 +21,29 @@ it, preserves existing plugins, and keeps a `.before-agent-api` backup. Select t
 file that defines the effective `PLUGINS` setting (often `plugins.py` in container
 configurations, or `configuration.py` in traditional installs).
 
-For custom images, install the wheel during your normal image build and enable it
-in your existing `PLUGINS` list, or set
-`NETBOX_CONFIGURATION=netbox_agent_api_configuration`. That packaged overlay
-loads `netbox.configuration` by default, retains its settings and plugins, and
-adds `netbox_agent_api`. For another base module set
-`NETBOX_AGENT_BASE_CONFIGURATION` explicitly. The prebuilt image uses this overlay;
-it retains the base configuration's LDAP directory. Do not point the base setting
-back at the overlay itself.
+For Docker/Podman Compose, the release bundle extracts to `netbox-agent-api/`.
+Its override mounts `netbox-agent-api/plugin` read-only into both services;
+there is no image replacement, pip-at-startup step or local build. The files are
+extracted from the same CI-built wheel as traditional installations. Keep the
+bundle directory present for the lifetime of the deployment. New releases need
+an updated bundle and a web/worker rollout; retain the previous bundle for rollback.
+
+For Kubernetes, Helm, standalone Podman/Docker or another manager, use the same
+plugin directory as a read-only volume in each web/worker workload. Add its mount
+path to `PYTHONPATH` while preserving existing entries, and set
+`NETBOX_CONFIGURATION=netbox_agent_api_configuration`. Existing deployment
+controllers still own restarts, replicas, secrets and volumes. If your chart
+already supports plugin wheels, use that mechanism instead; no chart replacement
+is needed. On a custom image you may also install the wheel during your existing
+build process rather than mount the bundle.
+
+The configuration overlay loads `netbox.configuration` by default, retains its
+settings and plugins, and adds `netbox_agent_api`. For another base module set
+`NETBOX_AGENT_BASE_CONFIGURATION` explicitly. It retains the base configuration's
+LDAP directory. Do not point the base setting back at the overlay itself. A chart
+which loads configuration by file path must expose that file as an importable
+module (for example by adding its directory to `PYTHONPATH`) and name it as the
+base, or use its existing plugin configuration mechanism without the overlay.
 
 Invalidate cached OpenAPI responses on upgrades so clients discover endpoints
 immediately (native schema URLs can be cached for a day). Use your deployment's
@@ -69,8 +85,8 @@ query. This is metadata support, not a universal API for every web-only action.
 
 Real-NetBox tests check native and custom-field discovery, enable/disable changes,
 wrong-model rejection, restricted-user permission equivalence, invalid paths and
-unsupported mutation methods. Both the MCP and this plugin pin the same NetBox
-release. Changes to NetBox internals require renewed qualification.
+unsupported mutation methods. The integration suite pins NetBox 4.7.2. Both packages accept stable NetBox
+4.7.x and later; changes to NetBox internals require renewed qualification.
 Qualification also forces a fresh OpenAPI response: NetBox caches schema URLs for
 a day, so testing only a previously cached response can hide plugin schema errors.
 

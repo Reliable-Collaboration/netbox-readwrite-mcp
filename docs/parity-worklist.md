@@ -1,6 +1,6 @@
 # Stock Community operation closure
 
-Target: **NetBox Community 4.7.2 only**, excluding Branching and commercial
+Qualified target: **NetBox Community 4.7.2**, excluding Branching and commercial
 extensions. [The pinned audit](netbox-4.7-parity.json) maps all 1,543 website
 routes to 40 semantic families, with no unknown routes or missing mapped native
 CRUD verbs. Route classification is separate from execution evidence.

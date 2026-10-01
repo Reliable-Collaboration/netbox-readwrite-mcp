@@ -46,12 +46,13 @@ jobs:
       - run: python scripts/lab.py ready
       - run: python scripts/lab.py bootstrap && python scripts/seed.py
       - run: NETBOX_RW_LIVE=1 pytest tests/unit tests/integration --cov=netbox_readwrite_mcp --cov-fail-under=85 -v --junitxml=.lab/${{ matrix.netbox }}/integration-results.xml
-      - name: Verify installed companion image
+      - name: Verify companion bundle on upstream NetBox
         run: |
           python -m pip install build
-          python -m build companion
-          podman build -f packaging/Containerfile.netbox -t localhost/netbox-agent-api:qualification .
-          podman run --rm --network nbrw-audit-4-7-2 --env-file .lab/4.7.2/netbox.env --entrypoint /opt/netbox/venv/bin/python localhost/netbox-agent-api:qualification /opt/netbox/netbox/manage.py shell -c 'from django.conf import settings; from django.urls import resolve; from importlib.metadata import version; assert "netbox_agent_api" in settings.PLUGINS; assert version("netbox-agent-api") == "0.4.0"; resolve("/api/plugins/agent-support/"); print("Installed companion and automatic enablement: PASS")'
+          python -m build && python -m build companion
+          python scripts/release_assets.py
+          python scripts/check_release_assets.py
+          python scripts/check_companion_bundle.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:

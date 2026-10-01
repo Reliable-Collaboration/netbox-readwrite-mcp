@@ -2,7 +2,8 @@
 
 The MCP uses native NetBox REST for existing operations and the Apache-2.0
 [companion plugin](../companion/README.md) for confirmed API gaps. Both target
-**NetBox Community 4.7.2 only**. Branching, commercial products, and qualification
+**NetBox Community 4.7.x and later; tested on 4.7.2**. The route map and
+operation-family qualification describe that tested release. Branching, commercial products, and qualification
 of arbitrary third-party plugins are outside this stock Community scope.
 
 An agent discovers IDs, model fields and filters at runtime. It uses `query` and

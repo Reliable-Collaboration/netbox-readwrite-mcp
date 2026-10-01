@@ -2,9 +2,10 @@
 
 ## 0.4.0 — release installation and self-describing MCP
 
-- CI-gated downloadable wheels, standalone Python application and companion image.
+- CI-gated downloadable wheels, standalone Python application and plugin-only container bundle.
 - Private configuration wizard, generated client settings and read-only doctor.
-- Companion enablement helper and automatic container configuration overlay.
+- Companion enablement helper and configuration overlay for existing upstream deployments.
+- Accept stable NetBox 4.7.x and later while identifying 4.7.2 as the tested release.
 - Packaged guidance delivered by MCP initialization and tools; no injected agent guide.
 
 ## 0.3.0 — Community parity qualification

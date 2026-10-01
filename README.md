@@ -1,45 +1,50 @@
 # NetBox Read/Write MCP
 
-An agent interface for discovering and maintaining a greenfield NetBox inventory,
-with durable operation receipts and recovery evidence.
+**An open-source MCP server that lets agents maintain NetBox, not just query it.**
 
-**Compatibility: NetBox 4.7.2 only**, the latest stable 4.7 release checked on
-2026-10-01 against the [upstream release](https://github.com/netbox-community/netbox/releases/tag/v4.7.2). Python 3.11+ on POSIX. No pre-known device IDs or application-level
-model allowlist is required: NetBox permissions define the agent's scope.
+The [NetBox Labs open-source MCP server](https://github.com/netboxlabs/netbox-mcp-server)
+provides read-only access. This project adds writes and broader Community workflows
+so an agent can build an initial inventory, maintain existing assets, connect
+hardware and virtual resources, run jobs, and verify the results. It includes
+operation receipts, conditional edits, recovery evidence and a GitHub feedback
+path for diagnosing problems encountered by consuming agents.
 
-The server provides object discovery, filtered/paginated reads, live schemas,
-GraphQL, CRUD, bulk workflows, IPAM allocation, native API actions, file uploads,
-script/job tracking, and typed companion APIs for stock Community website operations
-missing from REST. The mapped workflows need no HTML session. An optional HTML
-adapter remains experimental. Installed open-source plugin APIs can use the same
-discovery and action tools.
-Branching and commercial integrations are explicitly outside the product scope.
-See the [feature matrix](docs/feature-matrix.md) and [validation](docs/validation.md).
+Use it with **your existing NetBox installation**, obtained and maintained through
+NetBox's own repository, images or package distribution. This project distributes
+the MCP server and a companion plugin; it does not distribute NetBox.
 
-Writes retain intent before dispatch, request/operation IDs, prior values where
-available, native change records including cascades, and authoritative outcomes.
-Lost responses are reconciled without blindly repeating writes. General PATCH
-compensation checks current values and intervening history; unsupported graph
-restoration remains explicit. Website form submission is not a transaction or
-universal undo. External effects such as webhooks cannot be reversed.
+**Compatibility: NetBox Community 4.7.x and later. Tested on 4.7.2.** Later versions
+are accepted but have not yet passed the recorded integration suite; changes to
+NetBox APIs or internals may require a compatibility update. Branching and
+commercial features are outside scope. Both packages are Apache-2.0 licensed.
 
-## How the pieces fit together
+## What it provides
 
-Your MCP client starts the Python server on the agent host. The server calls
-NetBox using a dedicated API token and records tasks and write receipts in a
-local SQLite journal. NetBox permissions govern what it can see and change.
-The companion plugin runs inside NetBox and its worker, exposing typed APIs
-for operations missing from native REST. It uses NetBox's own validation and
-permission checks. No browser session is needed for the covered workflows.
+- Discovery of models, fields, relationships, filters and native actions. Agents
+  find IDs themselves, including when starting with an empty inventory.
+- Read, create, update and delete operations across physical, virtual and network
+  inventory, plus bulk operations, allocation, imports/exports and jobs.
+- Typed companion APIs for Community operations missing from native REST, using
+  NetBox's own validation and permissions instead of browser forms.
+- Durable task/write receipts, ETag-guarded edits, response-loss reconciliation
+  and conditional compensation where supported.
+- Built-in MCP instructions and examples. No guide needs to be pasted into an
+  agent's context, and no specific model/provider is required.
 
-The optional feedback MCP is a separate process with GitHub credentials. It lets
-an agent publish a structured issue and read the maintainer's reply without
-receiving those credentials. Model/provider credentials belong to your MCP client;
-the inventory server does not require a particular model or provider.
+See the [operation map](docs/api-completion.md) and [qualification record](docs/validation.md)
+for detailed coverage. Arbitrary third-party plugins need separate qualification.
 
-## Install the MCP server
+## How it connects
 
-You need Python 3.11+ on POSIX and an MCP client that can start a local process.
+Your MCP client starts the server on the agent host. The server uses a dedicated
+NetBox API token and stores its journal locally. NetBox permissions govern what
+the agent can see and change. The companion runs inside NetBox web and worker
+processes to fill native API gaps. The optional feedback MCP uses a separate
+GitHub login to publish structured issues and read maintainer replies.
+
+## 1. Install the MCP server
+
+Requires Python 3.11+ on POSIX and a client that can launch a local MCP process.
 Download the CI-built application and run its setup wizard:
 
 ```sh
@@ -47,203 +52,161 @@ curl -fL https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases
 python3 netbox-readwrite-mcp.pyz configure
 ```
 
-Keep the downloaded file at its installed path. Setup asks for your NetBox base
-URL, username and API token (hidden input), stores a private configuration under
-`~/.config/netbox-readwrite-mcp/` (or `XDG_CONFIG_HOME`), generates the journal
-identity once, and prints the MCP client configuration to paste into your client.
-Use `configure --client opencode` for OpenCode's configuration format. Setup
-never overwrites an existing configuration or token.
+Keep the application at its installed path. Setup asks for the NetBox base URL,
+username and API token (hidden input), creates private configuration and a stable
+journal identity, and prints the client entry to paste into your MCP client.
+Use `configure --client opencode` for OpenCode's format. Existing configuration
+and tokens are preserved. The default directory is
+`~/.config/netbox-readwrite-mcp/`, or under `XDG_CONFIG_HOME` when set.
 
-Alternatively, with pipx already installed:
+If you already use pipx, you can install the wheel instead:
 
 ```sh
 pipx install https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.0/netbox_readwrite_mcp-0.4.0-py3-none-any.whl
 netbox-readwrite-mcp configure
 ```
 
-[Release assets](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.0)
-also include both wheels, source distributions, checksums and the exact build
-revision. No checkout or build tools are needed for installation. Releases are
-published only after CI passes the unit/build matrix and real-NetBox tests.
+[Release downloads](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.0)
+include checksums, both wheels, the container plugin bundle, source distributions
+and the exact build revision. No checkout or local build is required.
 
-## Install and enable the companion
+## 2. Add the companion to your existing NetBox
 
-Full stock Community coverage needs the companion on both NetBox web and worker.
-It is a separate package because these APIs run inside NetBox, not on the agent
-host. Choose the path matching your existing **NetBox Community 4.7.2** deployment.
+Native REST works without the companion, with a smaller operation surface.
+Install the companion on **both web and worker** for full Community coverage.
+Choose the integration matching your deployment; keep your upstream NetBox image
+or package and existing database/configuration.
 
-### Existing netbox-docker Compose deployment
+### Traditional source, virtualenv or package installation
 
-From your deployment directory, download the override and recreate the web and
-worker with the CI-built image:
-
-```sh
-curl -fL https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.0/compose.agent-api.yaml -o compose.agent-api.yaml
-docker compose -f docker-compose.yml -f compose.agent-api.yaml up -d netbox netbox-worker
-```
-
-Use your existing base Compose filename and include any other override files you
-normally use before `compose.agent-api.yaml`. Podman deployments can use their
-configured Compose provider with the same override. Service names must be
-`netbox` and `netbox-worker`; adapt them if your deployment differs. This restarts
-those services while preserving the deployment's configured database and volumes.
-
-The prebuilt image is
-`ghcr.io/reliable-collaboration/netbox-agent-api:0.4.0-netbox4.7.2` (Linux amd64).
-It includes and enables the plugin automatically, retains existing plugins, and
-delegates other settings to the deployment's normal configuration. If you use a
-custom `NETBOX_CONFIGURATION` module, set `NETBOX_AGENT_BASE_CONFIGURATION` to
-that module. Deployments with additional packages in a custom image must include
-the companion wheel in that image instead of replacing it with ours. See the
-[companion installation details](companion/README.md#install).
-
-### Traditional NetBox virtualenv
-
-Run with permission to install into NetBox's environment and as the configuration
-file owner. Replace paths for your deployment:
+Use the Python environment that actually runs NetBox and the file that defines
+its effective `PLUGINS` setting. These are example paths; package-managed installs
+may use different locations. Run as the environment/configuration owner:
 
 ```sh
 /opt/netbox/venv/bin/python -m pip install https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.0/netbox_agent_api-0.4.0-py3-none-any.whl
 /opt/netbox/venv/bin/netbox-agent-api-enable --config /opt/netbox/netbox/netbox/configuration.py
 ```
 
-The enable command preserves existing settings/plugins, saves a private backup,
-and is safe to repeat. Restart web and worker using your deployment manager
-(for a standard systemd install: `sudo systemctl restart netbox netbox-rq`).
-Separate hosts need the wheel installed on each. No database migrations are added.
+The enable command retains existing settings/plugins, makes a private backup and
+is safe to repeat. Restart NetBox web and worker with your deployment manager
+(for a standard systemd installation: `sudo systemctl restart netbox netbox-rq`).
+Separate hosts need the package installed on each. If your package manager owns
+an immutable Python environment, use its supported plugin mechanism with the
+same wheel; do not bypass its environment protections.
 
-## NetBox identity and first connection
+### Docker or Podman Compose
 
-Provision a dedicated NetBox identity with view/add/change/delete/run permissions
-for the models it will manage, plus full access to `core.view_objectchange`.
-Add `render_config` for device/VM configuration rendering and `sync` for source
-synchronization if needed. Use a write-enabled token for inventory management;
-administrative operations still require their native permissions. Set
-`CHANGELOG_RETENTION = 0` and disable independent history purge jobs so recovery
-can inspect complete history. The companion does not grant permissions or create
-credentials. Native REST works without it, with a smaller operation surface.
+From your existing netbox-docker deployment directory:
 
-The wizard uses the base URL without `/api/`; HTTPS is required except on loopback.
-The username must match the token owner. Use `configure --read-only` for a
-connection that refuses mutations, or `--token-file PATH` for unattended setup
-without a token in shell arguments. Use `--config PATH` to select a private custom
-location. See [operations](docs/operations.md) before moving a journal or changing
-database lineage.
+```sh
+curl -fL https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.0/netbox-agent-api-container.tar.gz -o agent-api.tar.gz && tar -xzf agent-api.tar.gz
+docker compose -f docker-compose.yml -f netbox-agent-api/compose.agent-api.yaml up -d netbox netbox-worker
+```
 
-Check connectivity after enabling the companion:
+Use your actual base Compose filename, retaining your usual override files before
+our override. Podman can use its configured Compose provider. The override mounts
+only the prebuilt plugin, enables it on web and worker, and **does not replace your
+NetBox image**. It recreates those services while retaining the volumes and other
+settings in your Compose configuration. Adjust service names if they differ.
+
+Existing plugins remain enabled. If you already set `PYTHONPATH`, retain its
+entries alongside `/opt/netbox/agent-api`. If you use a custom
+`NETBOX_CONFIGURATION`, set `NETBOX_AGENT_BASE_CONFIGURATION` to that original
+module. See [deployment details](companion/README.md#install).
+
+### Kubernetes, Helm and other container managers
+
+Use the same downloadable plugin bundle: mount its `plugin` directory at
+`/opt/netbox/agent-api` in every web/worker workload, add that directory to
+`PYTHONPATH`, and set `NETBOX_CONFIGURATION=netbox_agent_api_configuration`.
+Retain your upstream image and set `NETBOX_AGENT_BASE_CONFIGURATION` if you use a
+custom configuration module. Roll out the change with your normal controller.
+Alternatively, use your chart's existing plugin-installation mechanism with the
+released wheel. [Deployment details](companion/README.md#install) explain the
+configuration overlay and upgrades. This is a deployment recipe, not a separately
+qualified Helm chart or Kubernetes operator.
+
+## 3. Check the connection and give the agent a task
+
+Provision a dedicated NetBox user with view/add/change/delete/run permissions for
+the models it will manage, plus full read access to `core.view_objectchange`.
+Add `render_config` and `sync` when those actions are required. Use a write-enabled
+API token for inventory management. Administrative operations still require
+native permissions; the companion grants none. Set `CHANGELOG_RETENTION = 0` and
+disable independent history purge jobs so recovery has complete evidence.
 
 ```sh
 python3 netbox-readwrite-mcp.pyz doctor
 ```
 
-This verifies the exact NetBox version, companion root and change-history access
-without writing inventory. It does not prove every model-specific permission.
-`client-config --client opencode` reprints client settings without changing the
-identity; omit the client option for the common `mcpServers` format.
+This checks version acceptance, companion access and history reads without
+changing inventory. It reports whether the connected version is tested; it does
+not prove every model-specific permission. The URL must omit `/api/`; HTTPS is
+required except on loopback. The configured username must match the token owner.
 
-Reconnect your MCP client. **No agent guide needs to be attached or pasted.** The
-server supplies core instructions at initialization, repeats them in `capabilities`,
-and offers detailed, version-matched examples through `get_guidance`. Tool
-schemas describe inputs. Client handling of initialization instructions varies,
-so the tool catalog also tells the agent to start with `capabilities`.
+Reconnect your MCP client and ask:
 
-Give the agent a task, for example:
+> Inspect my NetBox connection and available models without changing anything.
 
-> Inspect my NetBox connection and available permissions without changing anything.
+Then give it your inventory task. For a small authorized trial:
 
-Then, for an authorized test site:
+> Create a site named MCP Getting Started, slug mcp-getting-started, status active,
+> if it does not already exist. Verify it and report the operation receipts.
+> Repeat the check and confirm that no additional writes are needed.
 
-> Create a site named MCP Getting Started with slug mcp-getting-started and status
-> active if it does not exist. Verify it and report the operation receipts. Repeat
-> the check and confirm no additional writes are needed.
+The server delivers instructions at initialization and through `capabilities`;
+`get_guidance` supplies detailed, version-matched examples when needed. The tool
+catalog directs clients that omit initialization instructions to `capabilities`.
+[The readable guide](docs/agent-guide.md) is a documentation copy, not a setup step.
+Supply observed hardware facts or an authorized discovery source for a physical
+inventory; the agent cannot know which equipment you own without that input.
 
-For a physical inventory, supply observed hardware facts or a discovery source;
-the agent discovers IDs and creates dependencies, but cannot infer what equipment
-you own. [The readable guide](docs/agent-guide.md) is a documentation copy of the
-packaged guidance, not a client setup requirement.
+## Configuration and operations
 
-### Optional HTTP transport
+- `client-config --client opencode` reprints client settings without changing
+  identity; omit the client option for the common `mcpServers` format.
+- `configure --read-only` disables mutation tools. `--token-file PATH` supports
+  unattended setup without putting a token in shell arguments.
+- `--config PATH` selects a private custom config. Paths inside it are relative
+  to that file. Retain the instance ID and journal across restarts; consult
+  [operations](docs/operations.md) before changing database lineage.
+- Authenticated HTTP is available with `--http 8000 --mcp-token-file PATH`.
+  Use a separate random bearer token of at least 32 characters. It binds to
+  loopback `/mcp`; remote access requires a trusted TLS reverse proxy.
+- Connect the optional [GitHub feedback MCP](docs/agent-issues.md) to let agents
+  publish structured reports and read maintainer replies. NetBox and GitHub
+  credentials are separate; no unattended response schedule is implied.
 
-Authenticated Streamable HTTP is also available:
+Back up the journal and NetBox database independently. Keep tokens, journals,
+recovery bundles and raw transcripts private. Lost responses are reconciled using
+original operation keys. Undo is conditional compensation: it cannot universally
+restore deleted graphs or reverse webhook, queue and filesystem effects. The
+experimental HTML adapter is unnecessary for mapped Community workflows.
 
-```sh
-netbox-readwrite-mcp --config config.json --http 8000 --mcp-token-file mcp-token
-```
+## Troubleshooting
 
-Use a separate random MCP bearer token of at least 32 characters. The endpoint
-binds to `http://127.0.0.1:8000/mcp`; remote use requires a trusted TLS reverse
-proxy. The server supports JSON responses rather than an SSE event stream.
-
-### How an inventory task proceeds
-
-A typical task:
-
-1. Read `capabilities`, then `discover_models` and `get_schema` as needed.
-2. Search by native filters with `get_objects`; IDs do not need to be supplied.
-3. Begin a task and create dependencies with `create_object`.
-4. Read an existing object and retain its ETag before `update_object` or `delete_object`.
-5. Preserve operation keys and inspect every result. Reconcile uncertainty.
-6. Use `preview_undo` before corrections; report conflicts and recovery limitations.
-
-`query` and `execute_action` cover native allocation, trace, elevation, rendering,
-script, bulk, and plugin endpoints. `web_read` exposes website forms and links;
-`web_submit` submits them with native CSRF and permissions. `run_workflow` provides
-a bounded Python-syntax interpreter with loops, conditions, JSON values and tool
-calls, without exposing a Python process or host credentials.
-
-## Run the qualification suite
-
-Contributors can clone the repository and run the disposable Podman lab. This
-source checkout is for development/testing, not required for user installation.
-See [testing](docs/testing.md) for prerequisites and all lab commands. The generated
-`.lab/4.7.2/broad-config.json` connects an agent with the ordinary inventory identity;
-`.lab/4.7.2/config.json` is intentionally restricted for regression tests.
-
-After starting and seeding that lab:
-
-```sh
-python -m pip install -e '.[test,dev]'
-NETBOX_RW_LIVE=1 pytest tests/unit tests/integration --cov=netbox_readwrite_mcp --cov-fail-under=85
-```
-
-The full run takes roughly 35–40 minutes in the recorded environments. It passed
-585 tests plus six subtests, including 231 live cases. See [validation](docs/validation.md)
-for exact revisions and [agent evaluation](docs/agent-evaluation.md) for the
-separate GLM/OpenCode acceptance runs. A paid model provider is not needed for
-the deterministic suite.
-
-The digest-pinned Podman lab uses port 18872, synthetic inventory, an ordinary
-inventory identity, a separately restricted regression identity, PostgreSQL,
-Valkey, and a worker. It is isolated from existing NetBox containers. Test
-transcripts and journals stay under ignored `.lab/4.7.2/`. See [testing](docs/testing.md).
-
-## If the connection check fails
-
-| Symptom | Check |
+| Symptom | Next step |
 | --- | --- |
-| Client cannot start the server | Use the configuration printed by `client-config`; keep the downloaded application in place and check the client host can read the config/token. |
-| A manually started stdio command waits silently | It is waiting for MCP protocol input. Connect through the client; it is not an interactive shell. |
-| Version rejected | Both packages support exactly NetBox Community 4.7.2. |
-| HTTP 401/403 or missing objects | Check token validity, write enablement and the identity's model/object permissions. Restricted views may legitimately be empty. |
-| Companion root missing or stale schema | Install/enable the plugin, restart web and worker, and follow its cache-refresh instructions. |
-| Unknown filter | Inspect the live schema; install the companion for native/custom-field filter metadata. Do not drop the intended constraint and act on unrelated results. |
-| Legacy device allowlist error | Use the lab's `broad-config.json`, or explicitly migrate the restricted journal. |
-| Uncertain write outcome | Preserve the original operation key, inspect/reconcile its receipt, and follow the agent guide before attempting another write. |
+| Client cannot start the MCP | Reprint `client-config`; ensure the application, Python and private config remain at the configured paths. |
+| A manually started stdio process waits silently | Connect it through the MCP client; it is waiting for protocol input. |
+| HTTP 401/403 or missing objects | Check token validity, write enablement and model/object permissions. |
+| Companion missing | Verify the package/mount and effective configuration on both web and worker; restart or roll out both. |
+| Unknown filter or stale schema | Inspect live schema and companion metadata; follow the deployment's schema-cache refresh procedure after upgrades. |
+| Legacy device allowlist | Explicitly migrate the restricted journal; see operations. |
+| Uncertain write | Preserve the original key, inspect/reconcile its receipt, and report unresolved evidence before another write. |
 
-## Observe and report problems
+## Testing and development
 
-`get_task`, `get_operation`, `find_operation`, `observability`, and `recovery_bundle`
-retain local evidence. MCP tool telemetry includes timing, outcome and operation
-ID. `diagnostic_report` produces an inventory-free issue attachment. Consuming
-agents can use the optional [feedback MCP](docs/agent-issues.md#optional-structured-feedback-mcp),
-their GitHub tools or [scripts/issues.py](scripts/issues.py). GitHub authentication
-is separate from NetBox authentication. Maintainers can read and respond in this
-repository; the feedback MCP lets the agent read that reply. See [issue workflow](docs/agent-issues.md).
+CI builds release assets and gates publication on the Python unit/build matrix
+and real NetBox 4.7.2 integration suite. The [validation record](docs/validation.md)
+and [agent evaluations](docs/agent-evaluation.md) distinguish deterministic tests,
+actual GLM runs and untested combinations. Acceptance of a later NetBox version
+does not imply that its full workflow surface has been tested.
 
-Back up the journal and NetBox database independently. No automatic evidence
-expiration is configured. Native history completeness and local storage remain
-operational requirements. Small home labs are the qualification target; distributed
-failover and large-estate performance are outside this release.
+Contributors can clone the repository and run the disposable Podman lab described
+in [testing](docs/testing.md). That lab is development infrastructure, not the
+user installation path. Small labs are the current qualification target;
+large-estate performance and distributed failover are outside this release.
 
-Licensed Apache-2.0. Runtime Python code uses the standard library. The NetBox
-project is separate and this server is not endorsed by its maintainers.
+This independent Apache-2.0 project is not endorsed by NetBox's maintainers.
