@@ -2,7 +2,7 @@
 
 import pytest
 
-from scripts.agent_clients import client_failed, used_host_tools
+from scripts.agent_clients import client_failed, used_host_tools, community_read_checks
 
 
 @pytest.mark.parametrize(
@@ -44,3 +44,68 @@ def test_netbox_tool_calls_are_allowed():
             {"type": "item.completed", "item": {"type": "mcp_tool_call", "server": "netbox"}},
         ]
     )
+
+
+@pytest.mark.parametrize("client", ["claude", "codex", "opencode"])
+def test_trace_requires_successful_response_for_own_cable(client):
+    import json
+
+    arguments = {"path": "dcim/interfaces/7/trace/"}
+    payload = {"status": 200, "body": [{"label": "test-link"}]}
+
+    def transcript(status, body):
+        if client == "claude":
+            return [
+                {
+                    "type": "assistant",
+                    "message": {
+                        "content": [
+                            {"type": "tool_use", "id": "q", "name": "mcp__netbox__query", "input": arguments}
+                        ]
+                    },
+                },
+                {
+                    "type": "user",
+                    "message": {
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": "q",
+                                "is_error": status != "completed",
+                                "content": json.dumps(body),
+                            }
+                        ]
+                    },
+                },
+            ]
+        if client == "codex":
+            return [
+                {
+                    "type": "item.completed",
+                    "item": {
+                        "type": "mcp_tool_call",
+                        "server": "netbox",
+                        "tool": "query",
+                        "arguments": arguments,
+                        "status": status,
+                        "result": {"structured_content": body},
+                    },
+                }
+            ]
+        return [
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "netbox_query",
+                    "state": {"input": arguments, "status": status, "output": json.dumps(body)},
+                },
+            }
+        ]
+
+    assert community_read_checks(transcript("completed", payload), "test", [7])["native_trace_used"]
+    assert not community_read_checks(transcript("failed", payload), "test", [7])["native_trace_used"]
+    assert not community_read_checks(
+        transcript("completed", {"status": 404, "body": "test-link"}), "test", [7]
+    )["native_trace_used"]
+    assert not community_read_checks(transcript("completed", payload), "other", [7])["native_trace_used"]
+    assert not community_read_checks(transcript("completed", payload), "test", [8])["native_trace_used"]

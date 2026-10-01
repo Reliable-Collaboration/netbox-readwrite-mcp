@@ -8,8 +8,8 @@ Supports NetBox Community 4.7.x and later; integration-tested on 4.7.2. Later
 versions are accepted, not yet qualified by the recorded suite.
 
 - `netbox-readwrite-mcp.pyz`: standalone MCP application for Python 3.11+ on POSIX. Run `python3 netbox-readwrite-mcp.pyz configure` for private setup and client configuration.
-- `netbox_readwrite_mcp-0.4.1-py3-none-any.whl`: MCP package for pipx/uv or a virtualenv.
-- `netbox_agent_api-0.4.1-py3-none-any.whl`: companion for NetBox's Python environment; includes `netbox-agent-api-enable --config PATH`.
+- `netbox_readwrite_mcp-0.4.2-py3-none-any.whl`: MCP package for pipx/uv or a virtualenv.
+- `netbox_agent_api-0.4.2-py3-none-any.whl`: companion for NetBox's Python environment; includes `netbox-agent-api-enable --config PATH`.
 - `netbox-agent-api-container.tar.gz`: prebuilt plugin and Compose override. Mounts into your existing upstream NetBox image; no replacement image or local build.
 - Source distributions, `SHA256SUMS` and `release.json`: source, download integrity and exact revision.
 

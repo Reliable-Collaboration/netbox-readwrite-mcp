@@ -23,10 +23,10 @@ import uuid
 
 if __package__:
     from .agent_gateway import Gateway
-    from .agent_clients import native_command, client_failed, used_host_tools
+    from .agent_clients import native_command, client_failed, used_host_tools, community_read_checks
 else:
     from agent_gateway import Gateway
-    from agent_clients import native_command, client_failed, used_host_tools
+    from agent_clients import native_command, client_failed, used_host_tools, community_read_checks
 
 from netbox_readwrite_mcp.config import load_config
 from netbox_readwrite_mcp.server import build_service
@@ -602,7 +602,14 @@ def main():
                     else []
                 )
                 export_values = {value for row in exported for value in row.values()}
-                transcript = (run / "community-events.jsonl").read_text()
+                transcript = [
+                    json.loads(line)
+                    for line in (run / "community-events.jsonl").read_text().splitlines()
+                    if line.startswith("{")
+                ]
+                read_checks = community_read_checks(
+                    transcript, prefix, [row["id"] for rows in interfaces for row in rows]
+                )
                 return {
                     "two_owned_devices": all(
                         device
@@ -628,7 +635,7 @@ def main():
                         and len(op["requested"].get("items", [])) == 2
                         for op in operations
                     ),
-                    "native_trace_used": "/trace/" in transcript,
+                    **read_checks,
                     "native_template_interfaces": all(
                         {row["name"] for row in rows} == {"eth1", "eth2"} for rows in interfaces
                     ),
@@ -666,7 +673,6 @@ def main():
                     "native_csv_export": len(exported) == 2
                     and {prefix + "-01", prefix + "-02", prefix + "-serial-1", prefix + "-serial-2"}
                     <= export_values,
-                    "search_api_used": "plugins/agent-support/search/" in transcript,
                     "task_summary_read": any(e["tool"] == "get_task" and not e["is_error"] for e in events),
                     "no_website_calls": not any(e["tool"] in {"web_read", "web_submit"} for e in events),
                     "no_unresolved_operations": not svc.observability()["unresolved"],

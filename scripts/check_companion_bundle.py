@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
+    expected_version = json.loads((ROOT / "release/release.json").read_text())["version"]
     image = json.loads((ROOT / "scripts/images.lock.json").read_text())["netbox"]["4.7.2"]["digest"]
     with tempfile.TemporaryDirectory() as stage:
         with tarfile.open(ROOT / "release/netbox-agent-api-container.tar.gz") as archive:
@@ -36,7 +37,7 @@ def main():
                 "/opt/netbox/netbox/manage.py",
                 "shell",
                 "-c",
-                'from django.conf import settings; from django.urls import resolve; from importlib.metadata import version; import netbox_agent_api; assert "netbox_agent_api" in settings.PLUGINS; assert version("netbox-agent-api") == "0.4.1"; assert netbox_agent_api.__file__.startswith("/opt/netbox/agent-api/"); resolve("/api/plugins/agent-support/"); print("Upstream image plus release companion bundle: PASS")',
+                f'from django.conf import settings; from django.urls import resolve; from importlib.metadata import version; import netbox_agent_api; assert "netbox_agent_api" in settings.PLUGINS; assert version("netbox-agent-api") == {expected_version!r}; assert netbox_agent_api.__file__.startswith("/opt/netbox/agent-api/"); resolve("/api/plugins/agent-support/"); print("Upstream image plus release companion bundle: PASS")',
             ],
             check=True,
         )

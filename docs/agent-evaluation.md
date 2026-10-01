@@ -12,8 +12,10 @@ real MCP server connected to the disposable Podman NetBox 4.7.2 lab.
 Current runs receive the MCP tool catalog and a natural-language task; usage
 instructions come from MCP initialization and built-in tools. No guide is injected
 into the client prompt. Earlier recorded runs used the guide injection explicitly
-identified by their source/harness revisions. Host shell/file/network/delegation tools are denied. It gets no
-preselected NetBox IDs or recipe of tool calls. Credentials are never included in
+identified by their source/harness revisions. Host shell/file/network/delegation tools are denied. No scenario supplies preselected NetBox IDs. The inventory task describes the
+desired records and relationships; the Community qualification names specific
+API paths and actions to require coverage of those features. That targeted
+scenario does not test whether an agent chooses those workflows from an open-ended request. Credentials are never included in
 the prompt. The provider receives synthetic lab inventory and tool results.
 
 An independent REST reader checks final state. A correct-sounding final answer
@@ -443,3 +445,43 @@ qualifies the autonomous workflow and built-in guidance, not flawless narration.
 [Exact source/harness hashes and results](release-agent-evaluation.json) preserve
 that revision. Subsequent compatibility-policy changes accept later stable NetBox
 versions but do not extend this 4.7.2 qualification to those versions.
+
+## Native client release qualification
+
+The native-client runs use the **published 0.4.1 `.pyz`**, with SHA-256
+`e4197911c41b1a5fd5d480b2931ba87d3819a7dc1e9461a2c357fe15189e651b`,
+and the existing Podman NetBox 4.7.2 test instance. Their model is
+`zai-org/GLM-5.3-Flash` through LiteLLM 1.103.1. This tests the clients' actual
+MCP integration and tool loops; it does not qualify Anthropic or OpenAI models.
+No NetBox agent guide is injected into either client's prompt.
+
+[Machine-readable results](client-agent-evaluations.json) retain both successful
+and unsuccessful runs, artifact hashes, independent assertions and transcript
+review. Raw transcripts and credentials remain private.
+
+The first Codex attempt (`903e768b1f`) was an evaluation-configuration failure:
+`approval_policy="never"` rejected MCP writes that needed approval. It created
+no inventory and **failed the state oracle despite a zero client exit code**.
+The runner now explicitly approves the disposable lab NetBox MCP through an
+invocation-scoped setting, without changing the user's normal client configuration.
+
+Claude Code run `236807be64` passed inventory creation and a fresh-session repeat
+with zero additional writes. Its 19 applied operations included recovery from
+three rejected attempts inside bulk/workflow results. The agent distinguished
+those historical failures from unresolved operations in its final report.
+Independent checks confirmed physical/virtual relationships and preservation of
+pre-existing inventory; transcript review found no host tool calls.
+
+Codex Community run `346d9e493b` is **not qualified**. The original oracle counted
+an attempted trace path in the transcript, even though that request returned 404.
+The agent subsequently claimed completion without a successful trace. The raw
+report is retained, but `qualified_passed` is false after review. The oracle now
+requires successful HTTP 200 trace/search responses and evidence for the run's
+own cable/search results. Regression tests reject failed requests, other cables
+and other interface IDs. Rechecking the original OpenCode and Claude Code runs
+with these stricter checks confirmed their successful traces and searches.
+
+The 0.4.2 candidate adds the interface trace endpoint directly to the `query` tool
+description and built-in guide, including the requirement to inspect the successful
+response before disconnecting. This is a server-supplied clarification, not extra
+instructions added to the consuming agent's prompt.

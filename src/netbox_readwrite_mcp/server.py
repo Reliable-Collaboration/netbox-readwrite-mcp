@@ -177,7 +177,7 @@ TOOLS += [
     ),
     tool(
         "query",
-        "Read a relative API path, including allocations, cable trace, rack elevations, jobs and plugin actions.",
+        "Read a relative API path, including allocations, cable trace, rack elevations, jobs and plugin actions. Trace a cable from its interface endpoint with dcim/interfaces/<interface_id>/trace/; verify a successful trace before disconnecting.",
         {"path": STR, "filters": OBJ},
         ["path"],
     ),

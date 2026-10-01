@@ -106,3 +106,64 @@ def used_host_tools(events):
         if item.get("type") == "mcp_tool_call" and item.get("server") != "netbox":
             return True
     return False
+
+
+def successful_queries(events):
+    """Read successful HTTP query evidence, never a path merely mentioned or attempted."""
+    calls = {}
+    found = []
+
+    def collect(arguments, payload):
+        if isinstance(payload, list):
+            payload = next((part.get("text") for part in payload if part.get("type") == "text"), None)
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except ValueError:
+                return
+        if isinstance(payload, dict) and payload.get("status") == 200:
+            found.append({"arguments": arguments, "body": payload.get("body")})
+
+    for event in events:
+        if event.get("type") == "assistant":
+            for block in event.get("message", {}).get("content", []):
+                if block.get("type") == "tool_use" and block.get("name") == "mcp__netbox__query":
+                    calls[block["id"]] = block.get("input", {})
+        if event.get("type") == "user":
+            for block in event.get("message", {}).get("content", []):
+                if block.get("type") == "tool_result" and not block.get("is_error"):
+                    arguments = calls.get(block.get("tool_use_id"))
+                    if arguments is not None:
+                        collect(arguments, block.get("content"))
+        item = event.get("item", {})
+        if (
+            event.get("type") == "item.completed"
+            and item.get("type") == "mcp_tool_call"
+            and item.get("server") == "netbox"
+            and item.get("tool") == "query"
+            and item.get("status") == "completed"
+        ):
+            result = item.get("result") or {}
+            collect(item.get("arguments", {}), result.get("structured_content", result.get("content")))
+        part = event.get("part", {})
+        if event.get("type") == "tool_use" and part.get("tool") == "netbox_query":
+            state = part.get("state", {})
+            if state.get("status") == "completed":
+                collect(state.get("input", {}), state.get("output"))
+    return found
+
+
+def community_read_checks(events, prefix, interface_ids):
+    queries = successful_queries(events)
+    paths = {f"dcim/interfaces/{ident}/trace/" for ident in interface_ids}
+    return {
+        "native_trace_used": any(
+            item["arguments"].get("path") in paths and prefix + "-link" in json.dumps(item["body"])
+            for item in queries
+        ),
+        "search_api_used": any(
+            item["arguments"].get("path") == "plugins/agent-support/search/"
+            and prefix in json.dumps(item["body"])
+            for item in queries
+        ),
+    }

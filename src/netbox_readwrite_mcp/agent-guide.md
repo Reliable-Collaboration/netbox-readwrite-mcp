@@ -189,6 +189,14 @@ Use task receipts and fresh native reads to verify results. Do not retry a lost
 response with a new key. Native changelogs correlate where the target model logs
 changes; catalogs and schema sweeps alone do not qualify every model lifecycle.
 
+### Cable tracing
+
+Trace an attached cable by calling `query` with
+`dcim/interfaces/<interface_id>/trace/` for one of its interface endpoints.
+Read the successful trace response before disconnecting; an attempted request or
+an HTTP error does not establish the traced path. For other termination types,
+inspect the live schema for the termination's trace action.
+
 ### Remaining native website operations exposed as APIs
 
 Discover `plugins/agent-support/` and inspect the selected path's live schema.

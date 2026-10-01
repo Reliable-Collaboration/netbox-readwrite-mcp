@@ -66,7 +66,7 @@ Requires Python 3.11+ on POSIX and a client that can launch a local MCP process.
 Download the CI-built application and run its setup wizard:
 
 ```sh
-curl -fL https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.1/netbox-readwrite-mcp.pyz -o netbox-readwrite-mcp.pyz
+curl -fL https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/netbox-readwrite-mcp.pyz -o netbox-readwrite-mcp.pyz
 python3 netbox-readwrite-mcp.pyz configure
 ```
 
@@ -80,11 +80,11 @@ are preserved. The default directory is
 If you already use pipx, you can install the wheel instead:
 
 ```sh
-pipx install https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.1/netbox_readwrite_mcp-0.4.1-py3-none-any.whl
+pipx install https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/netbox_readwrite_mcp-0.4.2-py3-none-any.whl
 netbox-readwrite-mcp configure
 ```
 
-[Release downloads](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.1)
+[Release downloads](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.2)
 include checksums, both wheels, the container plugin bundle, source distributions
 and the exact build revision. No checkout or local build is required.
 
@@ -102,7 +102,7 @@ its effective `PLUGINS` setting. These are example paths; package-managed instal
 may use different locations. Run as the environment/configuration owner:
 
 ```sh
-/opt/netbox/venv/bin/python -m pip install https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.1/netbox_agent_api-0.4.1-py3-none-any.whl
+/opt/netbox/venv/bin/python -m pip install https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/netbox_agent_api-0.4.2-py3-none-any.whl
 /opt/netbox/venv/bin/netbox-agent-api-enable --config /opt/netbox/netbox/netbox/configuration.py
 ```
 
@@ -118,7 +118,7 @@ same wheel; do not bypass its environment protections.
 From your existing netbox-docker deployment directory:
 
 ```sh
-curl -fL https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.1/netbox-agent-api-container.tar.gz -o agent-api.tar.gz && tar -xzf agent-api.tar.gz
+curl -fL https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/netbox-agent-api-container.tar.gz -o agent-api.tar.gz && tar -xzf agent-api.tar.gz
 docker compose -f docker-compose.yml -f netbox-agent-api/compose.agent-api.yaml up -d netbox netbox-worker
 ```
 
@@ -169,7 +169,15 @@ codex mcp add netbox -- python3 "$PWD/netbox-readwrite-mcp.pyz"
 codex mcp get netbox
 ```
 
-Start a new Codex session and use `/mcp` to check the connection. See
+Start a new Codex session and use `/mcp` to check the connection. For an
+already-authorized unattended job, explicitly allow this server's tools for that
+invocation:
+
+```sh
+codex exec -c 'mcp_servers.netbox.default_tools_approval_mode="approve"' "Your NetBox task"
+```
+
+This leaves your saved approval settings unchanged. See
 [Codex's MCP documentation](https://developers.openai.com/codex/mcp/).
 
 ### OpenCode
@@ -193,9 +201,10 @@ If you configured a custom server configuration, append `--config /absolute/path
 to the server command. Other MCP clients can use the generic configuration
 printed by `client-config`.
 
-All three clients use the same server tools and built-in instructions. The
-recorded autonomous inventory evaluation used OpenCode with GLM; equivalent
-model-driven evaluations in Claude Code and Codex are not yet recorded.
+All three clients use the same server tools and built-in instructions. Recorded
+agent tests cover OpenCode, Claude Code and Codex using GLM through LiteLLM.
+See the [evaluation record](docs/agent-evaluation.md) for tested workflows,
+failed attempts and limits.
 
 ## 4. Check the connection and give the agent a task
 
