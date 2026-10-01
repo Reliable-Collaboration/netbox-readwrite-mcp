@@ -157,7 +157,7 @@ def main():
     parser.add_argument("--idle-timeout", type=int, default=0)
     parser.add_argument(
         "--scenario",
-        choices=["inventory", "configuration", "dashboard", "bulk", "feedback"],
+        choices=["inventory", "configuration", "dashboard", "bulk", "feedback", "community"],
         default="inventory",
     )
     args = parser.parse_args()
@@ -487,6 +487,127 @@ def main():
         def one(resource, **filters):
             found = objects(resource, **filters)
             return found[0] if len(found) == 1 else {}
+
+        if args.scenario == "community":
+            import csv
+            import io
+
+            def community_oracle(events):
+                site = one("dcim/sites/", slug=prefix)
+                devices = [one("dcim/devices/", name=prefix + suffix) for suffix in ("-01", "-02")]
+                chassis = one("dcim/virtual-chassis/", name=prefix)
+                vm = one("virtualization/virtual-machines/", name=prefix + "-vm")
+                vif = (
+                    one("virtualization/interfaces/", virtual_machine_id=vm["id"], name="eth0") if vm else {}
+                )
+                contact = one("tenancy/contacts/", name=prefix)
+                assignments = (
+                    objects("tenancy/contact-assignments/", object_type="dcim.site", object_id=site["id"])
+                    if site
+                    else []
+                )
+                bookmarks = (
+                    objects("extras/bookmarks/", object_type="dcim.site", object_id=site["id"])
+                    if site
+                    else []
+                )
+                journals = (
+                    objects(
+                        "extras/journal-entries/",
+                        assigned_object_type="dcim.device",
+                        assigned_object_id=devices[0]["id"],
+                    )
+                    if devices[0]
+                    else []
+                )
+                interfaces = [
+                    objects("dcim/interfaces/", device_id=device["id"]) if device else []
+                    for device in devices
+                ]
+                ports = [
+                    objects("dcim/power-ports/", device_id=device["id"]) if device else []
+                    for device in devices
+                ]
+                operations = [
+                    json.loads(row[0])
+                    for row in svc.store.db.execute("SELECT document FROM resource_operations")
+                ]
+                exports = [
+                    op
+                    for op in operations
+                    if op["path"] == "plugins/agent-support/exports/dcim.device/"
+                    and (op.get("last_receipt") or {}).get("status") == 200
+                ]
+                exported = (
+                    list(csv.DictReader(io.StringIO(exports[-1]["last_receipt"]["body"]["text"])))
+                    if exports
+                    else []
+                )
+                export_values = {value for row in exported for value in row.values()}
+                transcript = (run / "community-events.jsonl").read_text()
+                return {
+                    "two_owned_devices": all(
+                        device
+                        and (device.get("site") or {}).get("id") == site.get("id")
+                        and device["serial"] == prefix + "-serial-" + str(i)
+                        for i, device in enumerate(devices, 1)
+                    ),
+                    "native_template_interfaces": all(
+                        {row["name"] for row in rows} == {"eth1", "eth2"} for rows in interfaces
+                    ),
+                    "multi_parent_power_ports": all(
+                        {row["name"] for row in rows} == {"PSU1", "PSU2"} for rows in ports
+                    ),
+                    "chassis_positions_swapped": bool(chassis)
+                    and all(
+                        device
+                        and (device.get("virtual_chassis") or {}).get("id") == chassis["id"]
+                        and device["vc_position"] == 1 - i
+                        for i, device in enumerate(devices)
+                    ),
+                    "chassis_atomic_api_used": any(
+                        op["path"] == f"plugins/agent-support/virtual-chassis/{chassis.get('id')}/members/"
+                        and op["state"] == "applied"
+                        for op in operations
+                    ),
+                    "disconnect_api_used": any(
+                        op["path"] == "plugins/agent-support/bulk-disconnect/dcim.interface/"
+                        and op["state"] == "applied"
+                        for op in operations
+                    ),
+                    "cable_removed": not objects("dcim/cables/", label=prefix + "-link")
+                    and all(not row["cable"] for rows in interfaces for row in rows),
+                    "vm_primary_mac": bool(vif)
+                    and bool(vif.get("primary_mac_address"))
+                    and vif["primary_mac_address"]["mac_address"].upper() == "02:00:00:47:07:01",
+                    "contact_assignment": bool(contact)
+                    and any(row["contact"]["id"] == contact["id"] for row in assignments),
+                    "physical_journal": any(
+                        row["comments"] == "Physical survey complete" for row in journals
+                    ),
+                    "own_bookmark": len(bookmarks) == 1,
+                    "native_csv_export": len(exported) == 2
+                    and {prefix + "-01", prefix + "-02", prefix + "-serial-1", prefix + "-serial-2"}
+                    <= export_values,
+                    "search_api_used": "plugins/agent-support/search/" in transcript,
+                    "task_summary_read": any(e["tool"] == "get_task" and not e["is_error"] for e in events),
+                    "no_website_calls": not any(e["tool"] in {"web_read", "web_submit"} for e in events),
+                    "no_unresolved_operations": not svc.observability()["unresolved"],
+                }
+
+            report["passed"] = phase(
+                "community",
+                f"""Perform a greenfield Community inventory and maintenance qualification using the native REST and companion APIs. Discover IDs and schemas; use only your own prefix {prefix}. Preserve all unrelated objects.
+Create a site named/slugged {prefix}, manufacturer named/slugged {prefix}-vendor, and device role named/slugged {prefix}-role. Import a one-U device type with model/slug {prefix}-type via companion imports/dcim.devicetype/, including two related 1000base-t interface templates named eth1 and eth2. Create active devices {prefix}-01 and {prefix}-02 at your site using that type and role, with serials {prefix}-serial-1 and {prefix}-serial-2. Verify NetBox populated exactly those two interfaces on each device.
+Use one companion pattern-create/dcim.powerport/ request with two items to create PSU[1-2] on both devices. Create a connected cable labeled {prefix}-link between their eth1 interfaces, inspect the native trace, then preview and apply bulk-disconnect/dcim.interface/ for one endpoint. Verify the cable was removed and the interfaces remain.
+Create virtual chassis {prefix}; assign the two devices positions 0 and 1 respectively using native device updates. Read companion virtual-chassis/{{id}}/members/ and PUT a complete member list to atomically swap their positions to 1 and 0. Verify final membership.
+Create VM {prefix}-vm at your site, its eth0 interface, and MAC address 02:00:00:47:07:01 assigned to that VM interface. Set that MAC as its primary_mac_address. Create contact {prefix} and assign it to your site. Add an info journal entry 'Physical survey complete' to the first device.
+Read your self/profile to discover your user ID, then bookmark your site using the native own-bookmark API. Search for your prefix with companion search/.
+Use execute_action POST to companion exports/dcim.device/ with only your two device IDs, format csv and columns name,serial. Check the returned CSV has exactly those devices and serials. Read your task summary and report authoritative outcomes. Leave successful synthetic objects for the independent oracle. Do not use website forms.""",
+                community_oracle,
+            )
+            print("Report: " + str(run / "report.json"), flush=True)
+            return 0 if report["passed"] else 1
 
         if args.scenario == "feedback":
             from netbox_readwrite_mcp.feedback import Feedback

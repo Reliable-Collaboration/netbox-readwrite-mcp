@@ -78,3 +78,9 @@ Clients such as OpenCode can isolate `XDG_CONFIG_HOME`. In that case the operato
 must pass `--gh-config-dir /operator/config/gh` so the feedback process can use
 the intended GitHub login. This is a host-side path, never a tool argument. The
 GLM harness sets it explicitly and keeps provider credentials out of this process.
+
+The actual GLM-authored structured publication, same-key replay, maintainer reply,
+agent readback and close loop passed in
+[issue #3](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/issues/3).
+See [the evaluation evidence](agent-evaluation.md#consuming-agent-github-feedback)
+for the failed isolation run, correction, independent checks and exact source.

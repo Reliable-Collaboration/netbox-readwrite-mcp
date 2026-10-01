@@ -153,3 +153,64 @@ job_id = {job_id!r}
             fixture
             + "\nif Job.exists(job_id, connection=queue.connection):\n    from rq.command import send_stop_job_command\n    job = Job.fetch(job_id, connection=queue.connection)\n    if job.get_status() == 'started':\n        send_stop_job_command(queue.connection, job_id)\n    job.delete()\n"
         )
+
+
+def test_native_user_group_permission_grant_and_revoke(queue_admin):  # noqa: F811
+    import secrets
+
+    from netbox_readwrite_mcp.api import NetBox
+
+    service = queue_admin
+    name = "qualification-access-" + uuid.uuid4().hex
+    created = []
+
+    def make(resource, values):
+        response = service.api.request("POST", resource, values)
+        assert response["status"] == 201
+        obj = response["body"]
+        created.append((resource, obj["id"]))
+        return obj
+
+    try:
+        user = make(
+            "users/users/", {"username": name, "password": secrets.token_urlsafe(24), "is_active": True}
+        )
+        token = make(
+            "users/tokens/",
+            {
+                "user": user["id"],
+                "version": 2,
+                "write_enabled": True,
+                "description": "Disposable permission fixture",
+            },
+        )
+        client = NetBox(URL, "nbt_" + token["key"] + "." + token["token"])
+        assert client.request("GET", "dcim/sites/")["status"] == 403
+        group = make("users/groups/", {"name": name})
+        make(
+            "users/permissions/",
+            {
+                "name": name,
+                "actions": ["view", "add", "change", "delete"],
+                "object_types": ["dcim.site"],
+                "groups": [group["id"]],
+                "constraints": {"slug__startswith": name},
+            },
+        )
+        assert (
+            service.api.request("PATCH", f"users/users/{user['id']}/", {"groups": [group["id"]]})["status"]
+            == 200
+        )
+        assert client.get("dcim/sites/")["body"]["count"] == 0
+        site = client.request("POST", "dcim/sites/", {"name": name, "slug": name})
+        assert site["status"] == 201, site
+        created.append(("dcim/sites/", site["body"]["id"]))
+        denied = client.request("POST", "dcim/sites/", {"name": "outside-" + name, "slug": "outside-" + name})
+        assert denied["status"] == 403, denied
+        assert service.api.get("dcim/sites/?slug=outside-" + name)["body"]["count"] == 0
+        assert client.get("dcim/sites/")["body"]["count"] == 1
+        assert service.api.request("PATCH", f"users/users/{user['id']}/", {"groups": []})["status"] == 200
+        assert client.request("GET", "dcim/sites/")["status"] == 403
+    finally:
+        for resource, pk in reversed(created):
+            assert service.api.request("DELETE", resource + str(pk) + "/")["status"] in {204, 404}

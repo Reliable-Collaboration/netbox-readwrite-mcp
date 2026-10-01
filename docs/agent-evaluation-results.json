@@ -2159,5 +2159,278 @@
       "source_commit": "2dbc6a8c6432ea85eddea83aeaa8ea92c966fa36",
       "scope": "Bulk workflow only; does not qualify all native model forms or full website parity. Final independent state oracle passed; no immediate GET between stale rename rejection and the subsequent bulk edit."
     }
+  ],
+  "feedback_runs": [
+    {
+      "harness_sha256": {
+        "scripts/agent_eval.py": "8da97f75ebcfacb0bb16c8eb166d0c3634944fbecff6f55986ad097d4217b242",
+        "scripts/agent_gateway.py": "6ac8ff3815aa67f30d8b8b1442eda878c9a5c015670e371e3f2353c59bf7768b"
+      },
+      "instructions_sha256": "c5520efe15b57aa0ba62fbcd04941d48f6648dff5f500767273ebb95f234a8bd",
+      "source_sha256": {
+        "companion/netbox_agent_api/__init__.py": "9718c842c0af90108bfaf569496791b264c2cca5bb9349a9eafd31394c1b55e2",
+        "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "companion/netbox_agent_api/api/account.py": "51d86801d7aba8403c84f7d025eed1b9e8ba4b70f38b1e4b67ba463956f75f7f",
+        "companion/netbox_agent_api/api/administration.py": "7c2a60d87a06fc8172107087d2594ec307bc314a3b492ac503092fc9832a4883",
+        "companion/netbox_agent_api/api/batch_actions.py": "ba198506b46fbf48197cff52d65836c9f1d900a69d4716d841e3261451e95084",
+        "companion/netbox_agent_api/api/bulk_edit.py": "6f70d4f100e3667cfb71db2e1614e3aa5fa9539f1b4fd79200d4bb4e9684fb74",
+        "companion/netbox_agent_api/api/chassis.py": "2bd57ac01cf28905639894c6f48ff4af279f99884d7d7efc95f273bc1388a44d",
+        "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+        "companion/netbox_agent_api/api/dashboard.py": "34ee81112d046d6b0d05181cc1070fb88157aa1214568ef09330886272983981",
+        "companion/netbox_agent_api/api/deletion.py": "1cc5059cbecc6a8a54cdce9cae80391c03076b222e16faab6b84f4c9f9a9d832",
+        "companion/netbox_agent_api/api/exports.py": "a77d0a7eb062188632e36161adadc24a8870fbc041eac3a512b44e100723f1c8",
+        "companion/netbox_agent_api/api/imports.py": "257b2679dee5d8dbd34a103ee0013263ba15e1b854918dc0355032c8c4ac8d7f",
+        "companion/netbox_agent_api/api/media.py": "d8be8efe1063920c1447fd795288ee60d5a1cd5749159da821cff36d647ab71e",
+        "companion/netbox_agent_api/api/patterns.py": "a7c17d390e0669d726c10496d2a86e0e1cb4fccff32cb97212df29d8cf6b3bbc",
+        "companion/netbox_agent_api/api/rename.py": "2ed08aa8af26d611155f2f658c9c7406cf5b794a245c85175f9fcf388f8415ba",
+        "companion/netbox_agent_api/api/scripts.py": "e0f7e63c85b41ad6ffc0cdbf3f29bb62125ae45de8486a888fc4643fe945a9c2",
+        "companion/netbox_agent_api/api/urls.py": "0bd2d7689c53b9575d75886b8a70fc2aec9d69c530ac23566d8da31d147afb7e",
+        "companion/netbox_agent_api/api/utilities.py": "08706c789327f81db634a22d662edfcc5e9bdbe9cec47a5364812b0a36b4d745",
+        "companion/netbox_agent_api/api/views.py": "510501024ab1db7feaa623c59550c535b7f2303b68065d0e80bfe8cfb034c366",
+        "src/netbox_readwrite_mcp/__init__.py": "cad430435741be9f74ef01978773af3e8d97be9ee74aae954630a042153d4e4b",
+        "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+        "src/netbox_readwrite_mcp/api.py": "71de09e364692bde02d0bbb33092b6f12266928fd53f10f83c7ab3bdcfeaa38d",
+        "src/netbox_readwrite_mcp/catalog.py": "dd3fec35994414b4b28fa633024476a371c07a8debd12bc47259422d040f0851",
+        "src/netbox_readwrite_mcp/compatibility.py": "4c6f8b708fa8d0a7114e7c002682f06bd1c34878ae490aeb1c658bcad0bc6ef7",
+        "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+        "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+        "src/netbox_readwrite_mcp/feedback.py": "d3c1accc0ae4f45cce2e2e0ef298f1c640f6384eb2e8d8877fde233c4d386da7",
+        "src/netbox_readwrite_mcp/http_server.py": "f9b1bc2fe6e17e6c42e1b1d0650caef41cc2d3225a000e97345eeecd91246904",
+        "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+        "src/netbox_readwrite_mcp/recovery.py": "a786c7077cb8344deb64ceff9e285e6cea2c236977a2275610c6557235520c0d",
+        "src/netbox_readwrite_mcp/server.py": "dc45ff6989cd45bfe2f7d34c1b6dbf1cc4bcbd80fb1fafcfa3f74a9a7f23188c",
+        "src/netbox_readwrite_mcp/service.py": "4620c2d0624c786cb2d87562221614cc0a1743908f5c8cfd25c161c89f1254ff",
+        "src/netbox_readwrite_mcp/store.py": "87776573cd99fb23282e2ba7ee4fc3b8259a0f80a2e9aa91c4780bad764956ab",
+        "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+        "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+        "src/netbox_readwrite_mcp/workspace.py": "347d3de7b94bd69b5fbd8d6bcb96c67079a2be050765d39ad3610dd482e00771"
+      },
+      "model": "zai-org/GLM-5.3-Flash",
+      "scenario": "feedback",
+      "run": "c3c05bcd4a",
+      "netbox": "4.7.2",
+      "phases": [
+        {
+          "name": "feedback-publish",
+          "interruption": null,
+          "llm_activity_cumulative": {
+            "requests": 12,
+            "response_bytes": 86136,
+            "network_chunks": 384,
+            "content_chunks": 165,
+            "finished_choices": 12,
+            "finished_requests": 12,
+            "transport_errors": 0,
+            "reasoning_content_chunks": 74,
+            "tool_calls_chunks": 98,
+            "active_requests": [],
+            "last_network_age_seconds": 2.5,
+            "last_generation_age_seconds": 2.5
+          },
+          "seconds": 67.65,
+          "checks": {
+            "published": false,
+            "one_durable_report": true,
+            "native_rejection": true,
+            "failed_receipt": true,
+            "issue_readable": false,
+            "no_unresolved_netbox_operations": true,
+            "preexisting_inventory_unchanged": true,
+            "client_exit_zero": true,
+            "used_mcp": true,
+            "no_client_error": true
+          },
+          "passed": false,
+          "tool_calls": {
+            "begin_task": 1,
+            "get_schema": 1,
+            "create_object": 1,
+            "get_objects": 1,
+            "get_task": 1
+          },
+          "tool_errors": 0,
+          "tool_states": {
+            "failed": 1
+          },
+          "truncated_tool_outputs": 0,
+          "tokens": {
+            "total": 102545,
+            "input": 55177,
+            "output": 1010,
+            "reasoning": 150
+          }
+        }
+      ],
+      "opencode": "1.18.33",
+      "limits": {
+        "phase_seconds": 14400,
+        "idle_seconds": 0,
+        "agent_steps": 160
+      },
+      "feedback_issue": null,
+      "passed": false,
+      "source_commit": "f4acc609655cb3defb0e6d954f51b9cf0f420c8d",
+      "scope": "Structured issue feedback only. The first run failed because client XDG isolation hid gh configuration; the corrected run published, replayed, read a maintainer reply, reported its verification code and closed issue #3. This does not qualify arbitrary free-text publication or every NetBox workflow."
+    },
+    {
+      "harness_sha256": {
+        "scripts/agent_eval.py": "20773121b86106308931eaeab11116d77966858af5bebd20e2a871f2a3f2a26c",
+        "scripts/agent_gateway.py": "6ac8ff3815aa67f30d8b8b1442eda878c9a5c015670e371e3f2353c59bf7768b"
+      },
+      "instructions_sha256": "816fd50555633873c46166dbaa5f12cd38d984ff01e6b4a28f1c302379d9c64e",
+      "source_sha256": {
+        "companion/netbox_agent_api/__init__.py": "9718c842c0af90108bfaf569496791b264c2cca5bb9349a9eafd31394c1b55e2",
+        "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "companion/netbox_agent_api/api/account.py": "51d86801d7aba8403c84f7d025eed1b9e8ba4b70f38b1e4b67ba463956f75f7f",
+        "companion/netbox_agent_api/api/administration.py": "7c2a60d87a06fc8172107087d2594ec307bc314a3b492ac503092fc9832a4883",
+        "companion/netbox_agent_api/api/batch_actions.py": "ba198506b46fbf48197cff52d65836c9f1d900a69d4716d841e3261451e95084",
+        "companion/netbox_agent_api/api/bulk_edit.py": "6f70d4f100e3667cfb71db2e1614e3aa5fa9539f1b4fd79200d4bb4e9684fb74",
+        "companion/netbox_agent_api/api/chassis.py": "2bd57ac01cf28905639894c6f48ff4af279f99884d7d7efc95f273bc1388a44d",
+        "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+        "companion/netbox_agent_api/api/connections.py": "d6351a2eb91e935deb3d3e5a2390de4a44aecabd65f407f2d21bf0642ddbd800",
+        "companion/netbox_agent_api/api/dashboard.py": "34ee81112d046d6b0d05181cc1070fb88157aa1214568ef09330886272983981",
+        "companion/netbox_agent_api/api/deletion.py": "1cc5059cbecc6a8a54cdce9cae80391c03076b222e16faab6b84f4c9f9a9d832",
+        "companion/netbox_agent_api/api/exports.py": "a77d0a7eb062188632e36161adadc24a8870fbc041eac3a512b44e100723f1c8",
+        "companion/netbox_agent_api/api/imports.py": "257b2679dee5d8dbd34a103ee0013263ba15e1b854918dc0355032c8c4ac8d7f",
+        "companion/netbox_agent_api/api/media.py": "d8be8efe1063920c1447fd795288ee60d5a1cd5749159da821cff36d647ab71e",
+        "companion/netbox_agent_api/api/patterns.py": "a58f092c50979b8d8e71b78ca9599f86cd14e1efc26db4cf4d448156f568034d",
+        "companion/netbox_agent_api/api/rename.py": "2ed08aa8af26d611155f2f658c9c7406cf5b794a245c85175f9fcf388f8415ba",
+        "companion/netbox_agent_api/api/scripts.py": "e0f7e63c85b41ad6ffc0cdbf3f29bb62125ae45de8486a888fc4643fe945a9c2",
+        "companion/netbox_agent_api/api/urls.py": "7e65fbcd94d9527baa8a427d977a4b0237e0de4d9809ff82ce359352b7d9788e",
+        "companion/netbox_agent_api/api/utilities.py": "08706c789327f81db634a22d662edfcc5e9bdbe9cec47a5364812b0a36b4d745",
+        "companion/netbox_agent_api/api/views.py": "0f147ff5a3fa032284ffc9c51a38f622f237192242e2393239e0ef226a990fb3",
+        "src/netbox_readwrite_mcp/__init__.py": "cad430435741be9f74ef01978773af3e8d97be9ee74aae954630a042153d4e4b",
+        "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+        "src/netbox_readwrite_mcp/api.py": "71de09e364692bde02d0bbb33092b6f12266928fd53f10f83c7ab3bdcfeaa38d",
+        "src/netbox_readwrite_mcp/catalog.py": "dd3fec35994414b4b28fa633024476a371c07a8debd12bc47259422d040f0851",
+        "src/netbox_readwrite_mcp/compatibility.py": "4c6f8b708fa8d0a7114e7c002682f06bd1c34878ae490aeb1c658bcad0bc6ef7",
+        "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+        "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+        "src/netbox_readwrite_mcp/feedback.py": "45a8d9a440b73df98d0127601550fd030420ff380f042baf30d0afa90d0d91f5",
+        "src/netbox_readwrite_mcp/http_server.py": "f9b1bc2fe6e17e6c42e1b1d0650caef41cc2d3225a000e97345eeecd91246904",
+        "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+        "src/netbox_readwrite_mcp/recovery.py": "a786c7077cb8344deb64ceff9e285e6cea2c236977a2275610c6557235520c0d",
+        "src/netbox_readwrite_mcp/server.py": "dc45ff6989cd45bfe2f7d34c1b6dbf1cc4bcbd80fb1fafcfa3f74a9a7f23188c",
+        "src/netbox_readwrite_mcp/service.py": "4620c2d0624c786cb2d87562221614cc0a1743908f5c8cfd25c161c89f1254ff",
+        "src/netbox_readwrite_mcp/store.py": "87776573cd99fb23282e2ba7ee4fc3b8259a0f80a2e9aa91c4780bad764956ab",
+        "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+        "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+        "src/netbox_readwrite_mcp/workspace.py": "347d3de7b94bd69b5fbd8d6bcb96c67079a2be050765d39ad3610dd482e00771"
+      },
+      "model": "zai-org/GLM-5.3-Flash",
+      "scenario": "feedback",
+      "run": "9afd103efa",
+      "netbox": "4.7.2",
+      "phases": [
+        {
+          "name": "feedback-publish",
+          "interruption": null,
+          "llm_activity_cumulative": {
+            "requests": 8,
+            "response_bytes": 42138,
+            "network_chunks": 188,
+            "content_chunks": 93,
+            "finished_choices": 8,
+            "finished_requests": 8,
+            "transport_errors": 0,
+            "tool_calls_chunks": 63,
+            "active_requests": [],
+            "last_network_age_seconds": 3.4,
+            "last_generation_age_seconds": 3.4
+          },
+          "seconds": 42.14,
+          "checks": {
+            "published": true,
+            "one_durable_report": true,
+            "native_rejection": true,
+            "failed_receipt": true,
+            "issue_readable": true,
+            "no_unresolved_netbox_operations": true,
+            "preexisting_inventory_unchanged": true,
+            "client_exit_zero": true,
+            "used_mcp": true,
+            "no_client_error": true
+          },
+          "passed": true,
+          "tool_calls": {
+            "begin_task": 1,
+            "create_object": 1,
+            "get_objects": 1,
+            "get_task": 1
+          },
+          "feedback_tool_calls": {
+            "feedback_report_issue": 2,
+            "feedback_read_report": 1
+          },
+          "tool_errors": 0,
+          "tool_states": {
+            "failed": 1
+          },
+          "truncated_tool_outputs": 0,
+          "tokens": {
+            "total": 57518,
+            "input": 27666,
+            "output": 668,
+            "reasoning": 0
+          }
+        },
+        {
+          "name": "feedback-read",
+          "interruption": null,
+          "llm_activity_cumulative": {
+            "requests": 11,
+            "response_bytes": 60857,
+            "network_chunks": 281,
+            "content_chunks": 162,
+            "finished_choices": 11,
+            "finished_requests": 11,
+            "transport_errors": 0,
+            "tool_calls_chunks": 75,
+            "active_requests": [],
+            "last_network_age_seconds": 3.0,
+            "last_generation_age_seconds": 3.3
+          },
+          "seconds": 16.61,
+          "checks": {
+            "maintainer_reply_observed": true,
+            "reply_code_in_final_answer": true,
+            "feedback_read_called": true,
+            "netbox_receipt_checked": true,
+            "preexisting_inventory_unchanged": true,
+            "client_exit_zero": true,
+            "used_mcp": true,
+            "no_client_error": true
+          },
+          "passed": true,
+          "tool_calls": {
+            "get_operation": 1
+          },
+          "feedback_tool_calls": {
+            "feedback_read_report": 1
+          },
+          "tool_errors": 0,
+          "tool_states": {
+            "failed": 1
+          },
+          "truncated_tool_outputs": 0,
+          "tokens": {
+            "total": 15610,
+            "input": 12926,
+            "output": 252,
+            "reasoning": 0
+          }
+        }
+      ],
+      "opencode": "1.18.33",
+      "limits": {
+        "phase_seconds": 14400,
+        "idle_seconds": 0,
+        "agent_steps": 160
+      },
+      "feedback_issue": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/issues/3",
+      "passed": true,
+      "source_commit": "bbd6886be96b04d1de19f09e67e9a8c46cfc2626",
+      "scope": "Structured issue feedback only. The first run failed because client XDG isolation hid gh configuration; the corrected run published, replayed, read a maintainer reply, reported its verification code and closed issue #3. This does not qualify arbitrary free-text publication or every NetBox workflow."
+    }
   ]
 }

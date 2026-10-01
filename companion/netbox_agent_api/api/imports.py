@@ -107,7 +107,7 @@ class ImportWrite(StrictSerializer):
         help_text="Native CSV, JSON or YAML document; relationships use the import schema's lookups.",
     )
     format = serializers.ChoiceField(choices=["auto", "csv", "json", "yaml"], default="auto")
-    csv_delimiter = serializers.ChoiceField(choices=["auto", ",", ";", "|", "\\t"], default="auto")
+    csv_delimiter = serializers.ChoiceField(choices=["auto", ",", ";", "|", "\t"], default="auto")
     changelog_message = serializers.CharField(required=False, allow_blank=True, default="")
 
 
@@ -176,6 +176,38 @@ class ImportView(APIView):
                 value = row["id"]
                 if isinstance(value, bool) or not str(value).isdigit() or int(value) < 1:
                     raise ValidationError({"data": f"Record {index}: id must be a positive integer."})
+
+        # Native nested imports do not restrict related ModelChoice fields or
+        # enforce related-object add constraints. Apply both without replacing
+        # native parent injection, form validation or save hooks.
+        def scoped_related_form(native):
+            class ScopedRelatedForm(native):
+                def __init__(self, *args, **kwargs):
+                    super().__init__(*args, **kwargs)
+                    restrict_form_fields(self, request.user)
+
+                def save(self, *args, **kwargs):
+                    self.instance._changelog_message = payload.validated_data["changelog_message"]
+                    obj = super().save(*args, **kwargs)
+                    if not type(obj).objects.restrict(request.user, "add").filter(pk=obj.pk).exists():
+                        raise PermissionsViolation()
+                    return obj
+
+            return ScopedRelatedForm
+
+        view.related_object_forms = {
+            name: scoped_related_form(cls) for name, cls in view.related_object_forms.items()
+        }
+        for index, row in enumerate(records, 1):
+            for name, cls in view.related_object_forms.items():
+                if name not in row:
+                    continue
+                if not isinstance(row[name], list) or any(not isinstance(child, dict) for child in row[name]):
+                    raise ValidationError({"data": f"Record {index}: {name} must be a list of objects."})
+                fields = set(cls().fields)
+                for child in row[name]:
+                    if set(child) - fields:
+                        raise ValidationError({"data": f"Record {index}: {name} contains unknown fields."})
         try:
             with transaction.atomic(using=router.db_for_write(view.queryset.model)):
                 objects = view.create_and_update_objects(form, request)

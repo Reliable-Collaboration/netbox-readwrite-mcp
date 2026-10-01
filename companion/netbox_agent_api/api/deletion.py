@@ -28,39 +28,60 @@ MODELS = {
 
 
 class DeleteWrite(StrictSerializer):
-    id = serializers.IntegerField(min_value=1)
+    id = serializers.IntegerField(min_value=1, required=False)
+    ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1), allow_empty=False, required=False
+    )
     apply = serializers.BooleanField(default=False)
     expected = serializers.CharField(required=False)
     changelog_message = serializers.CharField(default="", allow_blank=True)
 
 
-def deletion_preview(obj, using):
-    """Include dependent state, so new cascade members invalidate the preview."""
+def deletion_preview(objects, using):
+    """Include cascades, SET_NULL dependents and source bytes in the guard."""
     collector = Collector(using=using)
-    collector.collect([obj])
+    collector.collect(objects)
     rows = {}
-    for model, objects in collector.data.items():
-        rows.setdefault(model._meta.label_lower, []).extend(
-            serialize_object(item, extra={"pk": item.pk}) for item in objects
-        )
+
+    def capture(model, selected):
+        pks = sorted({obj.pk for obj in selected})
+        return [
+            serialize_object(obj, extra={"pk": obj.pk})
+            for obj in model._base_manager.using(using).select_for_update().filter(pk__in=pks).order_by("pk")
+        ]
+
+    for model, selected in collector.data.items():
+        rows.setdefault(model._meta.label_lower, []).extend(capture(model, selected))
     for qs in collector.fast_deletes:
-        rows.setdefault(qs.model._meta.label_lower, []).extend(
-            serialize_object(item, extra={"pk": item.pk}) for item in qs
-        )
+        rows.setdefault(qs.model._meta.label_lower, []).extend(capture(qs.model, qs))
+    updates = {}
+    for (field, value), batches in collector.field_updates.items():
+        selected = [obj for batch in batches for obj in batch]
+        updates[field.model._meta.label_lower + "." + field.name] = {
+            "value": value,
+            "objects": capture(field.model, selected),
+        }
     for values in rows.values():
         values.sort(key=lambda item: json.dumps(item, sort_keys=True, default=str))
     external = {}
-    if obj._meta.label_lower == "extras.scriptmodule":
-        digest = hashlib.sha256()
-        try:
-            with obj.storage.open(obj.full_path, "rb") as source:
-                while block := source.read(65536):
-                    digest.update(block)
-            external["source_sha256"] = digest.hexdigest()
-        except FileNotFoundError:
-            external["source_sha256"] = None
-    payload = json.dumps({"objects": rows, "external": external}, sort_keys=True, default=str).encode()
-    return hashlib.sha256(payload).hexdigest(), {name: len(values) for name, values in rows.items()}
+    for obj in objects:
+        if obj._meta.label_lower == "extras.scriptmodule":
+            digest = hashlib.sha256()
+            try:
+                with obj.storage.open(obj.full_path, "rb") as source:
+                    while block := source.read(65536):
+                        digest.update(block)
+                external[str(obj.pk)] = digest.hexdigest()
+            except FileNotFoundError:
+                external[str(obj.pk)] = None
+    payload = json.dumps(
+        {"objects": rows, "updates": updates, "external": external}, sort_keys=True, default=str
+    ).encode()
+    return (
+        hashlib.sha256(payload).hexdigest(),
+        {name: len(values) for name, values in rows.items()},
+        {name: len(value["objects"]) for name, value in updates.items()},
+    )
 
 
 class DeleteCatalogView(APIView):
@@ -85,7 +106,7 @@ class DeleteCatalogView(APIView):
 
 
 class DeleteView(APIView):
-    """Preview and apply one guarded native deletion."""
+    """Preview and apply guarded native deletion, including stock bulk sets."""
 
     permission_classes = [IsAuthenticated, TokenWritePermission]
 
@@ -98,7 +119,7 @@ class DeleteView(APIView):
             {
                 "model": model,
                 "effects": MODELS[model],
-                "instructions": "POST id to preview; repeat with apply=true and expected. One object per request. A lost response requires reconciliation, never blind replay.",
+                "instructions": "POST id or ids to preview; repeat with apply=true and expected. Database changes share a transaction; external queue/filesystem effects do not. A lost response requires reconciliation, never blind replay.",
             }
         )
 
@@ -110,27 +131,35 @@ class DeleteView(APIView):
         body = DeleteWrite(data=request.data)
         body.is_valid(raise_exception=True)
         data = body.validated_data
+        if ("id" in data) == ("ids" in data):
+            raise ValidationError("Supply exactly one of id or ids.")
+        ids = data.get("ids", [data.get("id")])
+        if len(set(ids)) != len(ids):
+            raise ValidationError("Duplicate IDs are not allowed.")
         using = router.db_for_write(view.queryset.model)
         try:
             with transaction.atomic(using=using):
-                obj = view.queryset.select_for_update().filter(pk=data["id"]).first()
-                if obj is None:
-                    raise NotFound("Object is missing or inaccessible.")
-                expected, cascade = deletion_preview(obj, using)
+                objects = list(view.queryset.select_for_update().filter(pk__in=ids).order_by("pk"))
+                if len(objects) != len(ids):
+                    raise NotFound("One or more objects are missing or inaccessible.")
+                expected, cascade, updates = deletion_preview(objects, using)
                 if data["apply"]:
                     if data.get("expected") != expected:
                         raise Conflict("Object or dependent state changed. Preview again.")
-                    if hasattr(obj, "snapshot"):
-                        obj.snapshot()
-                    obj._changelog_message = data["changelog_message"]
-                    obj.delete()
+                    for obj in objects:
+                        if hasattr(obj, "snapshot"):
+                            obj.snapshot()
+                        obj._changelog_message = data["changelog_message"]
+                        obj.delete()
                 return Response(
                     {
                         "model": model,
-                        "id": data["id"],
+                        "id": data.get("id"),
+                        "ids": ids,
                         "applied": data["apply"],
                         "expected": expected,
                         "cascade": cascade,
+                        "updated_dependents": updates,
                         "effects": MODELS[model],
                     }
                 )

@@ -322,3 +322,30 @@ re-verified unchanged should not be read as proof of that particular read order.
 No human completed or corrected the task. This qualifies the scenario, not every
 native form combination or full website parity. Exact hashes are retained in
 [the results](agent-evaluation-results.json).
+
+## Consuming-agent GitHub feedback
+
+GLM-5.3-Flash run `9afd103efa`, on source commit
+`bbd6886be96b04d1de19f09e67e9a8c46cfc2626`, passed both feedback phases through
+OpenCode, LiteLLM, DeepInfra, the inventory MCP and the separate feedback MCP.
+Publication/replay/read took 42.14 seconds; reading and reporting the maintainer's
+response took 16.61 seconds. There were five NetBox tool calls and four feedback
+tool calls, no tool errors, no truncated outputs and no unrelated inventory changes.
+
+The agent deliberately caused a native site-validation rejection, published a
+structured qualification report, repeated the exact report key, and received the
+same issue receipt. The harness posted a maintainer reply through the operator's
+GitHub login. A fresh agent session read that reply, checked the NetBox receipt,
+and included the independently generated verification code in its answer.
+[Issue #3](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/issues/3)
+was closed after the independent oracle passed. Publication and maintainer actions
+used the same operator GitHub account; this is a functional workflow test, not
+qualification of separate GitHub account permissions.
+
+The preceding run `c3c05bcd4a` failed: OpenCode isolated `XDG_CONFIG_HOME`, so the
+feedback process could not find the host's GitHub configuration. Its outbox
+correctly stayed uncertain and suppressed repeated publication; an operator marker
+search found no issue. Explicit host-side `--gh-config-dir` fixed the connection.
+Both reports and exact source hashes are retained in the machine-readable results.
+The bridge publishes enum fields and minimal receipt metadata only. Reviewed
+free-text reproduction remains an operator/connector workflow.

@@ -120,3 +120,39 @@ for module in ScriptModule.objects.filter(file_root='scripts', file_path={filena
     module.delete()
 Path('/opt/netbox/netbox/scripts', {filename!r}).unlink(missing_ok=True)
 """)
+
+
+def test_bulk_datafile_delete_guards_new_linked_dependents(data_source):  # noqa: F811
+    from tests.integration.test_batch_actions import create
+
+    service, prefix, source_id, file_id, directory = data_source
+    shell(f"""
+from pathlib import Path
+Path({directory!r}, 'second.json').write_text('{{"description":"second"}}')
+""")
+    sync_source(service, source_id)
+    files = service.api.get(f"core/data-files/?source_id={source_id}")["body"]["results"]
+    ids = [row["id"] for row in files]
+    assert len(ids) == 2
+    path = ROOT + "core.datafile/"
+    body = {"ids": ids}
+    preview = service.api.request("POST", path, body)
+    assert preview["status"] == 200, preview
+    linked = create(
+        service, "extras/config-contexts/", {"name": prefix, "data_file": ids[0], "data": {"initial": True}}
+    )
+    stale = service.api.request(
+        "POST", path, {**body, "apply": True, "expected": preview["body"]["expected"]}
+    )
+    assert stale["status"] == 409, stale
+    current = service.api.request("POST", path, body)
+    assert current["status"] == 200, current
+    assert current["body"]["updated_dependents"]["extras.configcontext.data_file"] == 1
+    assert service.api.request("POST", path, {"ids": ids + ids})["status"] == 400
+    assert service.api.request("POST", path, {"ids": ids, "id": ids[0]})["status"] == 400
+    result = service.api.request(
+        "POST", path, {**body, "apply": True, "expected": current["body"]["expected"]}
+    )
+    assert result["status"] == 200, result
+    assert service.api.get(f"core/data-files/?source_id={source_id}")["body"]["count"] == 0
+    assert service.api.get(f"extras/config-contexts/{linked['id']}/")["body"]["data_file"] is None

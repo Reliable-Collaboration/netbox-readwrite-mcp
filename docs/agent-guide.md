@@ -197,7 +197,7 @@ These endpoints use Community forms/models and permissions, without an HTML sess
   and dismiss-unread. Bookmarks, subscriptions and own tokens use native REST.
 - `search/`, `render-markdown/`, `system/`, `database-schema/` and `queue-tasks/`:
   native search/preview and permission-scoped administrative information.
-- `media/` and `exports/`: authenticated base64 downloads, native CSV/table/YAML
+- `media/` and `exports/`: authenticated base64 downloads of image fields and DataFile content, native CSV/table/YAML
   and saved-template exports. Continue with `next_offset` and the initial hash;
   restart a download on 412. Read-only exports support GET with `export=csv`.
 - `bulk-disconnect/` and `bulk-sync/`: preview selected IDs, then apply with the
@@ -207,7 +207,8 @@ These endpoints use Community forms/models and permissions, without an HTML sess
   every current member to atomically exchange positions. Native device CRUD
   adds/removes members; native interface CRUD selects a primary MAC address.
 - `native-delete/`: guarded deletion of data files, job records and script
-  modules omitted from native REST deletion. Preview the cascade first. Queue
+  modules omitted from native REST deletion. Supply either `id` or `ids`, preview
+  the cascade and dependent field updates, then apply with the returned guard. Queue
   cancellation and script-file deletion are not database-transactional. Reconcile
   an uncertain response; never infer rollback or blindly repeat it.
 - `scripts/{id}/` and `scripts/{id}/source/`: native variable fields and bounded

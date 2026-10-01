@@ -8,6 +8,9 @@ import uuid
 
 import pytest
 
+from tests.integration.test_patterns import parents  # noqa: F401
+from tests.integration.test_batch_actions import data_source  # noqa: F401
+
 from tests.integration.test_administration import queue_admin  # noqa: F401
 from tests.integration.test_imports import importer  # noqa: F401
 from tests.integration.test_personal import people  # noqa: F401
@@ -135,3 +138,46 @@ def test_media_native_upload_chunked_download_and_permissions(importer, people):
         assert service.api.request("GET", path.replace("/image/", "/password/"))["status"] == 404
     finally:
         service.api.request("DELETE", f"extras/image-attachments/{pk}/")
+
+
+@pytest.mark.parametrize("field", ["front_image", "rear_image"])
+def test_device_type_image_upload_download(parents, field):  # noqa: F811
+    service, prefix, ids = parents
+    pk = ids["device_type"]
+    result = service.api.request(
+        "PATCH",
+        f"dcim/device-types/{pk}/",
+        {},
+        files=[
+            {
+                "field": field,
+                "filename": prefix + ".png",
+                "base64": base64.b64encode(PNG).decode(),
+                "content_type": "image/png",
+            }
+        ],
+    )
+    assert result["status"] == 200, result
+    content = service.api.get(ROOT + f"media/dcim.devicetype/{pk}/{field}/")["body"]
+    assert base64.b64decode(content["base64"]) == PNG
+    assert content["sha256"] == hashlib.sha256(PNG).hexdigest()
+
+
+def test_native_datafile_content_binary_chunks_and_permissions(data_source, people):  # noqa: F811
+    from tests.integration.test_batch_actions import sync_source
+
+    service, prefix, source_id, file_id, directory = data_source
+    raw = b"\x00\xffbinary\nqualification\x00"
+    shell(f"""
+from pathlib import Path
+Path({directory!r}, 'fixture.bin').write_bytes({raw!r})
+""")
+    sync_source(service, source_id)
+    files = service.api.get(f"core/data-files/?source_id={source_id}")["body"]["results"]
+    pk = next(row["id"] for row in files if row["path"] == "fixture.bin")
+    path = ROOT + f"media/core.datafile/{pk}/data/"
+    first = service.api.get(path + "?length=5")["body"]
+    last = service.api.get(path + f"?offset=5&expected_sha256={first['sha256']}")["body"]
+    assert base64.b64decode(first["base64"]) + base64.b64decode(last["base64"]) == raw
+    assert first["sha256"] == hashlib.sha256(raw).hexdigest()
+    assert people[0][0].api.request("GET", path)["status"] == 404

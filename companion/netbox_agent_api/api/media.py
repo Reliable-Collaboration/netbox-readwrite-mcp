@@ -1,7 +1,10 @@
-"""Permission-checked, bounded byte reads from stock Community image fields."""
+"""Permission-checked, bounded byte reads from stock Community file and image fields."""
 
 import base64
 import hashlib
+from io import BytesIO
+
+from core.models import DataFile
 
 from dcim.models import DeviceType
 from django.shortcuts import get_object_or_404
@@ -16,6 +19,7 @@ from rest_framework.views import APIView
 from .configuration import StrictSerializer
 
 FIELDS = {
+    "core.datafile": (DataFile, {"data"}),
     "dcim.devicetype": (DeviceType, {"front_image", "rear_image"}),
     "extras.imageattachment": (ImageAttachment, {"image"}),
 }
@@ -28,7 +32,7 @@ class MediaQuery(StrictSerializer):
 
 
 class MediaCatalogView(APIView):
-    """List supported native image fields; object access is checked on download."""
+    """List supported native file and image fields; object access is checked on download."""
 
     permission_classes = [IsAuthenticated]
 
@@ -44,7 +48,7 @@ class MediaCatalogView(APIView):
 
 
 class MediaView(APIView):
-    """Download native image bytes without accepting arbitrary filesystem paths."""
+    """Download native file and image bytes without accepting arbitrary filesystem paths."""
 
     permission_classes = [IsAuthenticated]
 
@@ -61,18 +65,27 @@ class MediaView(APIView):
             raise NotFound()
         cls = FIELDS[model][0]
         instance = get_object_or_404(cls.objects.restrict(request.user, "view"), pk=pk)
-        file = getattr(instance, field)
-        if not file:
-            raise NotFound()
         query = MediaQuery(data=request.query_params)
         query.is_valid(raise_exception=True)
+        if model == "core.datafile":
+            stream = BytesIO(bytes(instance.data))
+            filename = instance.path.rsplit("/", 1)[-1]
+        else:
+            file = getattr(instance, field)
+            if not file:
+                raise NotFound()
+            try:
+                stream = file.open("rb")
+            except FileNotFoundError as exc:
+                raise NotFound() from exc
+            filename = file.name.rsplit("/", 1)[-1]
         start = query.validated_data["offset"]
         end = start + query.validated_data["length"]
         digest = hashlib.sha256()
         offset = 0
         chunks = []
         try:
-            with file.open("rb") as stream:
+            with stream:
                 while block := stream.read(65536):
                     digest.update(block)
                     if offset < end and offset + len(block) > start:
@@ -82,13 +95,13 @@ class MediaView(APIView):
             raise NotFound() from exc
         actual = digest.hexdigest()
         if query.validated_data.get("expected_sha256", actual) != actual:
-            return Response({"detail": "Image content changed; restart the download."}, status=412)
+            return Response({"detail": "File content changed; restart the download."}, status=412)
         if start > offset:
             return Response({"detail": "Offset exceeds file size."}, status=416)
         data = b"".join(chunks)
         return Response(
             {
-                "filename": file.name.rsplit("/", 1)[-1],
+                "filename": filename,
                 "size": offset,
                 "sha256": actual,
                 "offset": start,
