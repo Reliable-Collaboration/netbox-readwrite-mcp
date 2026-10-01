@@ -31,6 +31,11 @@ python3 -m venv .venv
 python -m pip install -e '.[test,dev]'
 ```
 
+For full stock Community operation coverage, also install and enable the
+[companion plugin](companion/README.md) in NetBox and its worker. Give the consuming
+agent the [agent guide](docs/agent-guide.md); configure the optional
+[GitHub feedback MCP](docs/agent-issues.md) for issue publication and reply readback.
+
 Use a dedicated NetBox identity with the view/add/change/delete/run permissions
 needed for inventory work and full view access to native change history. Add
 `render_config` for device/VM configuration rendering and `sync` for synchronized

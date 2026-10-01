@@ -45,10 +45,11 @@ in [issue #1](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/iss
 
 ## Optional structured feedback MCP
 
-An operator can connect a separate feedback server to the same private journal:
+From this checkout, an operator can install the optional feedback dependencies
+and connect a separate feedback server to the same private journal:
 
 ```sh
-pip install 'netbox-readwrite-mcp[feedback]'
+python -m pip install -e '.[feedback]'
 python -m netbox_readwrite_mcp.feedback --journal /private/netbox.sqlite --outbox /private/feedback.sqlite --enable-publish
 ```
 

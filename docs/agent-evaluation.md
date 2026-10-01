@@ -1,5 +1,10 @@
 # Consuming-agent evaluation
 
+Current acceptance includes the strict combined Community workflow and the real
+GitHub feedback loop recorded below. Earlier sections preserve development runs
+and their limits at the time; [validation](validation.md) records the current
+deterministic qualification.
+
 This is an opt-in, paid-provider test, separate from deterministic integration tests.
 It runs OpenCode through a loopback LiteLLM proxy backed by DeepInfra, with the
 real MCP server connected to the disposable Podman NetBox 4.7.2 lab.
@@ -91,10 +96,10 @@ It still requested one truncated full action schema; named-action lookup address
 that observed case. Final-source results are recorded separately in
 [agent-evaluation-results.json](agent-evaluation-results.json).
 
-This evaluation does not cover every NetBox model, all web views, malicious prompt
+The original four-phase evaluation does not cover every NetBox model, all web views, malicious prompt
 injection campaigns, SSO/MFA, arbitrary third-party plugins, real discovery from
-network equipment, or autonomous GitHub issue submission by the LLM. The existing
-synthetic GitHub round trip tests the feedback plumbing separately. A realistic
+network equipment, or autonomous GitHub issue submission by the LLM. The later
+consuming-agent GitHub evaluation below qualifies that feedback workflow. A realistic
 physical inventory also requires the person or a discovery source to supply what
 is actually present; an agent must not invent hardware facts.
 
@@ -368,6 +373,11 @@ interface trace, guarded disconnect, atomic chassis swap, VM primary MAC, contac
 journal, own bookmark, search and exact two-device CSV export. Pre-existing
 inventory remained unchanged; there were no truncated outputs, unresolved
 operations or website calls. No human completed or corrected its task.
+
+Preservation checks compare pre-existing objects in 15 core inventory collections
+(DCIM, IPAM and virtualization). Scenario-specific assertions and receipt review
+cover the additional requested objects and actions. This is not a comparison of
+every table in the NetBox database.
 
 This was autonomous recovery, not flawless execution: three tool errors and
 eight definite HTTP 400 rejections preceded corrected requests. The journal ended
