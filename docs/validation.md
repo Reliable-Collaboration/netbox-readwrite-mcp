@@ -1,7 +1,42 @@
 # Validation record
 
+## Release installation and built-in guidance (0.4.1)
+
+The [v0.4.1 release](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.1)
+is built and published by [the gated release workflow](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36913025839)
+on exact source `42b714a`. It distributes this project's MCP application and
+companion plugin, not NetBox. The standalone application, wheels, checksums and
+plugin-only container bundle require no source checkout or local build.
+
+The release qualification passed **596 tests plus six subtests** (365 unit and
+231 real-NetBox integration tests), **91.93% MCP runtime coverage**, the Python 3.11–3.14 matrix, standalone MCP
+initialization/guidance checks, and loading the companion bundle on an unmodified
+upstream NetBox image. The container check verifies automatic enablement and route
+resolution; the full lifecycle suite uses the pinned development lab. Kubernetes
+and Helm instructions are deployment recipes, not a separately qualified operator.
+
+GLM run `d08a04442d` passed all **23 strict Community checks in 426.14 seconds**,
+using MCP-delivered guidance with no guide injected into its client prompt. It
+called `capabilities` and `get_guidance` itself. Its 54 tool calls included three
+tool errors and six definite rejected writes, corrected without human assistance;
+there were no output truncations or unresolved operations. Existing inventory
+preservation is scoped to the oracle's 15 core collections and additional scenario
+checks. Exact source/harness hashes and the narrative-status caveat are retained in
+[the agent report](release-agent-evaluation.json).
+
+The runtime and companion now accept stable **NetBox 4.7.x and later**; **4.7.2 is
+the integration-tested release**. `doctor` and discovery distinguish the connected
+version from tested versions. Later-version acceptance is not additional live
+qualification. Release details and JUnit evidence are in
+[release-validation.json](release-validation.json). Earlier parity evidence follows.
+
+All nine public assets were downloaded without authentication and their checksums
+verified. The 19 MCP and 22 companion Python modules in the published wheels
+match the release tag. The downloaded standalone application passed private
+configuration and live `doctor` checks.
+
 **Stock NetBox Community 4.7.2 operation parity is implemented and qualified.**
-The current qualification is version 0.3.0, dated 2026-10-01. It supports a
+The parity baseline below was qualified as version 0.3.0 on 2026-10-01. It supports a
 controlled consuming-agent handoff for small labs. It is not a production
 certification, a guarantee for every field combination, or universal automatic undo.
 

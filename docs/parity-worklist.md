@@ -8,7 +8,7 @@ CRUD verbs. Route classification is separate from execution evidence.
 The implementation covers the stock operation families through native REST or
 typed companion APIs. The table records deterministic qualification by family.
 The full suite and strict combined consuming-agent scenario have passed:
-585 tests plus 6 subtests, including 231 real-NetBox cases, and all 23 strict
+596 tests plus 6 subtests, including 231 real-NetBox cases, and all 23 strict
 GLM scenario checks. Exact revisions, results and limits are recorded in
 [validation](validation.md) and [agent evaluation](agent-evaluation.md).
 
