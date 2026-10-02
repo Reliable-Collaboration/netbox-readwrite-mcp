@@ -8,6 +8,7 @@ Each phase uses a fresh agent session; an independent REST oracle grades real st
 import argparse
 import hashlib
 from collections import Counter
+from contextlib import closing
 import json
 import os
 from pathlib import Path
@@ -58,7 +59,7 @@ def write_json(path, value):
 def tool_events(journal):
     if not journal.exists():
         return []
-    with sqlite3.connect(journal) as db:
+    with closing(sqlite3.connect(journal)) as db:
         return [
             json.loads(r[0])
             for r in db.execute("SELECT payload FROM events WHERE kind='tool_call' ORDER BY seq")
@@ -66,7 +67,7 @@ def tool_events(journal):
 
 
 def operation_states(journal):
-    with sqlite3.connect(journal) as db:
+    with closing(sqlite3.connect(journal)) as db:
         states = Counter()
         for table in ("operations", "resource_operations"):
             for state, count in db.execute(f"SELECT state, count(*) FROM {table} GROUP BY state"):
@@ -742,12 +743,11 @@ Use execute_action POST to companion exports/dcim.device/ with only your two dev
                     return {"published": False}
                 write_json(run / "feedback-receipt.json", receipt)
                 report["feedback_issue"] = receipt.get("url")
+                with closing(sqlite3.connect(run / "feedback.sqlite")) as db:
+                    report_count = db.execute("SELECT count(*) FROM reports").fetchone()[0]
                 return {
                     "published": receipt["state"] == "published",
-                    "one_durable_report": sqlite3.connect(run / "feedback.sqlite")
-                    .execute("SELECT count(*) FROM reports")
-                    .fetchone()[0]
-                    == 1,
+                    "one_durable_report": report_count == 1,
                     "native_rejection": receipt["diagnostic"]["operation"]["http_status"] == 400,
                     "failed_receipt": receipt["diagnostic"]["operation"]["state"] == "failed",
                     "issue_readable": issue.get("issue", {}).get("state") == "OPEN",

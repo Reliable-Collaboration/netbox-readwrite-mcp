@@ -69,7 +69,8 @@ def test_official_sdk_http_initialization_discovery_and_local_tools(http_mcp):
 def test_http_rejects_missing_credentials_and_cross_origin(http_mcp, headers, expected):
     with pytest.raises(HTTPError) as error:
         urlopen(Request(http_mcp, data=b"{}", headers=headers))
-    assert error.value.code == expected
+    with error.value:
+        assert error.value.code == expected
 
 
 def test_http_session_and_protocol_errors(http_mcp):
@@ -82,7 +83,8 @@ def test_http_session_and_protocol_errors(http_mcp):
 
     with pytest.raises(HTTPError) as exc:
         post({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
-    assert exc.value.code == 404
+    with exc.value:
+        assert exc.value.code == 404
     response = post(
         {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-11-25"}}
     )
@@ -93,7 +95,8 @@ def test_http_session_and_protocol_errors(http_mcp):
             {"jsonrpc": "2.0", "id": 2, "method": "ping"},
             {"Mcp-Session-Id": session, "MCP-Protocol-Version": "bad"},
         )
-    assert exc.value.code == 400
+    with exc.value:
+        assert exc.value.code == 400
     with post({"jsonrpc": "2.0", "id": 3, "method": "missing"}, {"Mcp-Session-Id": session}) as response:
         assert json.load(response)["error"]["code"] == -32601
 

@@ -57,7 +57,9 @@ for a change-only chassis editor; member discovery now matches the native edit
 form without requiring an additional view grant. The job-control pass also
 reproduced a blocked native stop action for an acknowledged running job; the
 exemption now matches that job's native queue UUID and still rejects unrelated
-uncertain operations.
+uncertain operations. Python 3.14 resource warnings then exposed unclosed
+SQLite connections in feedback and local agent monitoring. These now close
+explicitly, and feedback reads its diagnostic fields in one consistent snapshot.
 
 | Finding | Resolution | Regression evidence |
 | --- | --- | --- |
@@ -68,6 +70,7 @@ uncertain operations.
 | Failed general undo could not replay its original key | Find the existing correction before creating another task; require it to reverse the requested operation | Repeated HTTP 412 returns the same correction and creates no new task |
 | Abandoned HTTP sessions exhausted the session limit | Expire idle sessions after one hour and refresh active sessions | Fill all 128 slots, preserve an active client, expire abandoned clients, then initialize successfully |
 | Feedback excluded device receipts and errors without writes | Accept both operation tables and persisted tool diagnostic references; publish only selected metadata | Redaction checks, official SDK stdio/HTTP response checks, and feedback lookup |
+| SQLite handles remained open after feedback and monitoring calls | Close every short-lived connection explicitly, retaining outbox transactions and a consistent diagnostic snapshot | Connection-lifecycle regression and resource warnings treated as errors |
 
 Built-in MCP guidance and operator documentation describe the new job states,
 diagnostic references and session lifetime. These are source changes after

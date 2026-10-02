@@ -224,3 +224,28 @@ def test_known_running_job_can_use_native_stop_action(workspace, monkeypatch):
     assert result["state"] == "completed" and stopped == [stop_path]
     # A stop acknowledgement alone is not proof the job has stopped or rolled back.
     assert s.get_operation(op["id"])["state"] == "accepted"
+
+
+def test_feedback_and_agent_monitor_close_sqlite_connections(workspace, tmp_path, monkeypatch):
+    import sqlite3
+    from scripts.agent_eval import tool_events, operation_states
+
+    s = workspace
+    op = original_edit(s)
+    connect = sqlite3.connect
+    opened = []
+
+    def tracked(*args, **kwargs):
+        connection = connect(*args, **kwargs)
+        opened.append(connection)
+        return connection
+
+    monkeypatch.setattr(sqlite3, "connect", tracked)
+    feedback = Feedback(s.store.path, tmp_path / "outbox.sqlite")
+    feedback.submit("closure-report-key", op["id"], "receipt-mismatch", "reconciled-receipt")
+    tool_events(s.store.path)
+    assert operation_states(s.store.path) == {"applied": 1}
+    assert opened
+    for connection in opened:
+        with pytest.raises(sqlite3.ProgrammingError, match="closed"):
+            connection.execute("SELECT 1")

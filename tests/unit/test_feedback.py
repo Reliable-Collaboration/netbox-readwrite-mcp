@@ -1,5 +1,6 @@
 """Fixed-repository publication, privacy and durable lost-response reconciliation."""
 
+from contextlib import closing
 import asyncio
 import json
 import sqlite3
@@ -17,7 +18,7 @@ from netbox_readwrite_mcp.feedback import Feedback, REPOSITORY
 def journal(tmp_path):
     path = tmp_path / "netbox.sqlite"
     operation = str(uuid.uuid4())
-    with sqlite3.connect(path) as db:
+    with closing(sqlite3.connect(path)) as db, db:
         db.execute("CREATE TABLE resource_operations(id TEXT PRIMARY KEY, document TEXT)")
         db.execute(
             "INSERT INTO resource_operations VALUES (?,?)",

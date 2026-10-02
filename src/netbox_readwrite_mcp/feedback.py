@@ -5,7 +5,7 @@ Only selected receipt metadata is published. GitHub credentials stay in gh.
 """
 
 import argparse
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 import fcntl
 import hashlib
 import json
@@ -56,14 +56,15 @@ class Feedback:
         with self.outbox.with_suffix(self.outbox.suffix + ".lock").open("a") as lock:
             os.chmod(lock.name, 0o600)
             fcntl.flock(lock, fcntl.LOCK_EX)
-            with sqlite3.connect(self.outbox) as db:
+            with closing(sqlite3.connect(self.outbox)) as db, db:
                 os.chmod(self.outbox, 0o600)
                 db.execute("PRAGMA synchronous=FULL")
                 yield db
 
     def diagnostic(self, operation_id):
         operation_id = self.reference(operation_id)
-        with sqlite3.connect(self.journal.as_uri() + "?mode=ro", uri=True) as db:
+        with closing(sqlite3.connect(self.journal.as_uri() + "?mode=ro", uri=True)) as db, db:
+            db.execute("BEGIN")
             tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
             if operation_id.startswith("event:"):
                 from .server import TOOLS
