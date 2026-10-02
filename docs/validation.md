@@ -1,5 +1,23 @@
 # Validation record
 
+## Local deterministic timing and fixture efficiency
+
+The complete released suite passed locally on Python 3.14.4 in **56 minutes
+5.54 seconds**, with **634 tests plus six subtests** and **92.23% MCP runtime
+coverage**. No LLMs were used. Unit tests accounted for about 22 seconds; real
+NetBox integration tests accounted for almost all remaining time. Package and
+bundle checks added 12.68 seconds.
+
+A subsequent test-only change batches the two fresh permission-fixture users into
+one Django startup. All 37 affected tests passed locally, with summed durations
+falling from 786.21 to 647.43 seconds. The [full CI confirmation](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/37022455057)
+on `d0185df` passed all 634 tests plus six subtests with unchanged 92.23% coverage
+and all four Python jobs/build checks. The test step took 28 minutes 49.75 seconds;
+runner variability prevents attributing its whole improvement to the fixture.
+See [reproduction and timing boundaries](testing.md#deterministic-test-timing) and
+[measured evidence](deterministic-timing-0.4.3.json). This test-only change does not
+alter the published application or companion.
+
 ## Release 0.4.3: review fixes and renewed agent acceptance
 
 [Release v0.4.3](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.3)

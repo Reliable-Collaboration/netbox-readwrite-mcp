@@ -63,9 +63,11 @@ podman network rm nbrw-audit-4-7-2
 
 ## Real consuming-agent evaluation
 
-The optional [OpenCode/LiteLLM/DeepInfra evaluation](agent-evaluation.md) exercises
-natural-language tasks through MCP and independently verifies NetBox state. It
-incurs provider usage and is not part of unauthenticated CI.
+The optional [Claude Code, Codex and OpenCode evaluation](agent-evaluation.md)
+uses LiteLLM/DeepInfra for natural-language tasks through Reliable Collaboration's
+unofficial NetBox read/write MCP server and independently verifies NetBox state.
+It incurs provider usage, requires `NETBOX_RW_AGENT_EVAL=1`, and runs locally only.
+GitHub CI never runs agent clients or calls model providers.
 
 The lab includes the companion filter-metadata plugin. Its integration tests run
 inside real NetBox through HTTP and check native permissions and dynamic filters.
@@ -94,3 +96,44 @@ state and exports. The oracle verifies both final state and required operation
 usage. `--scenario feedback` separately qualifies GitHub publication, duplicate
 prevention and reading a maintainer reply. Do not run mutating integration tests
 against the same lab during an agent evaluation.
+
+## Deterministic test timing
+
+The entire `tests/unit` and `tests/integration` collection uses no LLMs. Tests of
+client/proxy adapters use synthetic transcripts and local protocol fixtures, not
+paid model calls. Integration tests use real NetBox, PostgreSQL, Redis-compatible
+queues and a worker; deterministic does not mean in-memory or instantaneous.
+
+On 2026-10-02, Python 3.14.4 against the already-running, persistent local NetBox
+4.7.2 lab passed 634 tests plus six subtests with 92.23% MCP runtime coverage:
+
+| Work | Measured time |
+| --- | ---: |
+| 400 unit tests, summed JUnit durations | 21.98 seconds |
+| 234 integration tests, summed JUnit durations | 55 minutes 41.08 seconds |
+| Full pytest process, wall time | 56 minutes 5.54 seconds |
+| Lint, two package builds, assets and upstream companion check | 12.68 seconds |
+| Same full test suite in release CI | 34 minutes 15.45 seconds |
+
+These are individual measurements, not a benchmark distribution. Local timing
+excludes lab startup/downloads and uses a populated, persistent lab on a shared
+workstation; CI uses a fresh lab. The slowest local test body was the complete
+physical/virtual inventory lifecycle at 90.03 seconds. Multiple recovery tests
+took 30–43 seconds. A later read-only probe retrieved 7,098 native history rows
+in a median 1.17 seconds; outcome verification repeatedly reads native history.
+
+A small fixture improvement creates both fresh test users in one Django process
+instead of starting Django twice. Median setup dropped from 8.64 to 4.15 seconds
+across three measurements per variant. All 37 affected tests passed unchanged;
+their summed durations fell from 786.21 to 647.43 seconds. Users, tokens,
+permissions and journals remain separate and fresh per test. No assertion,
+endpoint, failure case, or coverage requirement was removed. This is a modest
+saving; the full optimized suite has not been re-timed locally.
+The [complete post-change CI run](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/37022455057)
+passed the same 634 tests plus six subtests with unchanged 92.23% runtime coverage
+in 28 minutes 49.75 seconds. Runner variability means that the whole CI reduction
+cannot be attributed solely to fixture batching.
+
+Use `--durations=40` and `--junitxml=...` on the full live command above to repeat
+the measurement. Keep raw evidence under `.lab/`; reviewed counts and timings are
+in [the timing record](deterministic-timing-0.4.3.json).

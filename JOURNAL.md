@@ -52,3 +52,12 @@ No private inventory, credentials or raw recovery bundles were published.
 - Downloaded all nine assets without authentication; checksums, candidate application members and tagged wheel modules match. Private configure and live doctor passed.
 - Provider key absent from reachable Git objects, tracked files, public asset contents and completed release logs. Repository Actions secrets: zero. Model tests remained local only.
 - Exact evidence: `docs/release-validation-0.4.3.json` and `docs/client-agent-evaluations-0.4.3.json`.
+
+## 2026-10-02 — local deterministic timing and modest fixture optimization
+
+- Ran all 400 unit and 234 integration tests locally with coverage: 634 passed plus six subtests, 92.23% runtime coverage, 3365.54 seconds wall time. Zero LLM calls; Python 3.14.4, existing isolated NetBox 4.7.2 lab.
+- Lint, both builds, asset checks and upstream-image companion check passed in 12.68 seconds combined.
+- Batched creation of two per-test users into one Django startup; retained all assertions, separate users/tokens/permissions/journals and function-scoped isolation. Median setup improved from 8.64 to 4.15 seconds over three measurements per variant.
+- All 37 affected tests passed unchanged; summed durations improved from 786.21 to 647.43 seconds. No full optimized local rerun was claimed.
+- Full CI `37022455057` on `d0185df` passed 634 tests plus six subtests, unchanged 92.23% coverage, all Python 3.11–3.14 builds and upstream bundle checks. Test step 1729.753 seconds; CI variability is explicitly recorded. Provider key absent from its completed log.
+- Retained only this small fixture optimization; no reduced checks or runtime safety changes. Evidence: `docs/deterministic-timing-0.4.3.json`.
