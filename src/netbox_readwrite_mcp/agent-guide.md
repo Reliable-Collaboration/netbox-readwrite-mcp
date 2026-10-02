@@ -193,7 +193,11 @@ Large choice lists advertise a `field` query for fetching just that field.
   `name:"eth[1-3]"`, `type:"1000base-t"` and its parent ID. Discover the model's
   fields first. A failure anywhere rolls back the whole request.
 
-Use task receipts and fresh native reads to verify results. Do not retry a lost
+Use task receipts and fresh native reads to verify results against each requested
+object name and relationship. Keep an explicit name-to-ID mapping: creation order
+and numeric ID order need not match the requested device order. For bookmarks,
+contacts and chassis positions, verify the target object type, ID and assigned
+value against the request, not just a successful HTTP status. Do not retry a lost
 response with a new key. Native changelogs correlate where the target model logs
 changes; catalogs and schema sweeps alone do not qualify every model lifecycle.
 

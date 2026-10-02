@@ -1,5 +1,6 @@
 """Failure detection must not turn client/provider failures into passing agent runs."""
 
+import json
 import pytest
 
 from scripts.agent_clients import client_failed, used_host_tools, community_read_checks
@@ -138,3 +139,72 @@ def test_codex_evaluation_explicitly_disables_apps_plugins_and_hooks(tmp_path):
     assert set(settings["mcp_servers"]) == {"netbox"}
     assert "--ignore-user-config" in command and "--ephemeral" in command
     assert not list(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize("client", ["claude", "codex", "opencode"])
+def test_community_search_accepts_verified_get_objects_results(client):
+    def transcript(payload, failed=False):
+        args = {"object_type": "plugins/agent-support/search/", "filters": {"q": "test"}}
+        if client == "claude":
+            return [
+                {
+                    "type": "assistant",
+                    "message": {
+                        "content": [
+                            {"type": "tool_use", "name": "mcp__netbox__get_objects", "id": "a", "input": args}
+                        ]
+                    },
+                },
+                {
+                    "type": "user",
+                    "message": {
+                        "content": [
+                            {
+                                "type": "tool_result",
+                                "tool_use_id": "a",
+                                "is_error": failed,
+                                "content": json.dumps(payload),
+                            }
+                        ]
+                    },
+                },
+            ]
+        if client == "codex":
+            return [
+                {
+                    "type": "item.completed",
+                    "item": {
+                        "type": "mcp_tool_call",
+                        "server": "netbox",
+                        "tool": "get_objects",
+                        "arguments": args,
+                        "status": "failed" if failed else "completed",
+                        "result": {"structured_content": payload},
+                    },
+                }
+            ]
+        return [
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "netbox_get_objects",
+                    "state": {
+                        "status": "error" if failed else "completed",
+                        "input": args,
+                        "output": json.dumps(payload),
+                    },
+                },
+            }
+        ]
+
+    payload = {
+        "resource": "plugins/agent-support/search/",
+        "data": {"results": [{"display": "test-site", "id": 1}]},
+    }
+    assert community_read_checks(transcript(payload), "test", [])["search_api_used"]
+    assert not community_read_checks(transcript(payload, True), "test", [])["search_api_used"]
+    assert not community_read_checks(transcript({"status": "blocked"}), "test", [])["search_api_used"]
+    assert not community_read_checks(transcript({**payload, "data": {"results": []}}), "test", [])[
+        "search_api_used"
+    ]
+    assert not community_read_checks(transcript(payload), "unrelated", [])["search_api_used"]
