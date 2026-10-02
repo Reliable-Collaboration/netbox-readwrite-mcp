@@ -1,0 +1,171 @@
+{
+  "date": "2026-10-02",
+  "source_commit": "0aa3b724d380d323a5a31646521b55cba7862a23",
+  "python": "3.14.4",
+  "netbox": "4.7.2",
+  "environment": "Existing isolated Podman lab, already running; shared workstation; no lab reset",
+  "llm_calls": 0,
+  "counts": {
+    "unit": 400,
+    "integration": 234,
+    "total": 634,
+    "subtests": 6,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "test_wall_seconds": 3365.537,
+  "pytest_reported_seconds": 3364.79,
+  "junit_group_durations": {
+    "unit": {
+      "tests": 400,
+      "seconds": 21.983
+    },
+    "integration": {
+      "tests": 234,
+      "seconds": 3341.076
+    }
+  },
+  "mcp_runtime_coverage_percent": 92.23,
+  "junit_sha256": "e26c48403f10a98efe6fd25176741f4efc7649c6aa7599322a85de3dcf02a2c7",
+  "packaging_checks": [
+    {
+      "command": [
+        ".venv/bin/ruff",
+        "check",
+        "src",
+        "tests",
+        "scripts",
+        "companion"
+      ],
+      "seconds": 0.014,
+      "exit_code": 0
+    },
+    {
+      "command": [
+        ".venv/bin/ruff",
+        "format",
+        "--check",
+        "src",
+        "tests",
+        "scripts",
+        "companion"
+      ],
+      "seconds": 0.013,
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/home/rcc-vstudio/working/netbox-readwrite-mcp/.venv/bin/python",
+        "-m",
+        "build"
+      ],
+      "seconds": 2.938,
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/home/rcc-vstudio/working/netbox-readwrite-mcp/.venv/bin/python",
+        "-m",
+        "build",
+        "companion"
+      ],
+      "seconds": 2.775,
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/home/rcc-vstudio/working/netbox-readwrite-mcp/.venv/bin/python",
+        "scripts/release_assets.py"
+      ],
+      "seconds": 0.075,
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/home/rcc-vstudio/working/netbox-readwrite-mcp/.venv/bin/python",
+        "scripts/check_release_assets.py"
+      ],
+      "seconds": 0.194,
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/home/rcc-vstudio/working/netbox-readwrite-mcp/.venv/bin/python",
+        "scripts/check_companion_bundle.py"
+      ],
+      "seconds": 6.667,
+      "exit_code": 0
+    }
+  ],
+  "packaging_total_seconds": 12.676,
+  "slowest_tests_including_fixtures": [
+    {
+      "test": "tests.integration.test_inventory::test_greenfield_physical_and_virtual_inventory",
+      "seconds": 90.218
+    },
+    {
+      "test": "tests.integration.test_scripts::test_native_script_form_source_files_scheduling_and_worker_result",
+      "seconds": 49.764
+    },
+    {
+      "test": "tests.integration.test_live.Contract::test_35_real_response_requery_preserves_original_effect",
+      "seconds": 42.514
+    },
+    {
+      "test": "tests.integration.test_personal::test_dashboard_first_use_edit_reset_and_user_isolation",
+      "seconds": 40.88
+    },
+    {
+      "test": "tests.integration.test_inventory::test_general_update_undo_preserves_other_fields_and_detects_aba",
+      "seconds": 36.999
+    },
+    {
+      "test": "tests.integration.test_inventory::test_relationship_and_json_recovery",
+      "seconds": 36.943
+    },
+    {
+      "test": "tests.integration.test_account::test_native_own_object_lifecycle_and_cross_user_denial[extras/subscriptions/]",
+      "seconds": 32.452
+    },
+    {
+      "test": "tests.integration.test_account::test_native_own_object_lifecycle_and_cross_user_denial[extras/bookmarks/]",
+      "seconds": 32.232
+    },
+    {
+      "test": "tests.integration.test_live.Contract::test_16_task_undo_partial_stops_on_conflict",
+      "seconds": 32.177
+    },
+    {
+      "test": "tests.integration.test_account::test_native_own_object_lifecycle_and_cross_user_denial[extras/notifications/]",
+      "seconds": 31.646
+    },
+    {
+      "test": "tests.integration.test_utilities::test_native_datafile_content_binary_chunks_and_permissions",
+      "seconds": 31.559
+    },
+    {
+      "test": "tests.integration.test_live.Contract::test_15_task_undo_repeated_fields_reverse_order",
+      "seconds": 29.777
+    },
+    {
+      "test": "tests.integration.test_personal::test_dashboard_widget_patch_preserves_every_other_widget",
+      "seconds": 29.396
+    },
+    {
+      "test": "tests.integration.test_inventory::test_available_prefixes_and_asns",
+      "seconds": 28.769
+    },
+    {
+      "test": "tests.integration.test_connections::test_native_own_connections_and_last_login_protection",
+      "seconds": 28.26
+    }
+  ],
+  "limitations": [
+    "One measured run, not a benchmark distribution.",
+    "Integration tests use a persistent populated lab; CI starts from a fresh disposable lab.",
+    "Startup and image downloads excluded; lab was already running.",
+    "Local test interpreter is Python 3.14.4; the four-version CI matrix is recorded separately.",
+    "Coverage includes the MCP runtime, not the companion plugin."
+  ]
+}

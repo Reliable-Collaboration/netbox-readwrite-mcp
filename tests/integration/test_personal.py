@@ -21,11 +21,13 @@ pytestmark = [
 def people(tmp_path):
     suffix = uuid.uuid4().hex
     actors = []
+    configurations = []
+    setup = []
     for i in range(2):
         name = f"personal-{suffix}-{i}"
         token = secrets.token_hex(20)
         readonly = secrets.token_hex(20)
-        shell(f"""
+        setup.append(f"""
 from django.contrib.auth import get_user_model
 from users.models import Token, ObjectPermission
 from core.models import ObjectType
@@ -43,8 +45,13 @@ p.object_types.add(ObjectType.objects.get(app_label='core', model='objectchange'
         path.write_text(token)
         path.chmod(0o600)
         cfg.update(actor=name, token_file=str(path), journal=str(tmp_path / f"journal-{i}.sqlite"))
-        actors.append((build_service(cfg), readonly))
+        configurations.append((cfg, readonly))
     try:
+        # Both identities are independent and fresh per test. No request occurs
+        # between their creation, so one Django startup can initialize both.
+        shell("\n".join(setup))
+        for cfg, readonly in configurations:
+            actors.append((build_service(cfg), readonly))
         yield actors
     finally:
         for svc, _ in actors:
