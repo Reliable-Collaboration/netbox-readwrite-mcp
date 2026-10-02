@@ -112,3 +112,14 @@ def test_escaped_etag_error_teaches_exact_copy_without_rewriting_value(broad):  
     assert "literal backslashes" in error["action"]
     assert params["arguments"]["expected_etag"] == value
     assert error["code"] == "STALE_STATE"
+
+
+def test_pattern_schema_explains_parent_items_range_expansion_and_verification(broad):  # noqa: F811
+    schema = call(
+        broad, "get_schema", {"object_type": "plugins/agent-support/pattern-create/dcim.powerport/"}
+    )
+    guidance = schema["pattern_guidance"]
+    assert "one items entry per parent" in guidance
+    assert "PSU[1-2]' expands to PSU1 and PSU2" in guidance
+    assert "literal names" in guidance
+    assert "Verify the returned count" in guidance and "fresh-read the exact names" in guidance

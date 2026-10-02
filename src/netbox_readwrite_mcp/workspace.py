@@ -58,6 +58,16 @@ class WorkspaceService(Service):
                 "interfaces:[{name: eth1, type: 1000base-t}]. CSV cannot encode nested templates. "
                 "NetBox supplies parent references; child models need not have their own import handler."
             )
+        if result["resource"].startswith("plugins/agent-support/pattern-create/"):
+            result["pattern_guidance"] = (
+                "GET the model-specific pattern URL for native fields; the POST schema only describes the envelope. "
+                "For component names, send one items entry per parent with the complete range in name. "
+                "For example, name='PSU[1-2]' expands to PSU1 and PSU2. For two devices use two items, "
+                "each with its discovered device ID and name='PSU[1-2]', producing four power ports. "
+                "PSU[1] and PSU[2] are literal names, not shorthand for PSU1 and PSU2. "
+                "Use the requested prefix and range, not guessed IDs or copied example names. "
+                "Verify the returned count and fresh-read the exact names on each parent before reporting completion."
+            )
         if result.get("options_status") == 404 and not result.get("paths"):
             result["guidance"] = (
                 "This route was not found. Use discovered candidate_paths or discover_models; do not keep guessing path segments."

@@ -200,7 +200,11 @@ Large choice lists advertise a `field` query for fetching just that field.
   VLANs, an item can contain `pattern:"3901-3903"`, `name:"Lab-{vid}"`,
   `status:"active"` and `group:<ID>`. Component input can contain
   `name:"eth[1-3]"`, `type:"1000base-t"` and its parent ID. Discover the model's
-  fields first. A failure anywhere rolls back the whole request.
+  fields first. Use one item per parent with the complete name range: two items
+  on two devices, each with `name:"PSU[1-2]"`, create four ports named PSU1/PSU2.
+  `PSU[1]` and `PSU[2]` are literal names, not expansions. Verify the returned
+  count and exact names per parent with fresh reads. A failure anywhere rolls
+  back the whole request.
 
 Use task receipts and fresh native reads to verify results against each requested
 object name and relationship. Keep an explicit name-to-ID mapping: creation order
