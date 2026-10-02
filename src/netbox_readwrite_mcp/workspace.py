@@ -338,7 +338,7 @@ class WorkspaceService(Service):
                     op["guidance"] = (
                         "HTTP exchange finished. No correlated native changelog record; mutations may still have occurred. HTTP 201 reports creation. Read back the target; completed does not mean read-only or unchanged."
                     )
-                elif code in {400, 401, 403, 404, 405, 409, 412, 422}:
+                elif code in {400, 401, 403, 404, 405, 409, 412, 413, 415, 422, 428}:
                     op["state"] = "failed"
                     op["guidance"] = (
                         "Definite rejection. Inspect native errors before a deliberate new attempt."

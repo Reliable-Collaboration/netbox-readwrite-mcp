@@ -95,12 +95,13 @@ are unreleased PR work, not part of the previously published v0.4.3 assets.
 The independent review covered the complete PR's runtime/protocol boundaries,
 journal and recovery paths, companion permission/transaction handling, discovery
 and workflows, packaging/setup, CI/release/feedback boundaries, documentation and
-test contracts. It found three further actionable defects:
+test contracts. It found four further actionable defects:
 
 | Additional finding | Resolution and regression evidence |
 | --- | --- |
 | Native user/bulk payloads retained password fields outside the companion password route | Recursive known-password-field redaction preserves outbound data while removing those fields from persisted intent. A native user-create regression verifies both sides. This is not a general scrubber for secrets embedded in arbitrary strings/files. |
 | Companion enablement could not retry after writing its backup but failing before replacement | Reuse only a matching, nonsymlink backup; preserve conflicting backups for inspection. Remove only a newly created partial backup after its write/close failure. A reproduced temporary-file failure now permits retry. |
+| Definite 413/415/428 responses were treated as uncertain writes | Recognize request-size, media-type and missing-precondition rejections as failed attempts, retaining receipts and native reconciliation. Red regressions reproduced the unnecessary block on subsequent operations; corrected requests now proceed. Unknown/server failures remain uncertain. |
 | HTTP rejection left an unread body on a reusable connection | Close and advertise closure whenever a body is not consumed, including invalid lengths/content types and unsupported paths/methods. Regressions exercise actual sockets and malformed Origin rejection. |
 
 The new red tests reproduced the companion retry and HTTP framing defects before

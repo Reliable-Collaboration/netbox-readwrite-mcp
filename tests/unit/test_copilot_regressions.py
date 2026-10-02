@@ -130,3 +130,21 @@ def test_native_user_passwords_are_redacted_without_changing_dispatch(broad, mon
     assert "native-secret" not in json.dumps(
         [row[0] for row in broad.store.db.execute("SELECT payload FROM events")]
     )
+
+
+@pytest.mark.parametrize("status", [413, 415, 428])
+def test_definite_request_rejections_do_not_block_later_operations(broad, monkeypatch, status):  # noqa: F811
+    responses = iter([status, 200])
+
+    def request(method, path, data=None, *args, **kwargs):
+        return {"status": next(responses), "body": {"detail": "synthetic rejection"}, "headers": {}}
+
+    monkeypatch.setattr(broad.api, "request", request)
+    first = broad.execute_action(
+        broad.task, "definite-rejection", "POST", "plugins/agent-support/exports/dcim.site/", {}
+    )
+    assert first["state"] == "failed"
+    second = broad.execute_action(
+        broad.task, "corrected-request", "POST", "plugins/agent-support/exports/dcim.site/", {}
+    )
+    assert second["state"] == "completed"
