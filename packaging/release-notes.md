@@ -25,3 +25,8 @@ suite, including a plugin-bundle check on an unmodified upstream image.
 Version 0.4.3 fixes recovery races, chassis permission handling, scheduled/running
 job controls, idle HTTP session cleanup and structured failure reporting. See
 `docs/review-remediation.md` for the findings and regression coverage.
+
+Local GLM-5.3-Flash acceptance passed with Claude Code, Codex and OpenCode using
+this project's standalone read/write MCP application and NetBox 4.7.2. The record
+retains failed attempts and narration limits; these are targeted checks, not a
+model reliability rate. Model tests run locally only, never in CI.

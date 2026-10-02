@@ -579,3 +579,33 @@ candidate; their contents match. The published application SHA-256 is
 The model runs used the local candidate, with published runtime/guidance equivalence
 verified separately. [Release evidence](release-validation-0.4.2.json) records the
 CI and public-download checks.
+
+## Version 0.4.3 confirmation
+
+The final candidate from `d1758af` includes the review fixes and clearer built-in
+name-to-ID and relationship verification guidance. Local GLM-5.3-Flash runs used
+the standalone application, the companion and real NetBox 4.7.2:
+
+| Client | Run | Seconds | Result |
+| --- | --- | ---: | --- |
+| Claude Code 2.1.287 | `0fe913dfb3` | 301.73 | All 24 checks passed |
+| Codex 0.159.2 | `f7262ba4df` | 506.47 | All 24 checks passed |
+| OpenCode 1.18.33 | `9ccd9a9280` | 440.94 | 23 runner checks plus independent no-host-tools review passed |
+
+No external guide was injected. Existing inventory was preserved within the
+oracle's scope and no unresolved operations remained. OpenCode reported zero
+output truncations; native-client truncation remains unmeasured.
+
+The initial Codex attempt failed: it reversed the requested device ordering and
+bookmarked a device instead of the site. A separate oracle defect failed to
+recognize its successful `get_objects` search; the oracle now accepts verified
+search results from either read tool, with regressions for all three clients.
+The chassis and bookmark requirements were not relaxed. The failed attempt and
+initial Claude success remain in the [complete record](client-agent-evaluations-0.4.3.json).
+
+Final runs had 5, 16 and 2 top-level tool errors respectively. These are targeted
+acceptance successes with autonomous recovery, not an error-free reliability
+benchmark. Codex's final narration also mislabeled completed exchanges as
+read-side with no mutation; the bookmark POST was verified independently.
+Receipts and actual state remain authoritative. Paid model tests ran locally
+only; CI continued to run deterministic qualification without provider keys.

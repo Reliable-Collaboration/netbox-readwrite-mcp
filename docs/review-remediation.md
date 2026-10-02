@@ -73,5 +73,5 @@ explicitly, and feedback reads its diagnostic fields in one consistent snapshot.
 | SQLite handles remained open after feedback and monitoring calls | Close every short-lived connection explicitly, retaining outbox transactions and a consistent diagnostic snapshot | Connection-lifecycle regression and resource warnings treated as errors |
 
 Built-in MCP guidance and operator documentation describe the new job states,
-diagnostic references and session lifetime. These are source changes after
-v0.4.2; historical release and paid-agent qualification records are unchanged.
+diagnostic references and session lifetime. These fixes are included in v0.4.3;
+historical v0.4.2 release and paid-agent qualification records remain unchanged.
