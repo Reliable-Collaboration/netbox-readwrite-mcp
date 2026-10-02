@@ -43,3 +43,12 @@ The final validation record contains measured results and remaining limits.
 A synthetic GitHub issue verified submission, maintainer read access, response
 and closure: https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/issues/1.
 No private inventory, credentials or raw recovery bundles were published.
+
+## 2026-10-02 — v0.4.3 published and independently verified
+
+- Published tag `v0.4.3` from `0aa3b72` through release CI `37011423929`.
+- Release qualification: 400 unit + 234 real-NetBox tests, six subtests, 92.23% MCP runtime coverage; full test step 2055.451 seconds. Python 3.11–3.14, builds and upstream companion bundle passed.
+- Final local GLM-5.3-Flash runs passed through Claude Code (`0fe913dfb3`), Codex (`f7262ba4df`) and OpenCode (`9ccd9a9280`) using Reliable Collaboration's unofficial NetBox read/write MCP server. Original failed attempts and narration limits remain in the record.
+- Downloaded all nine assets without authentication; checksums, candidate application members and tagged wheel modules match. Private configure and live doctor passed.
+- Provider key absent from reachable Git objects, tracked files, public asset contents and completed release logs. Repository Actions secrets: zero. Model tests remained local only.
+- Exact evidence: `docs/release-validation-0.4.3.json` and `docs/client-agent-evaluations-0.4.3.json`.

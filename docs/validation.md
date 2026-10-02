@@ -1,5 +1,31 @@
 # Validation record
 
+## Release 0.4.3: review fixes and renewed agent acceptance
+
+[Release v0.4.3](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.3)
+was built and published by [the gated CI workflow](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/37011423929)
+from `0aa3b72`. The full test step passed **634 tests plus six subtests**:
+**400 unit tests** and **234 real-NetBox integration tests**, with **92.23% MCP
+runtime coverage**, in **34 minutes 15 seconds**. The Python 3.11–3.14 matrix,
+standalone checks and companion bundle loading on an unmodified upstream NetBox
+image also passed. The runtime coverage percentage excludes the companion.
+
+Local GLM-5.3-Flash acceptance against the standalone candidate passed in Claude
+Code, Codex and OpenCode. All required Community outcomes and outside-tool checks
+passed; existing inventory was preserved within the oracle's scope and no
+unresolved operations remained. The [agent record](client-agent-evaluations-0.4.3.json)
+retains the initial failed Codex attempt, corrected search-oracle behavior,
+autonomous recovery and narration limits. These are targeted acceptance checks,
+not a model reliability rate. Guidance came from our MCP server, without a
+separately injected guide. Model tests ran locally only, never in CI.
+
+All nine public assets were downloaded without authentication and their checksums
+verified. Application members match the locally tested candidate and wheel Python
+modules match the release revision. Private setup and live `doctor` passed. The
+provider key was absent from reachable Git objects, tracked files, unpacked public
+assets and completed CI logs; the repository had no Actions secrets. Exact
+measurements and boundaries are in [the release record](release-validation-0.4.3.json).
+
 ## Release 0.4.2: three-client qualification and clearer recovery
 
 [Release v0.4.2](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.2)
