@@ -1,5 +1,14 @@
 # Changes
 
+## Unreleased — PR #2 review follow-up
+
+- Explain receipt outcomes and provide deterministic task summaries through MCP.
+- Reuse bounded media/export snapshots while rechecking native access for each chunk.
+- Protect new intent fingerprints with salted scrypt and redact known password fields.
+- Make configuration and companion enablement failures safely retryable.
+- Correct prefixed website origins, HTTP rejection handling and definite-rejection recovery.
+- Clarify accepted NetBox versions and retain revision-specific validation evidence.
+
 ## 0.4.3 — recovery, permissions and diagnostic fixes
 
 - Close undo history races and enforce operation-key isolation across both write interfaces.

@@ -108,3 +108,6 @@ The new red tests reproduced the companion retry and HTTP framing defects before
 the fixes. Final validation results are recorded in [validation](validation.md).
 Historical agent qualification is retained with its original artifact hashes;
 these deterministic changes do not turn prior model failures into passes.
+
+A follow-up review of the remediated code found no further actionable defects
+within this scope.

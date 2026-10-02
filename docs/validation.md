@@ -1,5 +1,30 @@
 # Validation record
 
+## PR #2: Copilot remediation and full-scope review
+
+The unreleased code revision `0a6eb7c` passed **688 tests plus six subtests**
+(453 unit, 235 real-NetBox integration), with **92.55% MCP runtime coverage**
+in [full CI](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/37076186328).
+The test step took **32m07.11s**. Python 3.11–3.14, package/standalone checks and
+companion loading on unmodified upstream NetBox all passed. Coverage excludes
+the companion; live integration uses NetBox 4.7.2.
+
+All seven Copilot findings and four additional defects found during independent
+review are fixed with regression coverage. A follow-up review found no further
+actionable code defects. See the [findings and resolutions](review-remediation.md#pr-2-copilot-findings-and-full-scope-follow-up)
+and [revision-specific evidence](copilot-review-validation.json).
+
+Locally, all 453 unit tests passed in **32.46s**; 14 live export/media/utility tests
+passed in **160.61s**. The final focused export permission/revision check also
+passed. Both packages built, and the companion bundle loaded on upstream NetBox.
+The full updated deterministic suite was qualified in CI, not re-timed locally.
+
+No LLM evaluations were run for this revision. The earlier model results below
+retain their original source/artifact scope and observed failures. CI uses no
+model-provider calls; the provider key was absent from tracked files and the
+completed CI log, and repository Actions secrets were zero at verification.
+These changes are **not included in published v0.4.3 assets**.
+
 ## PR #2: receipt reporting and renewed qualification
 
 The unreleased PR candidate `5d4f15f` passed **662 tests plus six subtests**
