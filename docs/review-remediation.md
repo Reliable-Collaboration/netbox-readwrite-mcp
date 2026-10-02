@@ -54,14 +54,17 @@ companion review. A second pass found an additional task-undo entry point for th
 same cross-interface operation-key collision; its regression failed before the
 shared undo guard was added. A further permission probe reproduced HTTP 403
 for a change-only chassis editor; member discovery now matches the native edit
-form without requiring an additional view grant.
+form without requiring an additional view grant. The job-control pass also
+reproduced a blocked native stop action for an acknowledged running job; the
+exemption now matches that job's native queue UUID and still rejects unrelated
+uncertain operations.
 
 | Finding | Resolution | Regression evidence |
 | --- | --- | --- |
 | General undo missed an intervening B → C → B edit during its current-object read | Refresh native history after that read; retain the read's ETag for dispatch | Adversarial current-read hook refuses compensation and preserves newer edits |
 | Read-only chassis viewers could see inaccessible members | Restrict member reads to visible devices; preserve the native complete edit formset for chassis editors | Real NetBox permissions: no visible devices, one visible device, then chassis edit permission with and without a view grant |
 | Device writes and undo could reuse a general operation key | Check under the shared process lock; preserve outer locks across nested calls; guard both individual and task undo | Interleaved second journal connection, independent flock probe, and task-undo key collision |
-| Future jobs blocked inventory work and their own cancellation | Track scheduled jobs separately; allow guarded cancellation of a known pending job; record missing acknowledged jobs without claiming success or replaying them | Scheduled script plus inventory write and cancellation in real NetBox; unrelated uncertainty still blocks cancellation |
+| Future jobs blocked inventory work and their own cancellation | Track scheduled jobs separately; allow guarded cancellation and native stopping of the exact known job; record missing acknowledged jobs without claiming success or replaying them | Scheduled script plus inventory write, cancellation, and verified running-task stop in real NetBox; unrelated uncertainty still blocks cancellation |
 | Failed general undo could not replay its original key | Find the existing correction before creating another task; require it to reverse the requested operation | Repeated HTTP 412 returns the same correction and creates no new task |
 | Abandoned HTTP sessions exhausted the session limit | Expire idle sessions after one hour and refresh active sessions | Fill all 128 slots, preserve an active client, expire abandoned clients, then initialize successfully |
 | Feedback excluded device receipts and errors without writes | Accept both operation tables and persisted tool diagnostic references; publish only selected metadata | Redaction checks, official SDK stdio/HTTP response checks, and feedback lookup |

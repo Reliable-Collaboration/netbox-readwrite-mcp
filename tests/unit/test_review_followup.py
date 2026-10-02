@@ -189,3 +189,38 @@ def test_legacy_task_undo_cannot_reuse_general_operation_key(workspace):
         s.undo_task(s.task)
     assert s.api.patches == 1
     assert s.api.devices[1]["description"] == "B"
+
+
+def test_known_running_job_can_use_native_stop_action(workspace, monkeypatch):
+    s = workspace
+    request = s.api.request
+    job_id = "a8364ab2-dd3e-41d6-b1bb-dfbbd63d58ec"
+    stop_path = f"core/background-tasks/{job_id}/stop/"
+    stopped = []
+
+    def job_request(method, path, data=None, *a, **kw):
+        if method == "GET" and path == "core/jobs/123/":
+            return {"status": 200, "body": {"job_id": job_id, "status": {"value": "running"}}, "headers": {}}
+        if method == "POST" and path == "extras/scripts/1/":
+            return {"status": 202, "body": {"url": s.api.url + "/api/core/jobs/123/"}, "headers": {}}
+        if method == "POST" and path == stop_path:
+            stopped.append(path)
+            return {"status": 200, "body": None, "headers": {}}
+        return request(method, path, data, *a, **kw)
+
+    monkeypatch.setattr(s.api, "request", job_request)
+    op = s.execute_action(s.task, "running-script-key", "POST", "extras/scripts/1/", {})
+    with pytest.raises(RuntimeError, match="unresolved"):
+        s.execute_action(s.task, "wrong-stop-key", "POST", "core/background-tasks/other/stop/", {})
+    unknown = s._resource_operation(op["id"]).copy()
+    unknown.update(id="unknown-stop-blocker", operation_key="unknown-stop-blocker", state="uncertain")
+    s._save(unknown, initial=True)
+    with pytest.raises(RuntimeError, match="unresolved"):
+        s.execute_action(s.task, "blocked-stop-key", "POST", stop_path, {})
+    assert stopped == []
+    unknown["state"] = "failed"
+    s._save(unknown)
+    result = s.execute_action(s.task, "stop-running-key", "POST", stop_path, {})
+    assert result["state"] == "completed" and stopped == [stop_path]
+    # A stop acknowledgement alone is not proof the job has stopped or rolled back.
+    assert s.get_operation(op["id"])["state"] == "accepted"

@@ -134,3 +134,71 @@ for module in ScriptModule.objects.filter(pk={module_id}):
             job.delete()
     module.delete()
 """)
+
+
+def test_running_script_can_be_stopped_and_its_record_removed(queue_admin):  # noqa: F811
+    from tests.integration.test_administration import wait_task
+    from tests.integration.test_deletion import remove
+
+    service = queue_admin
+    filename = "qualification_stop_" + uuid.uuid4().hex + ".py"
+    source = """from extras.scripts import Script
+class Stoppable(Script):
+    def run(self, data, commit):
+        import time
+        time.sleep(90)
+"""
+    uploaded = service.api.request(
+        "POST",
+        "extras/scripts/upload/",
+        {},
+        files=[{"field": "file", "filename": filename, "base64": base64.b64encode(source.encode()).decode()}],
+    )
+    assert uploaded["status"] == 201, uploaded
+    module_id = uploaded["body"]["id"]
+    queue_id = None
+    try:
+        task = service.begin_task("Stop only the acknowledged disposable script")["task_id"]
+        result = service.execute_action(
+            task,
+            "run-stoppable-script",
+            "POST",
+            "extras/scripts/" + filename[:-3] + ".Stoppable/",
+            {"data": {}, "commit": False},
+        )
+        assert result["state"] == "accepted", result
+        job = result["last_receipt"]["body"]["result"]
+        queue_id = job["job_id"]
+        queue_path = f"core/background-tasks/{queue_id}/"
+        wait_task(service, queue_path, "started")
+        stopped = service.execute_action(task, "stop-own-script", "POST", queue_path + "stop/", {})
+        assert stopped["state"] == "completed", stopped
+        wait_task(service, queue_path, "stopped")
+        # Stopping the RQ task may leave a running database record. Delete it
+        # only after verifying the task stopped, retaining the MCP receipt.
+        remove(service, "core.job", job["id"])
+        service.reconcile()
+        assert service.get_operation(result["id"])["state"] == "job_missing"
+        assert not service.observability()["unresolved"]
+    finally:
+        shell(f"""
+from extras.models import ScriptModule
+from django_rq import get_queue
+from rq.command import send_stop_job_command
+for module in ScriptModule.objects.filter(pk={module_id}):
+    for script in module.scripts.all():
+        for job in script.jobs.all():
+            queue = get_queue(job.queue_name or 'default')
+            queued = queue.fetch_job(str(job.job_id))
+            if queued and queued.get_status() == 'started':
+                send_stop_job_command(queue.connection, str(job.job_id))
+            job.delete()
+    module.delete()
+if {queue_id!r}:
+    queue = get_queue('default')
+    queued = queue.fetch_job({queue_id!r})
+    if queued:
+        if queued.get_status() == 'started':
+            send_stop_job_command(queue.connection, {queue_id!r})
+        queued.delete()
+""")

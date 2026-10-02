@@ -479,6 +479,14 @@ class WorkspaceService(Service):
             return False
         if method == "DELETE" and path == op["job_path"]:
             return True
+        queue_id = (op.get("job_result") or {}).get("job_id")
+        if isinstance(queue_id, str):
+            try:
+                queue_id = str(uuid.UUID(queue_id))
+            except ValueError:
+                queue_id = None
+            if queue_id and method == "POST" and path == f"core/background-tasks/{queue_id}/stop/":
+                return True
         if (
             method == "POST"
             and path == "plugins/agent-support/native-delete/core.job/"
