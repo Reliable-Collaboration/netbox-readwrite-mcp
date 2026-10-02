@@ -5,6 +5,11 @@ from urllib.parse import urlencode
 
 
 def api_path(path):
+    # NetBox REST routes use trailing slashes. Canonicalize this harmless spelling
+    # difference before dispatch and operation-key fingerprinting, without guessing
+    # a resource, removing an application prefix, or accepting external URLs.
+    if isinstance(path, str) and path and not path.endswith("/"):
+        path += "/"
     if (
         not isinstance(path, str)
         or not re.fullmatch(r"[A-Za-z0-9_./@+-]+/", path)
@@ -12,7 +17,7 @@ def api_path(path):
         or path.startswith(("/", "api/"))
     ):
         raise ValueError(
-            "Use a path relative to /api/, for example ipam/prefixes/123/available-ips/. Remove the /api/ or api/ prefix; no URL, query string or traversal is allowed."
+            "Use a nonempty API-relative path, for example dcim/sites/ or ipam/prefixes/123/available-ips/. URLs, leading slashes, an api/ prefix, query strings and traversal are not allowed. A missing trailing slash is added automatically."
         )
     return path
 

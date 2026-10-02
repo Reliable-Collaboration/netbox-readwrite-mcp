@@ -82,6 +82,15 @@ def key():
     return str(uuid.uuid4())
 
 
+def test_missing_trailing_slash_is_canonical_before_reads_and_write_replay(broad):
+    before = broad.query("dcim/devices")["body"]["count"]
+    operation = broad.execute_action(broad.task, "slash-normalize", "POST", "dcim/devices", {"name": "new"})
+    replay = broad.execute_action(broad.task, "slash-normalize", "POST", "dcim/devices/", {"name": "new"})
+    assert operation["path"] == "dcim/devices/"
+    assert replay["id"] == operation["id"]
+    assert broad.query("dcim/devices/")["body"]["count"] == before + 1
+
+
 def test_task_tool_pages_compact_receipts_without_losing_history(broad):
     for _ in range(2):
         broad.create_object(broad.task, key(), "devices", {"description": "x" * 100000})

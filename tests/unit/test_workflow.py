@@ -108,7 +108,11 @@ def test_workflow_expressions(expression, expected):
         "dcim/../users/",
         "dcim/%2e%2e/",
         "dcim/devices/?q=x",
-        "dcim/devices",
+        "https://evil",
+        "api/dcim/devices",
+        "dcim/../users",
+        "",
+        None,
     ],
 )
 def test_api_paths_are_local_and_explicit(path):
