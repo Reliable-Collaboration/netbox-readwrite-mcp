@@ -50,12 +50,11 @@ in a private virtualenv and connect the feedback server to the same journal:
 
 ```sh
 python3 -m venv feedback-venv
-feedback-venv/bin/python -m pip install 'netbox-readwrite-mcp[feedback] @ https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/netbox_readwrite_mcp-0.4.2-py3-none-any.whl'
+feedback-venv/bin/python -m pip install 'netbox-readwrite-mcp[feedback] @ https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.3/netbox_readwrite_mcp-0.4.3-py3-none-any.whl'
 feedback-venv/bin/python -m netbox_readwrite_mcp.feedback --journal /private/netbox.sqlite --outbox /private/feedback.sqlite --enable-publish
 ```
 
-The diagnostic-reference and device-receipt extensions described below are
-source changes after v0.4.2; that release supports generic-operation UUIDs only.
+Version 0.4.3 adds diagnostic references and device receipts to structured feedback.
 
 It uses the operator's existing `gh` login and always targets this repository.
 Without `--enable-publish` it returns a draft and performs no GitHub write. Its

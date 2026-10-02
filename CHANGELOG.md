@@ -1,5 +1,19 @@
 # Changes
 
+## 0.4.3 — recovery, permissions and diagnostic fixes
+
+- Close undo history races and enforce operation-key isolation across both write interfaces.
+- Match native chassis permissions while filtering inaccessible devices from read results.
+- Allow inventory work alongside scheduled jobs and exact native cancellation/stop requests.
+- Preserve correction receipts on repeated undo requests and expire idle HTTP sessions.
+- Report read/discovery failures and both write interfaces through private diagnostic references.
+- Close feedback and local agent-monitor database connections explicitly.
+
+## 0.4.2 — three-client agent qualification
+
+- Qualify Claude Code, Codex and OpenCode with local GLM Community acceptance runs.
+- Clarify native trace discovery, import guidance and recovery behavior.
+
 ## 0.4.1 — release installation and self-describing MCP
 
 - CI-gated downloadable wheels, standalone Python application and plugin-only container bundle.
