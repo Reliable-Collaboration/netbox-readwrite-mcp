@@ -62,6 +62,9 @@ GitHub login to publish structured issues and read maintainer replies.
 
 ## 1. Install the MCP server
 
+The commands below install published **v0.4.3**. This branch prepares **v0.4.4**,
+which includes the unreleased PR review fixes; those assets are not published yet.
+
 Requires Python 3.11+ on POSIX and a client that can launch a local MCP process.
 Download the CI-built application and run its setup wizard:
 

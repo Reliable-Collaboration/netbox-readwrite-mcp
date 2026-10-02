@@ -1,7 +1,8 @@
 # Development journal
 
 Earlier experiment logs and release-specific evidence remain in Git history.
-Current support is NetBox 4.7.2 only.
+Runtime compatibility accepts stable NetBox 4.7.x and later. NetBox 4.7.2 is
+the integration-qualified version; later-version acceptance is not live qualification.
 
 ## Recovery foundation
 
@@ -21,7 +22,8 @@ See docs/deletion-recovery.md.
 The user requested a single current target, broad agent operations, real integration
 tests, website access and GitHub feedback before consumer handoff. Upstream release
 metadata identified 4.7.2 as the latest stable target. The lab and compatibility
-policy now pin exactly that release.
+policy initially pinned that release. The runtime policy later expanded to stable
+4.7.x and later; the integration lab remains pinned to 4.7.2.
 
 The official community and managed MCP feature lists informed the capability
 inventory. The user clarified that only fully open-source features belong in

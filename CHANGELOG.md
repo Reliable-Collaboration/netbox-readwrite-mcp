@@ -1,6 +1,6 @@
 # Changes
 
-## Unreleased — PR #2 review follow-up
+## 0.4.4 (unreleased) — PR #2 review follow-up
 
 - Explain receipt outcomes and provide deterministic task summaries through MCP.
 - Reuse bounded media/export snapshots while rechecking native access for each chunk.

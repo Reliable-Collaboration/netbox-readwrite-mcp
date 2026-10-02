@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netbox-readwrite-mcp"
-version = "0.4.3"
+version = "0.4.4"
 description = "Reliable Collaboration's unofficial read/write MCP server for NetBox"
 readme = "README.md"
 requires-python = ">=3.11"
