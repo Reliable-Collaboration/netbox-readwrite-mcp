@@ -65,6 +65,8 @@ def test_legacy_outcome_string_survives_public_receipt_enrichment(broad):  # noq
     )
     operation = call(broad, "get_operation", {"operation_id": created["id"]})
     full = call(broad, "get_task", {"task_id": broad.task, "full": True})
+    compact = call(broad, "get_task", {"task_id": broad.task})
+    assert compact["operations"][0]["native_change_count"] == 1
     for receipt in (created, operation, full["operations"][0]):
         assert receipt["outcome"] == receipt["state"] == "applied"
         assert receipt["outcome_details"]["effect_evidence"] == "native_changes_correlated"

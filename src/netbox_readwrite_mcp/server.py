@@ -421,7 +421,9 @@ def call(service, name, arguments):
                 {
                     **{key: value for key, value in op.items() if key in fields},
                     "http_status": (op.get("last_receipt") or {}).get("status"),
-                    "native_change_count": len(op.get("native_ids", [])),
+                    "native_change_count": len(op["native_ids"])
+                    if "native_ids" in op
+                    else int(op.get("native_id") is not None),
                     "outcome_details": operation_outcome(op),
                 }
                 for op in page
