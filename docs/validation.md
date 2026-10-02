@@ -1,5 +1,28 @@
 # Validation record
 
+## PR #2: receipt reporting and renewed qualification
+
+The unreleased PR candidate `5d4f15f` passed **662 tests plus six subtests**
+(428 unit, 234 real-NetBox integration), with **92.29% MCP runtime coverage**
+in [full CI](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/37049632366).
+The test step took 31m52.22s; Python 3.11–3.14, package checks and loading the
+companion bundle on upstream NetBox also passed. Runtime coverage excludes the
+companion. Local unit testing passed in 21.35s.
+
+Local GLM qualification passed in Claude Code, OpenCode and Codex against the
+same standalone artifact, with eight new final-report checks and manual outcome
+review. **Six Codex attempts failed before its seventh passed**; the unchanged
+final artifact had nine runs total. These are targeted successes with substantial
+observed model/client variability, not a reliability claim. See the
+[findings and dispositions](reporting-validation.md) and
+[all 22 development evaluations](reporting-agent-evaluations.json).
+
+This work adds derived receipt explanations and deterministic journal summaries,
+fixes compatibility/evidence-count/path issues, and improves built-in guidance
+and local diagnostics. Model runs remain local only. These runtime changes are
+**not included in the published v0.4.3 assets**. Historical release records below
+retain their original counts, verdicts and scope.
+
 ## Local deterministic timing and fixture efficiency
 
 The complete released suite passed locally on Python 3.14.4 in **56 minutes

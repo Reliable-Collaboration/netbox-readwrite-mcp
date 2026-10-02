@@ -13,6 +13,10 @@ agent clients or call a model provider. Provider credentials and raw local
 transcripts are not uploaded. Committed evaluation records contain reviewed
 results and hashes, not credentials.
 
+The latest [receipt-reporting qualification](reporting-validation.md) adds eight
+final-report checks and manual review, retaining all failed attempts and the
+observed GLM/Codex variability.
+
 Current acceptance includes the strict combined Community workflow and the real
 GitHub feedback loop recorded below. Earlier sections preserve development runs
 and their limits at the time; [validation](validation.md) records the current
