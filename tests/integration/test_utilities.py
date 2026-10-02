@@ -122,6 +122,28 @@ def test_media_native_upload_chunked_download_and_permissions(importer, people):
     try:
         first = service.api.get(path + "?length=20")["body"]
         assert first["sha256"] == hashlib.sha256(PNG).hexdigest() and first["size"] == len(PNG)
+        shell(f"""
+from unittest.mock import patch
+from django.db.models.fields.files import FieldFile
+from rest_framework.test import APIClient
+from users.models import User
+client = APIClient()
+client.force_authenticate(User.objects.get(username={service.actor!r}))
+original = FieldFile.open
+calls = []
+def opened(self, *args, **kwargs):
+    calls.append(True)
+    return original(self, *args, **kwargs)
+with patch.object(FieldFile, 'open', opened):
+    first = client.get('/api/' + {path!r}, {{'length': 10}})
+    assert first.status_code == 200, first.data
+    offset = first.data['next_offset']
+    while offset is not None:
+        row = client.get('/api/' + {path!r}, {{'length': 10, 'offset': offset, 'expected_sha256': first.data['sha256']}})
+        assert row.status_code == 200, row.data
+        offset = row.data['next_offset']
+    assert len(calls) == 1, calls
+""")
         result = base64.b64decode(first["base64"])
         offset = first["next_offset"]
         while offset is not None:

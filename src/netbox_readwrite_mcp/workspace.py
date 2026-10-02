@@ -9,7 +9,8 @@ from .api import HISTORY_FIELDS
 from .catalog import Catalog, api_path, query_string
 from .compatibility import NETBOX_VERSION, QUALIFIED_VERSIONS, normalization_profile
 from .service import Service
-from .store import digest, encode, consistent_read
+from .store import encode, consistent_read
+from .intent import fingerprint, matches, redact_passwords
 
 PENDING = {"prepared", "dispatched", "uncertain", "accepted"}
 
@@ -220,23 +221,21 @@ class WorkspaceService(Service):
             )
         if not self.store.db.execute("SELECT 1 FROM tasks WHERE id=?", (task_id,)).fetchone():
             raise ValueError("Unknown task")
-        fingerprint = digest(
-            {
-                "task_id": task_id,
-                "method": method,
-                "path": path,
-                "data": data,
-                "expected_etag": expected_etag,
-                "files": files,
-                "transport": transport,
-                "reverses": reverses,
-            }
-        )
+        intent = {
+            "task_id": task_id,
+            "method": method,
+            "path": path,
+            "data": data,
+            "expected_etag": expected_etag,
+            "files": files,
+            "transport": transport,
+            "reverses": reverses,
+        }
         with self.store.lock():
             existing = self.find_operation(operation_key)
             if existing["found"]:
                 op = existing["operation"]
-                if op["fingerprint"] != fingerprint:
+                if not matches(intent, op["fingerprint"]):
                     raise ValueError("Idempotency key was already used for different arguments")
                 return op
             self.store.verify()
@@ -266,19 +265,12 @@ class WorkspaceService(Service):
                 "id": op_id,
                 "operation_key": operation_key,
                 "task_id": task_id,
-                "fingerprint": fingerprint,
+                "fingerprint": fingerprint(intent),
                 "method": method,
                 "path": path,
                 "transport": transport,
                 "reverses": reverses,
-                "requested": {
-                    name: "[REDACTED]"
-                    if name in {"old_password", "new_password1", "new_password2"}
-                    else value
-                    for name, value in data.items()
-                }
-                if path == "plugins/agent-support/self/password/" and isinstance(data, dict)
-                else data,
+                "requested": redact_passwords(data),
                 "files": files,
                 "before": before,
                 "expected_etag": expected_etag,
@@ -735,16 +727,18 @@ class WorkspaceService(Service):
             raise ValueError("Workflow operation_key must be 8–120 safe ASCII characters")
         if not self.store.db.execute("SELECT 1 FROM tasks WHERE id=?", (task_id,)).fetchone():
             raise ValueError("Unknown task")
-        identity = {"task_id": task_id, "operation_key": operation_key, "code_hash": digest(code)}
+        identity = {"task_id": task_id, "operation_key": operation_key}
         with self.store.lock():
             previous = [
                 json.loads(r[0])
                 for r in self.store.db.execute("SELECT payload FROM events WHERE kind='workflow_started'")
             ]
-            if any(x["operation_key"] == operation_key and x != identity for x in previous):
-                raise ValueError("Idempotency key reused for different workflow")
-            if identity not in previous:
-                self.store.event("workflow_started", identity)
+            prior = next((x for x in previous if x["operation_key"] == operation_key), None)
+            if prior:
+                if prior["task_id"] != task_id or not matches(code, prior["code_hash"]):
+                    raise ValueError("Idempotency key reused for different workflow")
+            else:
+                self.store.event("workflow_started", {**identity, "code_hash": fingerprint(code)})
         calls = []
         writes = {"create_object", "update_object", "delete_object", "execute_action", "web_submit"}
         reads = {
@@ -770,7 +764,7 @@ class WorkspaceService(Service):
                     "operation_key": f"{operation_key}.{len(calls)}",
                 }
             step_key = f"{operation_key}.{len(calls)}"
-            step_fingerprint = digest({"name": name, "arguments": arguments})
+            step_intent = {"name": name, "arguments": arguments}
 
             def cached_step():
                 for row in self.store.db.execute(
@@ -778,7 +772,7 @@ class WorkspaceService(Service):
                 ):
                     entry = json.loads(row[0])
                     if entry["key"] == step_key:
-                        if entry["fingerprint"] != step_fingerprint:
+                        if not matches(step_intent, entry["fingerprint"]):
                             raise ValueError("Idempotency workflow step changed arguments")
                         return entry["result"]
                 return None
@@ -794,7 +788,7 @@ class WorkspaceService(Service):
                         result = fresh
                         self.store.event(
                             "workflow_step",
-                            {"key": step_key, "fingerprint": step_fingerprint, "result": result},
+                            {"key": step_key, "fingerprint": fingerprint(step_intent), "result": result},
                         )
             if name in writes:
                 # An originally uncertain/accepted result may since have been reconciled.

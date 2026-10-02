@@ -2,7 +2,6 @@
 
 import base64
 from copy import copy
-import hashlib
 
 from core.models import ObjectType
 from django.http import QueryDict
@@ -17,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .configuration import StrictSerializer
+from .downloads import MAX_BYTES, TTL, bounded_bytes, snapshot
 from .imports import permitted_view, registered_views
 
 
@@ -86,6 +86,7 @@ class ExportView(APIView):
         return Response(
             {
                 "model": model,
+                "snapshot_limits": {"max_bytes": MAX_BYTES, "ttl_seconds": TTL, "slots_per_user": 1},
                 "columns": [
                     {"name": name, "label": str(label)}
                     for name, label in columns
@@ -112,13 +113,8 @@ class ExportView(APIView):
             view.queryset = view.queryset.filter(pk__in=data["ids"])
             if view.queryset.count() != len(data["ids"]):
                 raise PermissionDenied("One or more selected objects are missing or inaccessible.")
-        response = None
-        if data["format"] == "yaml":
-            if not hasattr(view.queryset.model, "to_yaml"):
-                raise ValidationError({"format": "This native model has no YAML export."})
-            raw = view.export_yaml().encode()
-            content_type = "text/yaml"
-        elif data["format"] == "template":
+        template = None
+        if data["format"] == "template":
             if not data.get("template_id"):
                 raise ValidationError({"template_id": "Select an export template."})
             template = get_object_or_404(
@@ -126,44 +122,81 @@ class ExportView(APIView):
                 pk=data["template_id"],
                 object_types=ObjectType.objects.get_for_model(view.queryset.model),
             )
-            try:
-                response = template.render_to_response(queryset=view.queryset)
-            except Exception as exc:
-                raise ValidationError("Native export template rendering failed.") from exc
-        else:
-            table = native_table(view, request)
-            allowed = {name for name, _ in table.selected_columns + table.available_columns} - {
-                "pk",
-                "actions",
-            }
-            columns = data.get("columns")
-            if columns is not None and (not columns or set(columns) - allowed):
-                raise ValidationError({"columns": "Select native export columns."})
-            if columns is None and data["format"] == "table":
-                columns = [name for name, _ in table.selected_columns]
-            response = view.export_table(table, columns, delimiter=request.user.config.get("csv_delimiter"))
-        if response is not None:
-            try:
-                raw = b"".join(response.streaming_content) if response.streaming else response.content
-                content_type = response.get("Content-Type", "application/octet-stream")
-            finally:
-                response.close()
-        digest = hashlib.sha256(raw).hexdigest()
+        fields = {field.name for field in view.queryset.model._meta.fields}
+        revision_fields = ["pk"] + (["last_updated"] if "last_updated" in fields else [])
+        context = {
+            "model": model,
+            "selection": {
+                k: v
+                for k, v in data.items()
+                if k not in {"offset", "length", "expected_sha256", "changelog_message"}
+            },
+            "visible_revisions": list(view.queryset.order_by("pk").values_list(*revision_fields)),
+            "template_revision": getattr(template, "last_updated", None),
+            "preferences": getattr(request.user.config, "data", {}),
+        }
+
+        def produce():
+            response = None
+            if data["format"] == "yaml":
+                if not hasattr(view.queryset.model, "to_yaml"):
+                    raise ValidationError({"format": "This native model has no YAML export."})
+                raw = view.export_yaml().encode()
+                content_type = "text/yaml"
+            elif data["format"] == "template":
+                try:
+                    response = template.render_to_response(queryset=view.queryset)
+                except Exception as exc:
+                    raise ValidationError("Native export template rendering failed.") from exc
+            else:
+                table = native_table(view, request)
+                allowed = {name for name, _ in table.selected_columns + table.available_columns} - {
+                    "pk",
+                    "actions",
+                }
+                columns = data.get("columns")
+                if columns is not None and (not columns or set(columns) - allowed):
+                    raise ValidationError({"columns": "Select native export columns."})
+                if columns is None and data["format"] == "table":
+                    columns = [name for name, _ in table.selected_columns]
+                response = view.export_table(
+                    table, columns, delimiter=request.user.config.get("csv_delimiter")
+                )
+            if response is not None:
+                try:
+                    raw = (
+                        bounded_bytes(response.streaming_content) if response.streaming else response.content
+                    )
+                    content_type = response.get("Content-Type", "application/octet-stream")
+                finally:
+                    response.close()
+            return raw, {"content_type": content_type}
+
+        saved = snapshot(
+            request.user,
+            "export",
+            context,
+            data.get("expected_sha256"),
+            produce,
+            data["offset"],
+            data["length"],
+        )
+        digest = saved["sha256"]
         if data.get("expected_sha256", digest) != digest:
             return Response({"detail": "Export content changed; restart the download."}, status=412)
-        start, end = data["offset"], data["offset"] + data["length"]
-        if start > len(raw):
+        start = data["offset"]
+        if start > saved["size"]:
             return Response({"detail": "Offset exceeds export size."}, status=416)
-        chunk = raw[start:end]
+        chunk = saved["chunk"]
         return Response(
             {
-                "content_type": content_type,
-                "size": len(raw),
+                "content_type": saved["content_type"],
+                "size": saved["size"],
                 "sha256": digest,
                 "offset": start,
                 "length": len(chunk),
                 "base64": base64.b64encode(chunk).decode(),
                 "text": chunk.decode("utf-8", errors="replace"),
-                "next_offset": start + len(chunk) if start + len(chunk) < len(raw) else None,
+                "next_offset": start + len(chunk) if start + len(chunk) < saved["size"] else None,
             }
         )

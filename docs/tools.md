@@ -1,6 +1,6 @@
 # Tool reference
 
-Compatibility is exactly NetBox 4.7.2. Both stdio and authenticated loopback
+Stable NetBox 4.7.x and later are accepted; testing is specifically against 4.7.2. Both stdio and authenticated loopback
 Streamable HTTP expose the same tools. Tool schemas are returned by tools/list;
 unknown arguments and incorrect types are refused. Native NetBox validation
 remains authoritative for payload fields and action-specific requirements.

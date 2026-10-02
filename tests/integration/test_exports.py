@@ -116,3 +116,60 @@ def test_every_stock_export_schema_and_empty_export(queue_admin):  # noqa: F811
         result = queue_admin.api.request("POST", path, {"ids": [], "format": "csv"})
         assert result["status"] == 200, (model, result)
         assert result["body"]["sha256"]
+
+
+def test_export_chunks_reuse_render_and_recheck_revision(sites):  # noqa: F811
+    from tests.integration.test_configuration import shell
+
+    service, prefix, ids = sites
+    shell(f"""
+from unittest.mock import patch
+from rest_framework.test import APIClient
+from users.models import User
+from dcim.models import Site
+from netbox.views.generic import ObjectListView
+client = APIClient()
+client.force_authenticate(User.objects.get(username={service.actor!r}))
+path = '/api/plugins/agent-support/exports/dcim.site/'
+body = {{'ids': {ids!r}, 'format': 'csv', 'columns': ['name', 'slug'], 'length': 20}}
+original = ObjectListView.export_table
+calls = []
+def render(self, *args, **kwargs):
+    calls.append(True)
+    return original(self, *args, **kwargs)
+with patch.object(ObjectListView, 'export_table', render):
+    first = client.post(path, body, format='json')
+    assert first.status_code == 200, first.data
+    offset = first.data['next_offset']
+    assert offset is not None
+    while offset is not None:
+        response = client.post(path, {{**body, 'offset': offset, 'expected_sha256': first.data['sha256']}}, format='json')
+        assert response.status_code == 200, response.data
+        offset = response.data['next_offset']
+    assert len(calls) == 1, calls
+    site = Site.objects.get(pk={ids[0]!r})
+    site.description = 'snapshot revision changed'
+    site.save()
+    changed = client.post(path, {{**body, 'expected_sha256': first.data['sha256']}}, format='json')
+    # Description is not in the chosen columns, so regeneration keeps the same digest.
+    assert changed.status_code == 200, changed.data
+    assert len(calls) == 2, calls
+
+from core.models import ObjectType
+from users.models import ObjectPermission
+user = User.objects.create(username={prefix!r} + '-snapshot-viewer')
+permission = ObjectPermission.objects.create(name={prefix!r} + '-snapshot-view', actions=['view'], constraints={{'id__in': {ids!r}}})
+try:
+    permission.object_types.add(ObjectType.objects.get_for_model(Site))
+    permission.users.add(user)
+    client.force_authenticate(User.objects.get(pk=user.pk))
+    first = client.post(path, body, format='json')
+    assert first.status_code == 200, first.data
+    permission.users.remove(user)
+    client.force_authenticate(User.objects.get(pk=user.pk))
+    denied = client.post(path, {{**body, 'offset': 20, 'expected_sha256': first.data['sha256']}}, format='json')
+    assert denied.status_code == 403, denied.data
+finally:
+    permission.delete()
+    user.delete()
+""")

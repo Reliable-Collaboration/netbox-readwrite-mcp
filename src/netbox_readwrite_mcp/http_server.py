@@ -49,6 +49,8 @@ def create_server(config, host, port, token_file):
             self.send_response(status)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(data)))
+            if self.close_connection:
+                self.send_header("Connection", "close")
             if session:
                 self.send_header("Mcp-Session-Id", session)
             self.end_headers()
@@ -56,24 +58,37 @@ def create_server(config, host, port, token_file):
 
         def authorize(self):
             if self.path != "/mcp":
+                self.close_connection = True
                 self.send(404)
                 return False
             if not hmac.compare_digest(self.headers.get("Authorization", ""), "Bearer " + token):
-                self.send(401)
                 self.close_connection = True
+                self.send(401)
                 return False
             origin = self.headers.get("Origin")
-            if origin and urlsplit(origin).netloc != self.headers.get("Host"):
-                self.send(403)
-                self.close_connection = True
-                return False
+            if origin:
+                try:
+                    parsed = urlsplit(origin)
+                    valid = (
+                        parsed.scheme in {"http", "https"}
+                        and parsed.netloc == self.headers.get("Host")
+                        and not (parsed.path or parsed.query or parsed.fragment)
+                    )
+                except ValueError:
+                    valid = False
+                if not valid:
+                    self.close_connection = True
+                    self.send(403)
+                    return False
             return True
 
         def do_GET(self):
+            self.close_connection = True
             if self.authorize():
                 self.send(405)
 
         def do_DELETE(self):
+            self.close_connection = True
             if not self.authorize():
                 return
             session = self.headers.get("Mcp-Session-Id")
@@ -89,7 +104,11 @@ def create_server(config, host, port, token_file):
                 if not 0 < length <= 1024 * 1024 or self.headers.get("Transfer-Encoding"):
                     self.close_connection = True
                     return self.send(413)
-                if "application/json" not in self.headers.get("Content-Type", ""):
+                if (
+                    self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+                    != "application/json"
+                ):
+                    self.close_connection = True
                     return self.send(415)
                 req = parse_request(self.rfile.read(length))
                 if (
@@ -103,6 +122,7 @@ def create_server(config, host, port, token_file):
                 if not isinstance(params, dict):
                     raise ValueError("Invalid parameters")
             except (ValueError, UnicodeError, RecursionError):
+                self.close_connection = True
                 return self.send(
                     400,
                     {"jsonrpc": "2.0", "id": None, "error": {"code": -32600, "message": "Invalid request"}},

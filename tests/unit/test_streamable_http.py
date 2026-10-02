@@ -64,6 +64,7 @@ def test_official_sdk_http_initialization_discovery_and_local_tools(http_mcp):
         ({}, 401),
         ({"Authorization": "Bearer wrong"}, 401),
         ({"Authorization": "Bearer " + "a" * 40, "Origin": "https://evil.invalid"}, 403),
+        ({"Authorization": "Bearer " + "a" * 40, "Origin": "https://[invalid"}, 403),
     ],
 )
 def test_http_rejects_missing_credentials_and_cross_origin(http_mcp, headers, expected):
@@ -162,3 +163,40 @@ def test_abandoned_sessions_expire_without_evicting_active_clients(http_mcp, mon
         assert initialize().status_code == 200
         assert ping(sessions[0]).status_code == 200
         assert ping(sessions[1]).status_code == 404
+
+
+@pytest.mark.parametrize(
+    "method,path,extra,status",
+    [
+        ("POST", "/mcp", {"Content-Type": "text/plain"}, 415),
+        ("POST", "/mcp", {"Content-Type": "application/json-invalid"}, 415),
+        ("POST", "/mcp", {"Content-Type": "application/json", "Content-Length": "invalid"}, 400),
+        ("POST", "/other", {"Content-Type": "application/json"}, 404),
+        ("GET", "/mcp", {}, 405),
+        ("DELETE", "/mcp", {}, 404),
+    ],
+)
+def test_rejected_body_closes_connection_before_it_can_be_parsed_as_http(
+    http_mcp, method, path, extra, status
+):
+    import http.client
+    from urllib.parse import urlsplit
+
+    endpoint = urlsplit(http_mcp)
+    connection = http.client.HTTPConnection(endpoint.hostname, endpoint.port, timeout=3)
+    try:
+        connection.request(
+            method,
+            path,
+            body=b"unconsumed request body",
+            headers={
+                "Authorization": "Bearer " + "a" * 40,
+                **extra,
+            },
+        )
+        response = connection.getresponse()
+        assert response.status == status
+        assert response.will_close
+        response.read()
+    finally:
+        connection.close()

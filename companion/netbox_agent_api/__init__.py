@@ -11,7 +11,7 @@ class AgentAPIConfig(PluginConfig):
     author = "Reliable Collaboration contributors"
     base_url = "agent-support"
     min_version = "4.7.0"
-    default_settings = {}
+    default_settings = {"download_snapshot_max_bytes": 16 * 1024 * 1024}
 
 
 config = AgentAPIConfig

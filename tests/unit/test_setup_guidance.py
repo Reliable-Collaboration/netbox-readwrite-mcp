@@ -164,3 +164,77 @@ def test_doctor_reads_only_and_errors_omit_private_response(tmp_path, monkeypatc
     with pytest.raises(SystemExit):
         main(["doctor", "--config", str(path)])
     assert "private-response-with-secret" not in capsys.readouterr().err
+
+
+def test_companion_enable_can_retry_after_backup_was_written(tmp_path, monkeypatch):
+    setup = module("companion_setup_retry", ROOT / "companion/netbox_agent_api_setup.py")
+    path = tmp_path / "configuration.py"
+    original = b"PLUGINS = []\n"
+    path.write_bytes(original)
+    with monkeypatch.context() as patch:
+
+        def fail(**kwargs):
+            raise OSError("synthetic temporary-file failure")
+
+        patch.setattr(setup.tempfile, "mkstemp", fail)
+        with pytest.raises(OSError):
+            setup.enable(path)
+    backup = path.with_name(path.name + ".before-agent-api")
+    assert path.read_bytes() == backup.read_bytes() == original
+    assert setup.enable(path)
+    assert backup.read_bytes() == original
+
+
+@pytest.mark.parametrize("stage", ["write", "close"])
+def test_companion_partial_backup_is_removed_without_touching_config(tmp_path, monkeypatch, stage):
+    setup = module("companion_setup_partial", ROOT / "companion/netbox_agent_api_setup.py")
+    path = tmp_path / "configuration.py"
+    original = b"PLUGINS = []\n"
+    path.write_bytes(original)
+    backup = path.with_name(path.name + ".before-agent-api")
+    opening = Path.open
+
+    class BrokenBackup:
+        def __init__(self, stream):
+            self.stream = stream
+
+        def __enter__(self):
+            return self
+
+        def write(self, value):
+            if stage == "write":
+                raise OSError("synthetic backup failure")
+            return self.stream.write(value)
+
+        def __exit__(self, *args):
+            result = self.stream.__exit__(*args)
+            if stage == "close":
+                raise OSError("synthetic backup close failure")
+            return result
+
+    def open_file(selected, *args, **kwargs):
+        stream = opening(selected, *args, **kwargs)
+        return BrokenBackup(stream) if selected == backup else stream
+
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, "open", open_file)
+        with pytest.raises(OSError):
+            setup.enable(path)
+    assert path.read_bytes() == original and not backup.exists()
+    assert setup.enable(path)
+
+
+def test_companion_never_overwrites_a_conflicting_or_linked_backup(tmp_path):
+    setup = module("companion_setup_conflict", ROOT / "companion/netbox_agent_api_setup.py")
+    path = tmp_path / "configuration.py"
+    path.write_text("PLUGINS = []\n")
+    backup = path.with_name(path.name + ".before-agent-api")
+    backup.write_text("different original")
+    with pytest.raises(ValueError, match="backup differs"):
+        setup.enable(path)
+    assert backup.read_text() == "different original"
+    backup.unlink()
+    backup.symlink_to(path)
+    with pytest.raises(ValueError, match="backup differs"):
+        setup.enable(path)
+    assert backup.is_symlink()

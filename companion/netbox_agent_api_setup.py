@@ -29,9 +29,22 @@ def enable(path):
         raise ValueError("Run as the configuration file owner to preserve ownership")
     if old:
         backup = path.with_name(path.name + ".before-agent-api")
-        with backup.open("xb") as dest:
-            os.chmod(backup, 0o600)
-            dest.write(old)
+        if backup.exists() or backup.is_symlink():
+            if backup.is_symlink() or backup.read_bytes() != old:
+                raise ValueError(
+                    "Existing backup differs from current configuration; inspect it before retrying"
+                )
+        else:
+            created_backup = False
+            try:
+                with backup.open("xb") as dest:
+                    created_backup = True
+                    os.chmod(backup, 0o600)
+                    dest.write(old)
+            except BaseException:
+                if created_backup:
+                    backup.unlink(missing_ok=True)
+                raise
     fd, temporary = tempfile.mkstemp(prefix=".agent-api-", dir=path.parent)
     try:
         with os.fdopen(fd, "wb") as dest:

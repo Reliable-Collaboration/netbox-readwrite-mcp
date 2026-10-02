@@ -47,17 +47,22 @@ def configure(path, url, actor, token, read_only=False):
     path.parent.mkdir(parents=True, mode=0o700, exist_ok=True)
     if path.parent.stat().st_mode & 0o077:
         raise ValueError("Configuration directory must be private (chmod 700)")
-    # Reserve the config before the token. Never replace an existing identity or secret.
-    with path.open("x") as output:
-        os.chmod(path, 0o600)
-        try:
-            with (path.parent / "token").open("x") as secret:
-                os.chmod(secret.name, 0o600)
+    # Track ownership only after exclusive creation; include flush/close failures.
+    created = []
+    try:
+        with path.open("x") as output:
+            created.append(path)
+            os.chmod(path, 0o600)
+            secret_path = path.parent / "token"
+            with secret_path.open("x") as secret:
+                created.append(secret_path)
+                os.chmod(secret_path, 0o600)
                 secret.write(token + "\n")
             output.write(json.dumps(cfg, indent=2) + "\n")
-        except Exception:
-            path.unlink()
-            raise
+    except BaseException:
+        for owned in reversed(created):
+            owned.unlink(missing_ok=True)
+        raise
     return path
 
 

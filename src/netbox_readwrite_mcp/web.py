@@ -98,7 +98,8 @@ class Website:
 
     def request(self, path, data=None, files=None):
         url = self.url(path)
-        headers = {"Referer": url, "Origin": self.base}
+        origin = urlsplit(self.base)
+        headers = {"Referer": url, "Origin": f"{origin.scheme}://{origin.netloc}"}
         body = None
         if data is not None:
             if not isinstance(data, dict):

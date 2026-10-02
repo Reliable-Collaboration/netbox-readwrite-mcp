@@ -240,7 +240,11 @@ These endpoints use Community forms/models and permissions, without an HTML sess
   native search/preview and permission-scoped administrative information.
 - `media/` and `exports/`: authenticated base64 downloads of image fields and DataFile content, native CSV/table/YAML
   and saved-template exports. Continue with `next_offset` and the initial hash;
-  restart a download on 412. Read-only exports support GET with `export=csv`.
+  restart a download on 412. Keep one media download and one export active per
+  user: starting another can replace the cached snapshot. Inspect `snapshot_limits`
+  for the byte bound (default 16 MiB) and expiry (five minutes); a 413 requires a
+  smaller export or an operator-adjusted bound. Read-only exports support GET
+  with `export=csv`.
 - `bulk-disconnect/` and `bulk-sync/`: preview selected IDs, then apply with the
   returned `expected` map. Synchronization guards both objects and source-file
   hashes. Wait for the native data-source worker to finish before previewing.
