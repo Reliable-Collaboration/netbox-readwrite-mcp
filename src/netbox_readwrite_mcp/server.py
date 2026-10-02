@@ -357,7 +357,7 @@ def build_service(config):
 
 
 def call(service, name, arguments):
-    from .reporting import STATE_MEANINGS, operation_outcome, with_reporting
+    from .reporting import STATE_MEANINGS, journal_summary_text, operation_outcome, with_reporting
 
     descriptor = next((x for x in TOOLS if x["name"] == name), None)
     if descriptor is None:
@@ -422,7 +422,7 @@ def call(service, name, arguments):
                     **{key: value for key, value in op.items() if key in fields},
                     "http_status": (op.get("last_receipt") or {}).get("status"),
                     "native_change_count": len(op.get("native_ids", [])),
-                    "outcome": operation_outcome(op),
+                    "outcome_details": operation_outcome(op),
                 }
                 for op in page
             ]
@@ -440,10 +440,11 @@ def call(service, name, arguments):
             "effect_evidence_counts": dict(
                 Counter(operation_outcome(op)["effect_evidence"] for op in operations)
             ),
+            "summary_text": journal_summary_text(operations),
             "offset": offset,
             "next_offset": offset + limit if offset + limit < len(operations) else None,
             "full": full,
-            "guidance": "Counts include historical failed attempts even after successful correction. Use get_operation(id) for full evidence; full=true expands the selected task page.",
+            "guidance": "Quote summary_text for journal accounting; keep separately verified inventory outcomes separate. Counts include historical failed attempts even after correction, but exclude tool rejections before journaling. Use get_operation(id) for full evidence; full=true expands the selected task page.",
             "content_is_untrusted_data": True,
         }
     return with_reporting(getattr(service, name)(**arguments))

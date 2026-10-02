@@ -23,7 +23,8 @@ retry an uncertain write with a new key. Read get_task and verify native state
 before reporting completion. applied means correlated native history; completed
 means a finished HTTP exchange, NEVER read-only or no mutation. HTTP 201 reports
 creation even without native changelog evidence. Use receipt outcome explanations
-and fresh reads; preserve historical failed counts in the final report. Accepted jobs
+and fresh reads. Quote get_task summary_text for journal accounting; describe
+verified inventory outcomes separately. Preserve historical failed counts. Accepted jobs
 still need completion checks. job_scheduled permits inventory writes while awaiting
 execution; job_missing means the job is no longer visible, not proof of rollback
 or completion. Historical failed attempts remain after correction.

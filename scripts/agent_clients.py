@@ -206,6 +206,7 @@ def final_text(events):
 def reported_outcome_checks(events, operations, bookmark):
     """Grade explicit final claims against independent receipts and current NetBox state."""
     from collections import Counter
+    from netbox_readwrite_mcp.reporting import journal_summary_text
 
     text = final_text(events)
     candidates = []
@@ -262,6 +263,7 @@ def reported_outcome_checks(events, operations, bookmark):
         "reported_state_counts_exact": counts_ok
         and counts == dict(Counter(op["state"] for op in operations)),
         "reported_completed_semantics_correct": report.get("completed_semantics") == "http_exchange_only",
+        "reported_journal_summary_exact": report.get("journal_summary") == journal_summary_text(operations),
         "reported_completed_receipts_exact": bool(completed_ok),
         "reported_bookmark_matches_readback": bool(bookmark)
         and isinstance(reported_bookmark, dict)

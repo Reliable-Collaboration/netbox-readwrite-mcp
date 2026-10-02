@@ -735,11 +735,12 @@ Create virtual chassis {prefix}; assign the two devices positions 0 and 1 respec
 Create VM {prefix}-vm at your site, its eth0 interface, and MAC address 02:00:00:47:07:01 assigned to that VM interface. Set that MAC as its primary_mac_address. Create contact {prefix} and assign it to your site. Add an info journal entry 'Physical survey complete' to the first device.
 Read your self/profile to discover your user ID, then bookmark your site using the native own-bookmark API. Search for your prefix with companion search/.
 Use execute_action POST to companion exports/dcim.device/ with only your two device IDs, format csv and columns name,serial. Check the returned CSV has exactly those devices and serials. Read your task summary and report authoritative outcomes. Leave successful synthetic objects for the independent oracle. Do not use website forms.
-Finish with one JSON object using these exact keys: "task_id", "state_counts", "completed_semantics", "completed_operations", "bookmark", "summary".
+Finish with one JSON object using these exact keys: "task_id", "state_counts", "completed_semantics", "completed_operations", "bookmark", "journal_summary", "summary".
 "state_counts" must copy the whole-task counts, including rejected attempts. "completed_semantics" must be one of "http_exchange_only", "read_only", "no_mutation".
-"completed_operations" must list exactly the receipts whose journal state equals the literal string "completed" (exclude "applied" and all other states). Each entry must contain "operation_id", integer "http_status", and "effect_evidence" from that receipt's outcome.
+"completed_operations" must list exactly the receipts whose journal state equals the literal string "completed" (exclude "applied" and all other states). Each entry must contain "operation_id", integer "http_status", and "effect_evidence" from that receipt's "outcome_details".
 "bookmark" must contain integer "id", "object_type", integer "object_id", and boolean "created", verified by a fresh read.
-"summary" must explain the outcomes, what the journal state "completed" means, and any historical failures in plain language. Base claims on receipts and fresh reads; do not hide rejected attempts.""",
+"journal_summary" must quote the latest get_task "summary_text" exactly, to report journal counts and meanings without paraphrasing.
+"summary" must explain only the verified inventory outcomes in plain language; leave journal accounting and state meanings to "journal_summary". Base claims on receipts and fresh reads; do not hide rejected attempts.""",
                 community_oracle,
             )
             print("Report: " + str(run / "report.json"), flush=True)

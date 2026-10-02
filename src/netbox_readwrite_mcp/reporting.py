@@ -1,5 +1,7 @@
 """Conservative, derived explanations of durable receipts; never mutation evidence."""
 
+from collections import Counter
+
 STATE_MEANINGS = {
     "applied": "Correlated native change evidence exists; inspect affected objects.",
     "completed": "HTTP exchange finished. This does NOT mean read-only or no mutation. Inspect the response and read back the target.",
@@ -43,13 +45,35 @@ def operation_outcome(operation):
     return {"effect_evidence": effect, "explanation": explanation}
 
 
+def journal_summary_text(operations):
+    """Ready-to-quote journal accounting, independent of a model's arithmetic or prose."""
+    counts = Counter(op["state"] for op in operations)
+    tally = ", ".join(f"{state}={counts[state]}" for state in sorted(counts))
+    parts = [f"Journal records {len(operations)} operations" + (f" ({tally})." if tally else ".")]
+    parts.extend(
+        f"{state}: {STATE_MEANINGS.get(state, 'Inspect receipts and reconcile; effects are not established.')}"
+        for state in sorted(counts)
+    )
+    creations = sum(
+        operation_outcome(op)["effect_evidence"] == "server_reported_creation" for op in operations
+    )
+    if creations:
+        parts.append(
+            f"Completed receipts reporting HTTP 201 creation: {creations}. Verify the created targets with fresh reads."
+        )
+    parts.append(
+        "These are journal operation counts, not counts of all MCP tool errors; rejected calls before journaling are not included."
+    )
+    return " ".join(parts)
+
+
 def with_reporting(result):
     """Annotate known operation envelopes without altering persisted journal documents."""
     if not isinstance(result, dict):
         return result
     out = dict(result)
     if {"id", "operation_key", "state"} <= result.keys():
-        out["outcome"] = operation_outcome(result)
+        out["outcome_details"] = operation_outcome(result)
     for key in ("operation", "correction"):
         if isinstance(result.get(key), dict):
             out[key] = with_reporting(result[key])

@@ -42,8 +42,25 @@ persistent inventory and journal:
 | Website fallback | Invalid and valid form submissions, one verified new site, diagnostics produced; final explanation reviewed separately |
 | Conflicted undo | A fixture introduces a newer field edit; the agent previews undo, preserves the newer value and produces diagnostics |
 
+The Community scenario also requires a structured final report. Its eight reporting
+checks compare task identity, exact state counts (including historical rejections),
+the meaning of `completed`, every completed receipt's HTTP status and effect
+evidence, and the bookmark target against the journal and an independent read.
+The journal summary must exactly quote the server's deterministic `summary_text`;
+the model's separate inventory summary must be nonempty and is reviewed for
+unsupported outcome claims. Only the client's final answer is
+graded; tool output cannot substitute for it. Deterministic regressions exercise
+all three client transcript formats and reject misleading counts, targets and
+receipt meanings. The report format is part of the evaluation task; guidance on
+how to interpret receipts comes from the MCP server.
+
+Journal `failed` counts and the harness's `tool_errors` measure different things.
+A rejected NetBox request can return a durable failed-operation receipt in a
+normal MCP result. `tool_errors` counts MCP error responses. Neither counter
+erases an earlier rejection after a successful correction.
+
 This is a targeted acceptance exercise, not a statistical reliability benchmark.
-The state oracle does not grade every sentence of the model's explanation. Review
+The structured report checks do not grade every sentence of the model's explanation. Review
 transcripts for unsupported claims, wasted calls and misunderstood limits. A
 provider/client failure or timeout is a failed/incomplete evaluation, never a pass.
 The runner stops after a failed greenfield phase; later phases cannot turn that

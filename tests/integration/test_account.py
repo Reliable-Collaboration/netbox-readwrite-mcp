@@ -150,7 +150,7 @@ for name in [{a.actor!r}, {b.actor!r}]:
         assert created["status"] == 201, created
         pk = created["body"]["id"]
         assert operation["state"] == "completed", operation
-        assert operation["outcome"]["effect_evidence"] == "server_reported_creation"
+        assert operation["outcome_details"]["effect_evidence"] == "server_reported_creation"
         summary = call(a, "get_task", {"task_id": task})
         assert summary["state_counts"] == {"completed": 1}
         assert summary["effect_evidence_counts"] == {"server_reported_creation": 1}

@@ -214,6 +214,7 @@ def test_community_search_accepts_verified_get_objects_results(client):
 def test_final_report_is_graded_against_receipts_not_confident_prose(client):
     from copy import deepcopy
     from scripts.agent_clients import reported_outcome_checks
+    from netbox_readwrite_mcp.reporting import journal_summary_text
 
     operations = [
         {"id": "rejected", "task_id": "task", "state": "failed", "last_receipt": {"status": 400}},
@@ -230,6 +231,7 @@ def test_final_report_is_graded_against_receipts_not_confident_prose(client):
             {"operation_id": "export", "http_status": 200, "effect_evidence": "effects_require_verification"},
         ],
         "bookmark": {**bookmark, "created": True},
+        "journal_summary": journal_summary_text(operations),
         "summary": "The bookmark exists. Completed records finished exchanges, not absence of mutation. One rejected attempt remains.",
     }
 
@@ -257,6 +259,7 @@ def test_final_report_is_graded_against_receipts_not_confident_prose(client):
         ("completed_operations", [correct["completed_operations"][0]] * 2),
         ("completed_operations", ["bad"]),
         ("summary", ""),
+        ("journal_summary", "No successful operation was read-only; all failures disappeared."),
     ]:
         report = deepcopy(correct)
         report[field] = wrong

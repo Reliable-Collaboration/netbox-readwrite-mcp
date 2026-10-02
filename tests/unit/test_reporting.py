@@ -2,7 +2,7 @@
 
 import pytest
 
-from netbox_readwrite_mcp.reporting import operation_outcome, with_reporting
+from netbox_readwrite_mcp.reporting import journal_summary_text, operation_outcome, with_reporting
 from netbox_readwrite_mcp.server import call, error_result
 from tests.unit.test_workspace import broad  # noqa: F401
 
@@ -18,6 +18,22 @@ def test_completed_never_proves_no_mutation(status):
         assert "verify" in result["explanation"]
 
 
+def test_ready_to_quote_summary_counts_journal_receipts_not_tool_errors():
+    operations = [
+        {"state": "applied"},
+        {"state": "failed"},
+        {"state": "completed", "last_receipt": {"status": 201}},
+        {"state": "completed", "last_receipt": {"status": 200}},
+    ]
+    summary = journal_summary_text(operations)
+    assert summary.startswith("Journal records 4 operations (applied=1, completed=2, failed=1).")
+    assert "does NOT mean read-only or no mutation" in summary
+    assert "remains recorded after a successful correction" in summary
+    assert "Completed receipts reporting HTTP 201 creation: 1." in summary
+    assert "rejected calls before journaling are not included" in summary
+    assert journal_summary_text([]).startswith("Journal records 0 operations.")
+
+
 @pytest.mark.parametrize("state", ["accepted", "job_failed", "job_missing", "uncertain", "dispatched"])
 def test_unresolved_or_job_states_do_not_become_creation_proof(state):
     assert (
@@ -29,9 +45,30 @@ def test_unresolved_or_job_states_do_not_become_creation_proof(state):
 def test_reporting_does_not_rewrite_original_receipt():
     op = {"id": "a", "operation_key": "key", "state": "completed", "last_receipt": {"status": 201}}
     annotated = with_reporting({"found": True, "operation": op})
-    assert "outcome" not in op
+    assert "outcome_details" not in op
     assert annotated["operation"]["last_receipt"] == op["last_receipt"]
-    assert annotated["operation"]["outcome"]["effect_evidence"] == "server_reported_creation"
+    assert annotated["operation"]["outcome_details"]["effect_evidence"] == "server_reported_creation"
+
+
+def test_legacy_outcome_string_survives_public_receipt_enrichment(broad):  # noqa: F811
+    before = broad.read_device(1)
+    created = call(
+        broad,
+        "update_device",
+        {
+            "task_id": broad.task,
+            "operation_key": "legacy-reporting",
+            "device_id": 1,
+            "expected_etag": before["etag"],
+            "changes": {"description": "receipt compatibility"},
+        },
+    )
+    operation = call(broad, "get_operation", {"operation_id": created["id"]})
+    full = call(broad, "get_task", {"task_id": broad.task, "full": True})
+    for receipt in (created, operation, full["operations"][0]):
+        assert receipt["outcome"] == receipt["state"] == "applied"
+        assert receipt["outcome_details"]["effect_evidence"] == "native_changes_correlated"
+    assert "outcome_details" not in broad.get_operation(created["id"])
 
 
 def test_task_reports_unlogged_creation_and_retains_rejection_counts(broad):  # noqa: F811
@@ -60,9 +97,10 @@ def test_task_reports_unlogged_creation_and_retains_rejection_counts(broad):  # 
         "server_reported_creation": 1,
         "effects_require_verification": 1,
     }
-    assert summary["operations"][0]["outcome"]["effect_evidence"] == "server_reported_creation"
+    assert summary["operations"][0]["outcome_details"]["effect_evidence"] == "server_reported_creation"
     assert "NOT mean read-only" in summary["state_meanings"]["completed"]
-    assert "outcome" not in broad.get_task(broad.task)["operations"][1]
+    assert summary["summary_text"].startswith("Journal records 3 operations (completed=2, failed=1).")
+    assert "outcome_details" not in broad.get_task(broad.task)["operations"][1]
 
 
 def test_escaped_etag_error_teaches_exact_copy_without_rewriting_value(broad):  # noqa: F811
