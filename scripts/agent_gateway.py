@@ -15,6 +15,7 @@ class Activity:
         self.active = {}
         self.last_network = None
         self.last_generation = None
+        self.last_response = None
 
     def begin(self, body):
         with self.lock:
@@ -54,6 +55,33 @@ class Activity:
                     status = response.get("status", "unknown")
                     if status in {"completed", "incomplete", "failed", "unknown"}:
                         self.counts["response_" + status] += 1
+                    output = response.get("output")
+                    if isinstance(output, list):
+                        # Retain shape only, never generated text, arguments or identifiers.
+                        types = Counter(
+                            item.get("type", "unknown")
+                            for item in output
+                            if isinstance(item, dict)
+                            and item.get("type") in {"message", "function_call", "reasoning"}
+                        )
+                        text_chars = sum(
+                            len(part["text"])
+                            for item in output
+                            if isinstance(item, dict) and item.get("type") == "message"
+                            for part in (item.get("content") or [])
+                            if isinstance(part, dict) and isinstance(part.get("text"), str)
+                        )
+                        self.last_response = {
+                            "request_number": ident,
+                            "status": status
+                            if status in {"completed", "incomplete", "failed"}
+                            else "unknown",
+                            "output_items": len(output),
+                            "known_item_types": dict(types),
+                            "text_characters": text_chars,
+                        }
+                        if status == "completed" and not text_chars and not types["function_call"]:
+                            self.counts["response_completed_without_text_or_function_call"] += 1
                 if kind == "message_delta":
                     reason = (event.get("delta") or {}).get("stop_reason")
                     if reason in {"end_turn", "tool_use", "max_tokens", "stop_sequence"}:
@@ -93,6 +121,7 @@ class Activity:
         with self.lock:
             return {
                 **self.counts,
+                "last_response_shape": self.last_response,
                 "active_requests": [
                     {**value, "age_seconds": round(now - value["started"], 1)}
                     for value in self.active.values()

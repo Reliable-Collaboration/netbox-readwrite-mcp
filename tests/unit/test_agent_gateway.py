@@ -114,3 +114,33 @@ def test_activity_reports_terminal_status_and_sizes_without_content():
     assert state["stop_max_tokens"] == 1
     assert state["request_bytes"] > state["largest_instructions_bytes"] > 0
     assert "private" not in json.dumps(state)
+
+
+@pytest.mark.parametrize(
+    "output,empty,text_chars",
+    [
+        ([], True, 0),
+        ([{"type": "message", "content": None}], True, 0),
+        ([{"type": "reasoning", "summary": "private reasoning"}], True, 0),
+        ([{"type": "function_call", "name": "private tool", "arguments": "private arguments"}], False, 0),
+        ([{"type": "message", "content": [{"type": "output_text", "text": "private answer"}]}], False, 14),
+    ],
+)
+def test_terminal_response_shape_distinguishes_empty_answers_without_retaining_content(
+    output, empty, text_chars
+):
+    activity = Activity()
+    ident = activity.begin({})
+    line = (
+        b"data: "
+        + json.dumps(
+            {"type": "response.completed", "response": {"status": "completed", "output": output}}
+        ).encode()
+    )
+    activity.chunk(ident, line, [line])
+    state = activity.snapshot()
+    assert bool(state.get("response_completed_without_text_or_function_call")) is empty
+    assert state["last_response_shape"]["text_characters"] == text_chars
+    assert state["last_response_shape"]["output_items"] == len(output)
+    assert state["last_response_shape"]["request_number"] == ident
+    assert "private" not in json.dumps(state)
