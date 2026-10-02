@@ -21,6 +21,8 @@ def test_real_bookmark_route_hint_and_missing_device_are_distinct(tmp_path):
     service = build_service(config)
     try:
         service.catalog.load_schema()
+        schema = call(service, "get_schema", {"object_type": "core/bookmarks/"})
+        assert schema["candidate_paths"][0] == "extras/bookmarks/"
         args = {"path": "core/bookmarks/bookmark/bookmark/"}
         with pytest.raises(RuntimeError, match="HTTP 404") as exc:
             call(service, "query", args)

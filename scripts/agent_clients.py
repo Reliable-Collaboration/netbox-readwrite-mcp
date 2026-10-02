@@ -185,3 +185,96 @@ def community_read_checks(events, prefix, interface_ids):
 
 def consecutive_error_limit_reached(events, limit):
     return bool(limit) and len(events) >= limit and all(event.get("is_error") for event in events[-limit:])
+
+
+def final_text(events):
+    """Extract client final prose, excluding tool outputs and interim reasoning."""
+    claude = [e.get("result", "") for e in events if e.get("type") == "result" and not e.get("is_error")]
+    if claude:
+        return claude[-1] if isinstance(claude[-1], str) else ""
+    codex = [
+        e["item"].get("text", "")
+        for e in events
+        if e.get("type") == "item.completed" and e.get("item", {}).get("type") == "agent_message"
+    ]
+    if codex:
+        return codex[-1] if isinstance(codex[-1], str) else ""
+    opencode = [e.get("part", {}).get("text", "") for e in events if e.get("type") == "text"]
+    return opencode[-1] if opencode and isinstance(opencode[-1], str) else ""
+
+
+def reported_outcome_checks(events, operations, bookmark):
+    """Grade explicit final claims against independent receipts and current NetBox state."""
+    from collections import Counter
+
+    text = final_text(events)
+    candidates = []
+    decoder = json.JSONDecoder()
+    for offset, char in enumerate(text):
+        if char != "{":
+            continue
+        try:
+            value, _ = decoder.raw_decode(text[offset:])
+        except ValueError:
+            continue
+        if isinstance(value, dict) and "task_id" in value and "state_counts" in value:
+            candidates.append(value)
+    report = candidates[0] if len(candidates) == 1 else {}
+    completed = [op for op in operations if op["state"] == "completed"]
+    expected_completed = {
+        op["id"]: {
+            "http_status": (op.get("last_receipt") or {}).get("status"),
+            "effect_evidence": (
+                "server_reported_creation"
+                if op.get("transport", "rest") == "rest"
+                and (op.get("last_receipt") or {}).get("status") == 201
+                else "effects_require_verification"
+            ),
+        }
+        for op in completed
+    }
+    claimed_completed = report.get("completed_operations")
+    completed_ok = isinstance(claimed_completed, list) and len(claimed_completed) == len(completed)
+    if completed_ok:
+        try:
+            actual = {
+                row["operation_id"]: {
+                    "http_status": row["http_status"],
+                    "effect_evidence": row["effect_evidence"],
+                }
+                for row in claimed_completed
+            }
+            completed_ok = (
+                len(actual) == len(claimed_completed)
+                and actual == expected_completed
+                and all(type(row["http_status"]) is int for row in claimed_completed)
+            )
+        except (KeyError, TypeError):
+            completed_ok = False
+    counts = report.get("state_counts")
+    counts_ok = isinstance(counts, dict) and all(type(v) is int for v in counts.values())
+    reported_bookmark = report.get("bookmark")
+    return {
+        "final_report_present": bool(report),
+        "reported_task_matches_all_operations": isinstance(report.get("task_id"), str)
+        and bool(operations)
+        and {op["task_id"] for op in operations} == {report.get("task_id")},
+        "reported_state_counts_exact": counts_ok
+        and counts == dict(Counter(op["state"] for op in operations)),
+        "reported_completed_semantics_correct": report.get("completed_semantics") == "http_exchange_only",
+        "reported_completed_receipts_exact": bool(completed_ok),
+        "reported_bookmark_matches_readback": bool(bookmark)
+        and isinstance(reported_bookmark, dict)
+        and type(reported_bookmark.get("id")) is int
+        and type(reported_bookmark.get("object_id")) is int
+        and reported_bookmark.get("created") is True
+        and reported_bookmark
+        == {
+            "id": bookmark.get("id"),
+            "object_type": bookmark.get("object_type"),
+            "object_id": bookmark.get("object_id"),
+            "created": True,
+        },
+        "reported_summary_present": isinstance(report.get("summary"), str)
+        and bool(report["summary"].strip()),
+    }

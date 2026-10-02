@@ -58,6 +58,11 @@ class WorkspaceService(Service):
                 "interfaces:[{name: eth1, type: 1000base-t}]. CSV cannot encode nested templates. "
                 "NetBox supplies parent references; child models need not have their own import handler."
             )
+        if result.get("options_status") == 404 and not result.get("paths"):
+            result["guidance"] = (
+                "This route was not found. Use discovered candidate_paths or discover_models; do not keep guessing path segments."
+            )
+            result["candidate_paths"] = self.catalog.route_hints(result["resource"])
         return result
 
     def get_objects(self, object_type, filters=None, fields=None, limit=100, offset=0):
@@ -329,7 +334,7 @@ class WorkspaceService(Service):
                 elif 200 <= code < 400:
                     op["state"] = "completed"
                     op["guidance"] = (
-                        "HTTP exchange completed; inspect the result for validation errors or job state. No verified native mutation evidence yet."
+                        "HTTP exchange finished. No correlated native changelog record; mutations may still have occurred. HTTP 201 reports creation. Read back the target; completed does not mean read-only or unchanged."
                     )
                 elif code in {400, 401, 403, 404, 405, 409, 412, 422}:
                     op["state"] = "failed"

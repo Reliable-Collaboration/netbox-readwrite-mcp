@@ -7,6 +7,7 @@ import secrets
 import pytest
 
 from netbox_readwrite_mcp.api import NetBox
+from netbox_readwrite_mcp.server import call
 from scripts.lab import URL
 from tests.integration.test_configuration import shell
 from tests.integration.test_personal import people  # noqa: F401
@@ -134,9 +135,27 @@ for name in [{a.actor!r}, {b.actor!r}]:
         data = {"object_type": "dcim.site", "object_id": site["id"], "user": users[0]}
         if resource == "extras/notifications/":
             data["event_type"] = "object_updated"
-        created = a.api.request("POST", resource, data)
+        task = a.begin_task("Verify own-object creation receipts")["task_id"]
+        operation = call(
+            a,
+            "create_object",
+            {
+                "task_id": task,
+                "operation_key": "own-object",
+                "object_type": resource,
+                "data": data,
+            },
+        )
+        created = operation["last_receipt"]
         assert created["status"] == 201, created
         pk = created["body"]["id"]
+        assert operation["state"] == "completed", operation
+        assert operation["outcome"]["effect_evidence"] == "server_reported_creation"
+        summary = call(a, "get_task", {"task_id": task})
+        assert summary["state_counts"] == {"completed": 1}
+        assert summary["effect_evidence_counts"] == {"server_reported_creation": 1}
+        readback = a.api.get(resource + str(pk) + "/")["body"]
+        assert readback["object_type"] == "dcim.site" and readback["object_id"] == site["id"]
         assert b.api.get(resource)["body"]["count"] == 0
         assert b.api.request("GET", resource + str(pk) + "/")["status"] == 404
         assert b.api.request("DELETE", resource + str(pk) + "/")["status"] == 404

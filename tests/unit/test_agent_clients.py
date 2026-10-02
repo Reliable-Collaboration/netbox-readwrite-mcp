@@ -208,3 +208,57 @@ def test_community_search_accepts_verified_get_objects_results(client):
         "search_api_used"
     ]
     assert not community_read_checks(transcript(payload), "unrelated", [])["search_api_used"]
+
+
+@pytest.mark.parametrize("client", ["claude", "codex", "opencode"])
+def test_final_report_is_graded_against_receipts_not_confident_prose(client):
+    from copy import deepcopy
+    from scripts.agent_clients import reported_outcome_checks
+
+    operations = [
+        {"id": "rejected", "task_id": "task", "state": "failed", "last_receipt": {"status": 400}},
+        {"id": "bookmark", "task_id": "task", "state": "completed", "last_receipt": {"status": 201}},
+        {"id": "export", "task_id": "task", "state": "completed", "last_receipt": {"status": 200}},
+    ]
+    bookmark = {"id": 1, "object_type": "dcim.site", "object_id": 9}
+    correct = {
+        "task_id": "task",
+        "state_counts": {"failed": 1, "completed": 2},
+        "completed_semantics": "http_exchange_only",
+        "completed_operations": [
+            {"operation_id": "bookmark", "http_status": 201, "effect_evidence": "server_reported_creation"},
+            {"operation_id": "export", "http_status": 200, "effect_evidence": "effects_require_verification"},
+        ],
+        "bookmark": {**bookmark, "created": True},
+        "summary": "The bookmark exists. Completed records finished exchanges, not absence of mutation. One rejected attempt remains.",
+    }
+
+    def transcript(report):
+        text = "```json\n" + json.dumps(report) + "\n```"
+        # An earlier tool result containing valid JSON must not grade the final prose.
+        fake = {"type": "tool_use", "part": {"tool": "netbox_get_task", "state": {"output": text}}}
+        if client == "claude":
+            return [fake, {"type": "result", "result": text}]
+        if client == "codex":
+            return [fake, {"type": "item.completed", "item": {"type": "agent_message", "text": text}}]
+        return [fake, {"type": "text", "part": {"text": text}}]
+
+    assert all(reported_outcome_checks(transcript(correct), operations, bookmark).values())
+    for field, wrong in [
+        ("completed_semantics", "no_mutation"),
+        ("completed_semantics", "read_only"),
+        ("state_counts", {"completed": 2}),
+        ("state_counts", {"failed": True, "completed": 2}),
+        ("task_id", {"bad": "type"}),
+        ("bookmark", {**bookmark, "created": False}),
+        ("bookmark", {**bookmark, "object_type": "dcim.device", "created": True}),
+        ("bookmark", {**bookmark, "id": True, "created": True}),
+        ("completed_operations", [correct["completed_operations"][0]]),
+        ("completed_operations", [correct["completed_operations"][0]] * 2),
+        ("completed_operations", ["bad"]),
+        ("summary", ""),
+    ]:
+        report = deepcopy(correct)
+        report[field] = wrong
+        assert not all(reported_outcome_checks(transcript(report), operations, bookmark).values()), field
+    assert not all(reported_outcome_checks([], operations, bookmark).values())

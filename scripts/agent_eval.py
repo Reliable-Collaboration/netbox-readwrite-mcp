@@ -31,6 +31,7 @@ if __package__:
         client_failed,
         used_host_tools,
         community_read_checks,
+        reported_outcome_checks,
         consecutive_error_limit_reached,
     )
 else:
@@ -42,6 +43,7 @@ else:
         client_failed,
         used_host_tools,
         community_read_checks,
+        reported_outcome_checks,
         consecutive_error_limit_reached,
     )
 
@@ -673,6 +675,15 @@ def main():
                         for op in operations
                     ),
                     **read_checks,
+                    **reported_outcome_checks(
+                        transcript,
+                        [
+                            op
+                            for row in svc.store.db.execute("SELECT id FROM tasks")
+                            for op in svc.get_task(row[0])["operations"]
+                        ],
+                        bookmarks[0] if len(bookmarks) == 1 else {},
+                    ),
                     "native_template_interfaces": all(
                         {row["name"] for row in rows} == {"eth1", "eth2"} for rows in interfaces
                     ),
@@ -717,13 +728,14 @@ def main():
 
             report["passed"] = phase(
                 "community",
-                f"""Perform a greenfield Community inventory and maintenance qualification using the native REST and companion APIs. Discover IDs and schemas; use only your own prefix {prefix}. Preserve all unrelated objects.
+                f"""Perform a greenfield Community inventory and maintenance qualification using the native REST and companion APIs. Use one task for this qualification. Discover IDs and schemas; use only your own prefix {prefix}. Preserve all unrelated objects.
 Create a site named/slugged {prefix}, manufacturer named/slugged {prefix}-vendor, and device role named/slugged {prefix}-role. Import a one-U device type with model/slug {prefix}-type via companion imports/dcim.devicetype/, including two related 1000base-t interface templates named eth1 and eth2. Create active devices {prefix}-01 and {prefix}-02 at your site using that type and role, with serials {prefix}-serial-1 and {prefix}-serial-2. Verify NetBox populated exactly those two interfaces on each device.
 Use one companion pattern-create/dcim.powerport/ request with two items to create PSU[1-2] on both devices. Create a connected cable labeled {prefix}-link between their eth1 interfaces, inspect the native trace, then preview and apply bulk-disconnect/dcim.interface/ for one endpoint. Verify the cable was removed and the interfaces remain.
 Create virtual chassis {prefix}; assign the two devices positions 0 and 1 respectively using native device updates. Read companion virtual-chassis/{{id}}/members/ and PUT a complete member list to atomically swap their positions to 1 and 0. Verify final membership.
 Create VM {prefix}-vm at your site, its eth0 interface, and MAC address 02:00:00:47:07:01 assigned to that VM interface. Set that MAC as its primary_mac_address. Create contact {prefix} and assign it to your site. Add an info journal entry 'Physical survey complete' to the first device.
 Read your self/profile to discover your user ID, then bookmark your site using the native own-bookmark API. Search for your prefix with companion search/.
-Use execute_action POST to companion exports/dcim.device/ with only your two device IDs, format csv and columns name,serial. Check the returned CSV has exactly those devices and serials. Read your task summary and report authoritative outcomes. Leave successful synthetic objects for the independent oracle. Do not use website forms.""",
+Use execute_action POST to companion exports/dcim.device/ with only your two device IDs, format csv and columns name,serial. Check the returned CSV has exactly those devices and serials. Read your task summary and report authoritative outcomes. Leave successful synthetic objects for the independent oracle. Do not use website forms.
+Finish with a JSON report containing task_id, exact state_counts (including rejected attempts), completed_semantics (one of http_exchange_only, read_only, no_mutation), completed_operations (every completed receipt with operation_id, http_status and effect_evidence), bookmark (id, object_type, object_id, created boolean), and summary (plain-language explanation of the outcomes, the meaning of completed, and any historical failures). Base claims on receipts and fresh reads; do not hide rejected attempts.""",
                 community_oracle,
             )
             print("Report: " + str(run / "report.json"), flush=True)

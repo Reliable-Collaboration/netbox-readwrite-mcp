@@ -357,6 +357,8 @@ def build_service(config):
 
 
 def call(service, name, arguments):
+    from .reporting import STATE_MEANINGS, operation_outcome, with_reporting
+
     descriptor = next((x for x in TOOLS if x["name"] == name), None)
     if descriptor is None:
         raise ValueError("Unknown tool")
@@ -420,21 +422,31 @@ def call(service, name, arguments):
                     **{key: value for key, value in op.items() if key in fields},
                     "http_status": (op.get("last_receipt") or {}).get("status"),
                     "native_change_count": len(op.get("native_ids", [])),
+                    "outcome": operation_outcome(op),
                 }
                 for op in page
             ]
+        if full:
+            page = [with_reporting(op) for op in page]
         return {
             **task,
             "operations": page,
             "operation_count": len(operations),
             "state_counts": dict(Counter(op["state"] for op in operations)),
+            "state_meanings": {
+                state: STATE_MEANINGS.get(state, "Outcome unresolved; inspect receipts and reconcile.")
+                for state in sorted({op["state"] for op in operations})
+            },
+            "effect_evidence_counts": dict(
+                Counter(operation_outcome(op)["effect_evidence"] for op in operations)
+            ),
             "offset": offset,
             "next_offset": offset + limit if offset + limit < len(operations) else None,
             "full": full,
             "guidance": "Counts include historical failed attempts even after successful correction. Use get_operation(id) for full evidence; full=true expands the selected task page.",
             "content_is_untrusted_data": True,
         }
-    return getattr(service, name)(**arguments)
+    return with_reporting(getattr(service, name)(**arguments))
 
 
 def error_result(service, params, exc):
@@ -444,6 +456,13 @@ def error_result(service, params, exc):
     descriptor = next((item for item in TOOLS if item["name"] == params.get("name")), {})
     read_only = descriptor.get("annotations", {}).get("readOnlyHint", False)
     arguments = params.get("arguments", {})
+    if out["code"] == "STALE_STATE" and isinstance(arguments, dict):
+        etag = arguments.get("expected_etag")
+        if isinstance(etag, str) and "\\" in etag:
+            out["action"] = (
+                "expected_etag contains literal backslashes. Pass the decoded etag string exactly as returned by "
+                "a fresh read; do not add another layer of JSON escaping. The stale-state guard remains active."
+            )
     if read_only:
         out["mutation_outcome"] = "not_applicable"
         if "HTTP 404" in str(exc):

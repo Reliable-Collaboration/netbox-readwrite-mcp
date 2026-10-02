@@ -107,7 +107,9 @@ def test_task_tool_pages_compact_receipts_without_losing_history(broad):
     assert last["operations"][0]["http_status"] == 400
     assert last["state_counts"] == summary["state_counts"]
     full = call(broad, "get_task", {"task_id": broad.task, "full": True, "limit": 1})
-    assert full["operations"] == complete["operations"][:1]
+    assert [{k: v for k, v in op.items() if k != "outcome"} for op in full["operations"]] == complete[
+        "operations"
+    ][:1]
     assert broad.get_task(broad.task) == complete
 
 
