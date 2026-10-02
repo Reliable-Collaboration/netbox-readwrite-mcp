@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import sqlite3
 import time
+import threading
 
 
 def encode(value):
@@ -34,6 +35,8 @@ def consistent_read(method):
 class Store:
     def __init__(self, path, identity):
         self.path = Path(path).resolve()
+        self._thread_lock = threading.RLock()
+        self._lock_depth = 0
         self.path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         self.lock_file = open(str(self.path) + ".lock", "a")
         os.chmod(self.lock_file.name, 0o600)
@@ -79,11 +82,16 @@ class Store:
 
     @contextmanager
     def lock(self):
-        fcntl.flock(self.lock_file, fcntl.LOCK_EX)
-        try:
-            yield
-        finally:
-            fcntl.flock(self.lock_file, fcntl.LOCK_UN)
+        with self._thread_lock:
+            if self._lock_depth == 0:
+                fcntl.flock(self.lock_file, fcntl.LOCK_EX)
+            self._lock_depth += 1
+            try:
+                yield
+            finally:
+                self._lock_depth -= 1
+                if self._lock_depth == 0:
+                    fcntl.flock(self.lock_file, fcntl.LOCK_UN)
 
     @contextmanager
     def snapshot(self):
@@ -120,10 +128,11 @@ class Store:
             "at": at,
             "previous_hash": previous,
         }
-        self.db.execute(
+        cursor = self.db.execute(
             "INSERT INTO events(operation_id,kind,payload,at,previous_hash,hash) VALUES(?,?,?,?,?,?)",
             (operation_id, kind, encode(payload), at, previous, digest(value)),
         )
+        return cursor.lastrowid
 
     def set_state(self, op_id, state, receipt=None, **columns):
         allowed = {"request_id", "native_id", "after_values"}

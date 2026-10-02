@@ -54,8 +54,16 @@ class ChassisMembersView(APIView):
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request, pk):
-        chassis = visible_chassis(request, pk, "view")
-        return Response(snapshot(chassis, chassis.members.order_by("pk")))
+        # Native editors can read the complete member formset with change
+        # permission alone. Detail-only viewers retain device visibility filters.
+        chassis = VirtualChassis.objects.restrict(request.user, "change").filter(pk=pk).first()
+        can_edit = chassis is not None
+        if not can_edit:
+            chassis = visible_chassis(request, pk, "view")
+        members = chassis.members.order_by("pk")
+        if not can_edit:
+            members = members.restrict(request.user, "view")
+        return Response(snapshot(chassis, members))
 
     @extend_schema(request=ChassisWrite, responses={200: OpenApiTypes.OBJECT})
     def put(self, request, pk):

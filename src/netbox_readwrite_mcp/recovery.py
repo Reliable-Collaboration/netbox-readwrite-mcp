@@ -58,6 +58,15 @@ def assess(service, op):
         if all(k in before and k in after for k in fields):
             fields = {k for k in fields if before[k] != after[k]}
             current = service.api.get(op["path"])
+            # Cover edits (including B -> C -> B) between the first history
+            # scan and this read. Its ETag protects changes after the read.
+            service._sync()
+            later = [
+                r
+                for r in service._records()
+                if (r["changed_object_type"], r["changed_object_id"]) in affected
+                and r["id"] > affected[(r["changed_object_type"], r["changed_object_id"])]
+            ]
             inverse = {k: write_value(k, op["before"][k]) for k in fields if k in op["before"]}
             # Only verified field-level write/inverse pairs may be ignored for earlier task steps.
             ignored = {field: set() for field in fields}

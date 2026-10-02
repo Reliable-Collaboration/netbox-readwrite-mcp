@@ -176,7 +176,7 @@ class WorkspaceService(Service):
         if records:
             op["native_changes"] = records
             op["native_ids"] = [r["id"] for r in records]
-            if op["state"] != "accepted":
+            if op["state"] not in {"accepted", "job_scheduled"}:
                 op["state"] = "applied"
             op["guidance"] = "Inspect all affected objects. Use preview_undo for recovery classification."
         return bool(records)
@@ -229,8 +229,12 @@ class WorkspaceService(Service):
             self._reconcile_resources()
             # An unresolved action may affect dependencies anywhere in a small estate.
             pending = self.store.db.execute(
-                "SELECT id FROM resource_operations WHERE state IN ('prepared','dispatched','uncertain','accepted')"
+                "SELECT document FROM resource_operations WHERE state IN ('prepared','dispatched','uncertain','accepted')"
             ).fetchall()
+            pending = [json.loads(row[0]) for row in pending]
+            # A known job can be cancelled even while it is running/pending.
+            # Never exempt an uncertain dispatch or unrelated pending mutation.
+            pending = [op for op in pending if not self._cancels_job(op, method, path, data)]
             legacy = self.store.db.execute(
                 "SELECT id FROM operations WHERE state IN ('prepared','dispatched','uncertain','applied_unverified')"
             ).fetchall()
@@ -429,7 +433,7 @@ class WorkspaceService(Service):
 
     def _reconcile_resources(self):
         for row in self.store.db.execute(
-            "SELECT document FROM resource_operations WHERE state IN ('prepared','dispatched','uncertain','accepted','completed')"
+            "SELECT document FROM resource_operations WHERE state IN ('prepared','dispatched','uncertain','accepted','completed','job_scheduled')"
         ).fetchall():
             op = json.loads(row[0])
             if op["state"] == "prepared":
@@ -438,8 +442,18 @@ class WorkspaceService(Service):
                 self._save(op)
             else:
                 changed = self._evidence(op)
-                if op["state"] == "accepted" and op.get("job_path"):
-                    job = self.api.get(op["job_path"])["body"]
+                if op["state"] in {"accepted", "job_scheduled"} and op.get("job_path"):
+                    response = self.api.request("GET", op["job_path"])
+                    if response["status"] == 404:
+                        op["state"] = "job_missing"
+                        op["guidance"] = (
+                            "The acknowledged job is no longer visible (deleted or access changed). This is not proof of success or rollback; inspect effects. Never replay the original submission."
+                        )
+                        self._save(op)
+                        continue
+                    if response["status"] != 200:
+                        raise RuntimeError("Cannot inspect acknowledged job; restore job read access")
+                    job = response["body"]
                     status = job.get("status")
                     status = status.get("value") if isinstance(status, dict) else status
                     op["job_result"] = job
@@ -448,9 +462,36 @@ class WorkspaceService(Service):
                         op["guidance"] = (
                             "Inspect job_result and native_changes. Failed jobs may have partial effects; never assume rollback."
                         )
+                    elif status == "scheduled":
+                        op["state"] = "job_scheduled"
+                        op["guidance"] = (
+                            "Future job acknowledged, not completed. Inventory writes remain available; inspect or cancel the job through its API."
+                        )
+                    else:
+                        op["state"] = "accepted"
                     changed = True
                 if changed:
                     self._save(op)
+
+    @staticmethod
+    def _cancels_job(op, method, path, data):
+        if op["state"] != "accepted" or not op.get("job_path"):
+            return False
+        if method == "DELETE" and path == op["job_path"]:
+            return True
+        if (
+            method == "POST"
+            and path == "plugins/agent-support/native-delete/core.job/"
+            and isinstance(data, dict)
+        ):
+            match = re.fullmatch(r"core/jobs/([1-9][0-9]*)/", op["job_path"])
+            if not match:
+                return False
+            job_id = int(match[1])
+            return (data.get("ids") == [job_id] and "id" not in data) or (
+                data.get("id") == job_id and "ids" not in data
+            )
+        return False
 
     def reconcile(self):
         with self.store.lock():
@@ -509,15 +550,26 @@ class WorkspaceService(Service):
             return assess(self, op)
 
     def undo_operation(self, operation_id, operation_key):
+        with self.store.lock():
+            return self._undo_resource_operation(operation_id, operation_key)
+
+    def _undo_resource_operation(self, operation_id, operation_key):
         if self.read_only:
             raise ValueError("This connection is read_only")
         op = self._resource_operation(operation_id)
         if not op:
-            if self.store.db.execute(
-                "SELECT 1 FROM resource_operations WHERE operation_key=?", (operation_key,)
-            ).fetchone():
-                raise ValueError("Idempotency key belongs to a general operation")
             return super().undo_operation(operation_id, operation_key)
+        previous = self.find_operation(operation_key)
+        if previous["found"]:
+            correction = previous["operation"]
+            if correction.get("reverses") != operation_id:
+                raise ValueError("Idempotency key belongs to another operation")
+            if correction["state"] == "applied":
+                verified = self.preview_undo(operation_id)
+                status = "applied" if verified["status"] == "already_undone" else verified["status"]
+            else:
+                status = correction["state"]
+            return {"status": status, "correction": correction, "replayed": True}
         plan = self.preview_undo(operation_id)
         if plan["status"] != "ready":
             return plan
@@ -533,6 +585,15 @@ class WorkspaceService(Service):
             "correction": result,
         }
 
+    def _undo(self, operation_id, operation_key, task_id=None):
+        # Both legacy single-operation and whole-task recovery use this path.
+        with self.store.lock():
+            if self.store.db.execute(
+                "SELECT 1 FROM resource_operations WHERE operation_key=?", (operation_key,)
+            ).fetchone():
+                raise ValueError("Idempotency key belongs to a general operation")
+            return super()._undo(operation_id, operation_key, task_id)
+
     def undo_task(self, task_id):
         if self.read_only:
             raise ValueError("This connection is read_only")
@@ -547,6 +608,7 @@ class WorkspaceService(Service):
         return super().undo_task(task_id)
 
     def _preflight(self, device_id):
+        self._reconcile_resources()
         if self.store.db.execute(
             "SELECT 1 FROM resource_operations WHERE state IN ('prepared','dispatched','uncertain','accepted')"
         ).fetchone():
@@ -554,6 +616,10 @@ class WorkspaceService(Service):
         return super()._preflight(device_id)
 
     def update_device(self, *args, **kwargs):
+        with self.store.lock():
+            return self._update_device_locked(*args, **kwargs)
+
+    def _update_device_locked(self, *args, **kwargs):
         operation_key = kwargs.get("operation_key", args[1] if len(args) > 1 else None)
         if (
             operation_key

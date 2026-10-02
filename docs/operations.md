@@ -20,7 +20,9 @@ login mechanism. The password-based adapter does not bypass those controls.
 
 The optional read_only connection policy blocks all exposed mutation paths.
 For HTTP use a separate MCP bearer token, at least 32 random characters, and a
-trusted TLS reverse proxy for remote use. Direct binding is loopback only.
+trusted TLS reverse proxy for remote use. Direct binding is loopback only. HTTP sessions expire after one hour without
+a request; clients receiving 404 for an expired session must initialize again.
+Durable tasks and receipts remain in the journal across session expiry.
 
 ## Evidence and retention
 

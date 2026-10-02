@@ -84,3 +84,43 @@ def test_native_primary_mac_selection_and_foreign_assignment_rejection(cabling):
 from dcim.models import MACAddress
 MACAddress.objects.filter(pk__in={[m["id"] for m in macs]!r}).delete()
 """)
+
+
+def test_chassis_members_respect_read_visibility_and_native_edit_permissions(cabling):  # noqa: F811
+    service, prefix, site, devices = cabling
+    shell(f"""
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from core.models import ObjectType
+from dcim.models import Device, VirtualChassis
+from users.models import ObjectPermission, Token
+from rest_framework.test import APIRequestFactory, force_authenticate
+from netbox_agent_api.api.chassis import ChassisMembersView
+with transaction.atomic():
+    chassis = VirtualChassis.objects.create(name={prefix!r})
+    for position, pk in enumerate({devices!r}):
+        Device.objects.filter(pk=pk).update(virtual_chassis=chassis, vc_position=position)
+    user = get_user_model().objects.create(username={prefix!r})
+    perm = ObjectPermission.objects.create(name={prefix!r}, actions=['view'], constraints={{'id': chassis.pk}})
+    perm.users.add(user)
+    perm.object_types.add(ObjectType.objects.get(app_label='dcim', model='virtualchassis'))
+    def read():
+        fresh = get_user_model().objects.get(pk=user.pk)
+        request = APIRequestFactory().get('/api/plugins/agent-support/virtual-chassis/' + str(chassis.pk) + '/members/')
+        force_authenticate(request, user=fresh, token=Token(user=fresh, write_enabled=False, version=1))
+        response = ChassisMembersView.as_view()(request, pk=chassis.pk)
+        assert response.status_code == 200, response.data
+        return [row['id'] for row in response.data['members']]
+    assert read() == []
+    device_perm = ObjectPermission.objects.create(name={prefix!r} + '-device', actions=['view'], constraints={{'id': {devices[0]}}})
+    device_perm.users.add(user)
+    device_perm.object_types.add(ObjectType.objects.get(app_label='dcim', model='device'))
+    assert read() == [{devices[0]}]
+    perm.actions = ['view', 'change']
+    perm.save()
+    assert read() == sorted({devices!r})
+    perm.actions = ['change']
+    perm.save()
+    assert read() == sorted({devices!r})
+    transaction.set_rollback(True)
+""")

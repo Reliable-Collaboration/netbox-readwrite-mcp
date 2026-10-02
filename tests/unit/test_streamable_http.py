@@ -51,6 +51,9 @@ def test_official_sdk_http_initialization_discovery_and_local_tools(http_mcp):
                     assert task.structuredContent["task_id"]
                     refused = await session.call_tool("begin_task", {})
                     assert refused.isError
+                    reference = refused.structuredContent["diagnostic_reference"]
+                    assert reference.startswith("event:")
+                    assert json.loads(refused.content[0].text)["diagnostic_reference"] == reference
 
     asyncio.run(run())
 
@@ -118,3 +121,41 @@ def test_idle_client_does_not_block_another_agent(http_mcp):
     finally:
         first.close()
         second.close()
+
+
+def test_abandoned_sessions_expire_without_evicting_active_clients(http_mcp, monkeypatch):
+    from types import SimpleNamespace
+    from netbox_readwrite_mcp import http_server
+
+    now = [0.0]
+    monkeypatch.setattr(http_server, "time", SimpleNamespace(monotonic=lambda: now[0]))
+    headers = {"Authorization": "Bearer " + "a" * 40}
+    with httpx.Client(headers=headers) as client:
+
+        def initialize():
+            return client.post(
+                http_mcp,
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "initialize",
+                    "params": {"protocolVersion": "2025-11-25"},
+                },
+            )
+
+        sessions = [initialize().headers["Mcp-Session-Id"] for _ in range(128)]
+        assert initialize().status_code == 503
+        now[0] = http_server.SESSION_IDLE_SECONDS - 1
+
+        def ping(session):
+            return client.post(
+                http_mcp,
+                headers={"Mcp-Session-Id": session},
+                json={"jsonrpc": "2.0", "id": 2, "method": "ping"},
+            )
+
+        assert ping(sessions[0]).status_code == 200
+        now[0] += 2
+        assert initialize().status_code == 200
+        assert ping(sessions[0]).status_code == 200
+        assert ping(sessions[1]).status_code == 404

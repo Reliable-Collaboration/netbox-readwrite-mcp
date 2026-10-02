@@ -569,7 +569,7 @@ def serve(service):
                 result = error_result(service, params, exc)
             try:
                 with service.store.lock():
-                    service.store.event(
+                    event_id = service.store.event(
                         "tool_call",
                         {
                             "tool": params.get("name"),
@@ -581,9 +581,11 @@ def serve(service):
                             ),
                         },
                     )
+                    result.setdefault("structuredContent", {})["diagnostic_reference"] = f"event:{event_id}"
             except Exception:
                 # A telemetry failure must not erase or contradict the authoritative receipt.
                 result.setdefault("structuredContent", {})["telemetry_available"] = False
+            result["content"] = [{"type": "text", "text": json.dumps(result["structuredContent"])}]
             send(req["id"], result)
         else:
             send(req["id"], error={"code": -32601, "message": "Unknown method"})

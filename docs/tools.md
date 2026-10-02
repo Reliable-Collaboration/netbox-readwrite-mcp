@@ -49,6 +49,8 @@ content_type?}`. No tool reads arbitrary agent-supplied local file paths.
 | applied | Correlated native change evidence retained; inspect all affected objects |
 | completed | HTTP exchange completed, without verified mutation evidence; inspect its semantic result |
 | accepted | Recognized async job accepted; reconcile tracks its status |
+| job_scheduled | Future job acknowledged; inventory writes remain available; reconcile tracks execution |
+| job_missing | Acknowledged job no longer visible; inspect effects, never infer completion or rollback, and never replay its submission |
 | job_completed / job_failed | Native job terminal status; inspect output and possible partial effects |
 | failed | Definite rejection or abandoned before dispatch |
 | no_change | Existing guarded device path found no effective change |
@@ -61,7 +63,9 @@ can contain a conflict or failure: inspect structured state, not only isError.
 Native validation/permission errors remain durable failed receipts, including
 field errors. Transport/tool errors carry a stable code, recovery guidance,
 automatic_retry_allowed=false and receipt lookup when available. An exception
-never proves a remote write did not commit.
+never proves a remote write did not commit. Tool responses include a
+`diagnostic_reference` in both text and structured content for the optional
+feedback MCP; no inventory values are published by that reference.
 
 Schema discovery defaults to compact collection POST schemas and filter names.
 Use `action="available-ips"` to inspect a single action's inputs.

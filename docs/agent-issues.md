@@ -50,25 +50,30 @@ in a private virtualenv and connect the feedback server to the same journal:
 
 ```sh
 python3 -m venv feedback-venv
-feedback-venv/bin/python -m pip install 'netbox-readwrite-mcp[feedback] @ https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.1/netbox_readwrite_mcp-0.4.1-py3-none-any.whl'
+feedback-venv/bin/python -m pip install 'netbox-readwrite-mcp[feedback] @ https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/netbox_readwrite_mcp-0.4.2-py3-none-any.whl'
 feedback-venv/bin/python -m netbox_readwrite_mcp.feedback --journal /private/netbox.sqlite --outbox /private/feedback.sqlite --enable-publish
 ```
+
+The diagnostic-reference and device-receipt extensions described below are
+source changes after v0.4.2; that release supports generic-operation UUIDs only.
 
 It uses the operator's existing `gh` login and always targets this repository.
 Without `--enable-publish` it returns a draft and performs no GitHub write. Its
 three tools are `report_issue`, `reconcile_report`, and `read_report`. The agent
-can supply an existing generic operation UUID and enum fields; it cannot supply
+can supply an operation UUID from either write interface, or a tool response
+`diagnostic_reference` (`event:<id>`), plus enum fields; it cannot supply
 an issue body, credentials, an arbitrary repository or a filesystem path.
-Publication includes only package/NetBox versions, the UUID, operation state and
-HTTP status. Inventory, request bodies, receipt bodies and secrets stay local.
+Publication includes only package/NetBox versions and the operation UUID, state
+and HTTP status, or the diagnostic reference, tool name and error flag. Inventory, request bodies, receipt bodies and secrets stay local.
 
 A separate private SQLite outbox records publication before dispatch. A lost
 response stays uncertain; repeating the same key does not publish again. Marker
 search can recover a successful publication. GitHub search may take time to
 index a new issue, so an empty search is not evidence that publication failed.
 Maintainers can use the CLI above to read/respond with sanitized reproduction
-and fix evidence. This bridge supports generic API operation receipts; legacy
-bounded-device receipts still use `diagnostic_report` and the reviewed CLI.
+and fix evidence. Read, discovery and validation errors can be reported using their diagnostic
+reference even when no mutation was dispatched. The reference is included in
+both structured and text tool responses.
 
 `scripts/agent_eval.py --scenario feedback` qualifies the actual consuming-agent
 publication/replay/read flow and a maintainer reply in the real project repository.

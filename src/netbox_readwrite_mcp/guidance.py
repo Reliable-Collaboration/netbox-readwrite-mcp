@@ -22,7 +22,11 @@ After response loss, find_operation with the ORIGINAL key and reconcile; never
 retry an uncertain write with a new key. Read get_task and verify native state
 before reporting completion. applied means correlated native history; completed
 means a completed HTTP exchange, not proof of semantic success; accepted jobs
-still need completion checks. Historical failed attempts remain after correction.
+still need completion checks. job_scheduled permits inventory writes while awaiting
+execution; job_missing means the job is no longer visible, not proof of rollback
+or completion. Historical failed attempts remain after correction.
+Tool responses include a diagnostic_reference for optional structured GitHub
+feedback, including read/discovery errors that have no operation UUID.
 Undo is conditional compensation, not universal rollback; preserve newer edits.
 Only manage facts supplied by the user or observed through an authorized source.
 Branching, commercial integrations and arbitrary host execution are excluded.

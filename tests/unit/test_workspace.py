@@ -345,6 +345,7 @@ def test_pending_jobs_reconcile_to_terminal_state(broad):
     broad.api.get = lambda p: (
         {"body": {"status": {"value": "completed"}}} if p == "core/jobs/1/" else old_get(p)
     )
+    broad.api.request = lambda method, path, **kw: {"status": 200, **broad.api.get(path)}
     broad.reconcile()
     assert broad.get_operation(op["id"])["state"] == "job_completed"
 

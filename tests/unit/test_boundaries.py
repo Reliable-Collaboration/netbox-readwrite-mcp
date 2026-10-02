@@ -182,6 +182,12 @@ def test_official_mcp_sdk_interoperability(config, tmp_path):
                 assert "undo_operation" in {tool.name for tool in listed.tools}
                 result = await session.call_tool("begin_task", {"purpose": "SDK interoperability"})
                 assert result.structuredContent["task_id"]
+                reference = result.structuredContent["diagnostic_reference"]
+                assert json.loads(result.content[0].text)["diagnostic_reference"] == reference
+                from netbox_readwrite_mcp.feedback import Feedback
+
+                diagnostic = Feedback(config["journal"], tmp_path / "feedback.sqlite").diagnostic(reference)
+                assert diagnostic["tool"] == "begin_task" and not diagnostic["is_error"]
                 refused = await session.call_tool("delete_device", {"device_id": 1})
                 assert refused.isError
                 assert refused.structuredContent["action"]

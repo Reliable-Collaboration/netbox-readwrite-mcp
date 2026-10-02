@@ -78,13 +78,25 @@ class Qualification(Script):
         assert result["state"] == "accepted", result
         job = result["last_receipt"]["body"]["result"]
         assert job["status"]["value"] == "scheduled"
+        # A scheduled submission must not monopolize this agent's journal.
+        service.reconcile()
+        assert service.get_operation(result["id"])["state"] == "job_scheduled"
+        tag = service.create_object(
+            task,
+            "scheduled-inventory-write",
+            "extras/tags/",
+            {"name": filename, "slug": filename.replace("_", "-").replace(".", "-")},
+        )
+        assert tag["state"] == "applied", tag
+        tag_id = tag["last_receipt"]["body"]["id"]
+        assert service.api.request("DELETE", f"extras/tags/{tag_id}/")["status"] == 204
         queued = service.api.request("POST", f"core/background-tasks/{job['job_id']}/enqueue/", {})
         assert queued["status"] == 200, queued
         deadline = time.monotonic() + 45
         while time.monotonic() < deadline:
             service.reconcile()
             result = service.get_operation(result["id"])
-            if result["state"] != "accepted":
+            if result["state"] not in {"accepted", "job_scheduled"}:
                 break
             time.sleep(0.5)
         assert result["state"] == "job_completed", result
@@ -92,6 +104,27 @@ class Qualification(Script):
         assert actual["status"]["value"] == "completed"
         assert "file=qualification payload; text=default text; mode=a" in str(actual["data"])
         assert not actual["error"]
+        # Cancel a second acknowledged submission through our MCP service.
+        pending = service.execute_action(
+            task,
+            "schedule-to-cancel",
+            "POST",
+            path,
+            {"data": {}, "commit": False, "schedule_at": future, "notifications": "never"},
+            files=[
+                {
+                    "field": "attachment",
+                    "filename": "fixture.txt",
+                    "base64": base64.b64encode(b"cancelled payload").decode(),
+                }
+            ],
+        )
+        assert pending["state"] == "accepted", pending
+        from tests.integration.test_deletion import remove
+
+        remove(service, "core.job", pending["last_receipt"]["body"]["result"]["id"])
+        service.reconcile()
+        assert service.get_operation(pending["id"])["state"] == "job_missing"
     finally:
         shell(f"""
 from extras.models import ScriptModule

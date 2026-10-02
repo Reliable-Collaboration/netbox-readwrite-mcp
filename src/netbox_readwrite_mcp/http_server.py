@@ -19,6 +19,7 @@ from .guidance import INSTRUCTIONS
 from .server import TOOLS, build_service, call, error_result, parse_request
 
 VERSIONS = {"2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25"}
+SESSION_IDLE_SECONDS = 3600
 
 
 def create_server(config, host, port, token_file):
@@ -29,6 +30,13 @@ def create_server(config, host, port, token_file):
         raise ValueError("MCP bearer token must contain at least 32 characters")
     sessions = {}
     lock = threading.Lock()
+
+    def expire_sessions():
+        now = time.monotonic()
+        for ident, (_, accessed) in list(sessions.items()):
+            if now - accessed >= SESSION_IDLE_SECONDS:
+                del sessions[ident]
+        return now
 
     class Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
@@ -107,10 +115,11 @@ def create_server(config, host, port, token_file):
                     return self.send(400)
                 version = requested if requested in VERSIONS else "2025-11-25"
                 with lock:
+                    now = expire_sessions()
                     if len(sessions) >= 128:
                         return self.send(503)
                     session = secrets.token_urlsafe(32)
-                    sessions[session] = version
+                    sessions[session] = (version, now)
                 return self.send(
                     200,
                     {
@@ -126,7 +135,11 @@ def create_server(config, host, port, token_file):
                     session,
                 )
             with lock:
-                version = sessions.get(session)
+                now = expire_sessions()
+                entry = sessions.get(session)
+                version = entry[0] if entry else None
+                if entry:
+                    sessions[session] = (version, now)
             if version is None:
                 return self.send(404)
             if self.headers.get("MCP-Protocol-Version", version) != version:
@@ -160,7 +173,7 @@ def create_server(config, host, port, token_file):
                     try:
                         with service.store.lock():
                             output = result.get("structuredContent", {})
-                            service.store.event(
+                            event_id = service.store.event(
                                 "tool_call",
                                 {
                                     "tool": params.get("name"),
@@ -170,10 +183,14 @@ def create_server(config, host, port, token_file):
                                     "state": output.get("state", output.get("status")),
                                 },
                             )
+                            result.setdefault("structuredContent", {})["diagnostic_reference"] = (
+                                f"event:{event_id}"
+                            )
                     except Exception:
                         result.setdefault("structuredContent", {})["telemetry_available"] = False
                 finally:
                     service.store.close()
+                result["content"] = [{"type": "text", "text": json.dumps(result["structuredContent"])}]
             else:
                 return self.send(
                     200,
