@@ -50,7 +50,7 @@ in a private virtualenv and connect the feedback server to the same journal:
 
 ```sh
 python3 -m venv feedback-venv
-feedback-venv/bin/python -m pip install 'netbox-readwrite-mcp[feedback] @ https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.3/netbox_readwrite_mcp-0.4.3-py3-none-any.whl'
+feedback-venv/bin/python -m pip install 'netbox-readwrite-mcp[feedback] @ https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v1.0.0/netbox_readwrite_mcp-1.0.0-py3-none-any.whl'
 feedback-venv/bin/python -m netbox_readwrite_mcp.feedback --journal /private/netbox.sqlite --outbox /private/feedback.sqlite --enable-publish
 ```
 
