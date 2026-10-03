@@ -63,3 +63,12 @@ No private inventory, credentials or raw recovery bundles were published.
 - All 37 affected tests passed unchanged; summed durations improved from 786.21 to 647.43 seconds. No full optimized local rerun was claimed.
 - Full CI `37022455057` on `d0185df` passed 634 tests plus six subtests, unchanged 92.23% coverage, all Python 3.11–3.14 builds and upstream bundle checks. Test step 1729.753 seconds; CI variability is explicitly recorded. Provider key absent from its completed log.
 - Retained only this small fixture optimization; no reduced checks or runtime safety changes. Evidence: `docs/deterministic-timing-0.4.3.json`.
+
+
+## 2026-10-02 — second Copilot review and 0.4.4 preparation
+
+- Copilot confirmed the original seven findings resolved and identified two metadata/documentation issues.
+- Both packages and runtime declarations now use 0.4.4; release notes and filenames match. This version is unreleased, and download instructions still identify available v0.4.3 assets.
+- Corrected current compatibility to stable NetBox 4.7.x and later, qualified on 4.7.2; retained the initial exact-version policy as historical context.
+- Local qualification on `0d8c283`: 453 unit tests in 32.12 seconds; lint, both builds, standalone/checksum and upstream companion-bundle checks in 11.80 seconds combined. No LLM calls or publication.
+- Existing full behavioral CI remains valid for the unchanged logic; it was not repeated for version metadata and prose. Evidence: `docs/version-review-validation.json`.

@@ -1,0 +1,43 @@
+{
+  "scope": "Second Copilot review: version metadata and compatibility documentation",
+  "source_commit": "0d8c283e60e0f709c857d9921c14a74d08f6b3b4",
+  "version": "0.4.4",
+  "published": false,
+  "review_url": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/pull/2#pullrequestreview-5397973386",
+  "findings_addressed": [
+    4170782923,
+    4170782959
+  ],
+  "unit": {
+    "passed": 453,
+    "seconds": 32.12,
+    "log_sha256": "d7d6913a798f6c7779a0d61af16aea82362c89f788aa51cbfac7c3691b39e794"
+  },
+  "packaging": {
+    "lint": "passed",
+    "mcp_and_companion_builds": "passed",
+    "standalone_and_checksum_checks": "passed",
+    "upstream_netbox_bundle": "passed",
+    "combined_seconds": 11.8,
+    "all_four_version_declarations": "0.4.4",
+    "log_sha256": "fd30d3039a326deaa9b471d487da5b7d22a76f4e71b3b2a2e2535eb7fa6008f5"
+  },
+  "assets_sha256": {
+    "SHA256SUMS": "2eca9192d4fb49b7b7b5178d019d38174dbaba1b719260a2f5ddb3bf33f3088b",
+    "compose.agent-api.yaml": "192c472925cf9cf5c376adcbe3194b650217f425ef9bebccdb42fe859f482e36",
+    "netbox-agent-api-container.tar.gz": "400f0f0bbcd0445d786b8f9d7e1e3a0b643e8faca62410ff944d3e714647d29e",
+    "netbox-readwrite-mcp.pyz": "90e0082ee731d7581b1bce60ea1eeaff77af1eb514ec23c1d6080c7fa9caaa8c",
+    "netbox_agent_api-0.4.4-py3-none-any.whl": "a49ba9a73d7423d6bf7a5464d5cfbfc798233b0b3378d54a27850c323c32d3af",
+    "netbox_agent_api-0.4.4.tar.gz": "95052d32920f104ba82394c6e593f937132e56d76bf99c8caeb4059d2395342b",
+    "netbox_readwrite_mcp-0.4.4-py3-none-any.whl": "ce8522026875d0d8667555ada028aad55f446b628106eea48336643d5c18b8c9",
+    "netbox_readwrite_mcp-0.4.4.tar.gz": "0559eaf8807c6b201bcf064fd3147d30d6bffe13b6371020bca039b49946c660",
+    "release.json": "8b79474f9ea905d5b769d5fd5a01da8fcea5648a64bd3cb998d045657ad23d8e"
+  },
+  "provider_key_absent_from_assets_and_unpacked_contents": true,
+  "full_integration_suite": {
+    "rerun_for_metadata_only_change": false,
+    "prior_behavioral_source": "0a6eb7c3b19c358ec0f3129f66be50170dcf4731",
+    "evidence": "copilot-review-validation.json"
+  },
+  "model_evaluations_run": false
+}

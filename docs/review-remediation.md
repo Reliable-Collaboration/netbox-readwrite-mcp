@@ -111,3 +111,17 @@ these deterministic changes do not turn prior model failures into passes.
 
 A follow-up review of the remediated code found no further actionable defects
 within this scope.
+
+
+## PR #2 second Copilot review
+
+The review of `278aa2c` confirmed the first seven findings were resolved and raised
+two additional issues. Both are fixed:
+
+| Finding | Resolution and validation |
+| --- | --- |
+| Unreleased fixes still identified as published version 0.4.3 | Bump MCP and companion package metadata and runtime declarations together to 0.4.4. Update release filenames/notes and mark the changelog unreleased. Build both distributions, verify standalone version reporting, and load the companion bundle on upstream NetBox. Existing v0.4.3 download links remain valid and are explicitly distinguished from the candidate. |
+| Journal incorrectly limited compatibility to 4.7.2 | State stable 4.7.x-or-later runtime acceptance separately from 4.7.2 qualification; mark the original exact-version policy as historical. Existing compatibility tests pass. |
+
+[Version follow-up evidence](version-review-validation.json) records the tested
+revision, timings and private candidate asset hashes. Nothing was published.

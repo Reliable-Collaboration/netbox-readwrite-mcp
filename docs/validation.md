@@ -1,5 +1,26 @@
 # Validation record
 
+## PR #2: 0.4.4 version and compatibility follow-up
+
+Copilot's second review confirmed the original seven findings were resolved and
+identified two more: reusing published version 0.4.3 and a stale journal statement
+limiting compatibility to 4.7.2. Both are addressed on `0d8c283`.
+
+Both packages and runtime declarations now identify as **0.4.4 (unreleased)**.
+Release filenames/notes match; installation commands continue to use the available
+v0.4.3 downloads and explicitly identify the unreleased changes. The journal now
+separates stable 4.7.x-or-later acceptance from integration qualification on 4.7.2.
+
+Local qualification passed **453 unit tests in 32.12s**. Lint, both package builds,
+standalone/checksum checks and companion loading on unmodified upstream NetBox
+passed in **11.80s combined**. All four version declarations agree; all nine
+assembled assets and their unpacked contents passed the provider-key scan.
+See [exact evidence and asset hashes](version-review-validation.json).
+
+This follow-up changes version metadata and documentation only. The full real-NetBox
+suite was not repeated; the behavioral revision's successful CI result remains
+below. No model evaluations ran and no release assets were published.
+
 ## PR #2: Copilot remediation and full-scope review
 
 The unreleased code revision `0a6eb7c` passed **688 tests plus six subtests**
