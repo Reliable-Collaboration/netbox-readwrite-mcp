@@ -1,0 +1,252 @@
+"""Validated, current-user dashboard state without browser initialization."""
+
+import hashlib
+import json
+
+from django import forms
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.utils.choices import flatten_choices
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from extras.dashboard.forms import DashboardWidgetForm
+from extras.dashboard.utils import get_default_dashboard, get_widget_class
+from extras.models import Dashboard
+from netbox.api.authentication import TokenWritePermission
+from netbox.registry import registry
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .configuration import StrictSerializer
+
+
+class LayoutItem(StrictSerializer):
+    id = serializers.UUIDField()
+    w = serializers.IntegerField(min_value=1, max_value=12)
+    h = serializers.IntegerField(min_value=1)
+    x = serializers.IntegerField(min_value=0, allow_null=True, default=None)
+    y = serializers.IntegerField(min_value=0, allow_null=True, default=None)
+
+
+class DashboardWidget(StrictSerializer):
+    title = serializers.CharField(required=False, allow_blank=True, allow_null=True, trim_whitespace=False)
+    color = serializers.CharField(required=False, allow_blank=True, allow_null=True, trim_whitespace=False)
+    config = serializers.DictField(required=False)
+
+    def get_fields(self):
+        fields = super().get_fields()
+        fields["class"] = serializers.ChoiceField(
+            choices=[name for name in registry["widgets"] if name.startswith("extras.")]
+        )
+        return fields
+
+
+class DashboardWrite(StrictSerializer):
+    layout = LayoutItem(many=True)
+    config = serializers.DictField(child=DashboardWidget())
+    changelog_message = serializers.CharField(required=False, write_only=True)
+
+    def validate(self, data):
+        ids = [str(item["id"]) for item in data["layout"]]
+        if len(ids) != len(set(ids)) or set(ids) != set(data["config"]):
+            raise ValidationError("Each widget needs exactly one matching layout and config entry.")
+        for item in data["layout"]:
+            item["id"] = str(item["id"])
+            if item["x"] is not None and item["x"] + item["w"] > 12:
+                raise ValidationError("Widget position extends beyond the 12-column dashboard.")
+        for key, value in data["config"].items():
+            if set(value) - {"class", "title", "color", "config"}:
+                raise ValidationError({key: "Unknown widget properties."})
+            name = value.get("class")
+            if not isinstance(name, str) or not name.startswith("extras."):
+                raise ValidationError({key: "Only registered NetBox Community widgets are supported."})
+            try:
+                cls = get_widget_class(name)
+            except ValueError as exc:
+                raise ValidationError({key: str(exc)})
+            options = value.get("config", {})
+            if not isinstance(options, dict):
+                raise ValidationError({key: "Widget config must be an object."})
+            config_form = cls.ConfigForm()
+            if set(options) - config_form.fields.keys():
+                raise ValidationError({key: "Unknown widget configuration fields."})
+            options = {**cls.default_config, **options}
+            options = {
+                name: json.dumps(v) if isinstance(config_form.fields[name], forms.JSONField) else v
+                for name, v in options.items()
+            }
+            config_form = cls.ConfigForm(options)
+            widget_form = DashboardWidgetForm({k: value.get(k) for k in ("title", "color")})
+            try:
+                valid = config_form.is_valid() and widget_form.is_valid()
+            except (ValueError, TypeError) as exc:
+                raise ValidationError({key: str(exc)})
+            if not valid:
+                raise ValidationError({key: {"widget": widget_form.errors, "config": config_form.errors}})
+            if value != self.context.get("existing", {}).get(key):
+                data["config"][key] = {
+                    "class": name,
+                    **widget_form.cleaned_data,
+                    "config": config_form.cleaned_data,
+                }
+        return data
+
+
+class EmptyWrite(StrictSerializer):
+    changelog_message = serializers.CharField(required=False, write_only=True)
+
+
+class DashboardPatch(StrictSerializer):
+    layout = LayoutItem(many=True, required=False, default=list)
+    config = serializers.DictField(child=DashboardWidget(), required=False, default=dict)
+    remove = serializers.ListField(child=serializers.UUIDField(), required=False, default=list)
+    changelog_message = serializers.CharField(required=False, write_only=True)
+
+    def validate(self, data):
+        ids = [str(item["id"]) for item in data["layout"]]
+        removed = [str(pk) for pk in data["remove"]]
+        changed = set(ids) | set(data["config"])
+        if not changed and not removed:
+            raise ValidationError("Supply layout/config entries to change, or widget IDs to remove.")
+        if len(ids) != len(set(ids)) or len(removed) != len(set(removed)):
+            raise ValidationError("Duplicate widget IDs are not allowed.")
+        if changed & set(removed):
+            raise ValidationError("A widget cannot be changed and removed in the same request.")
+        existing = self.context["existing"]
+        if set(removed) - set(existing):
+            raise ValidationError("Cannot remove a widget that does not exist.")
+        updates = {str(item["id"]): item for item in data["layout"]}
+        layout = [
+            updates.pop(item["id"], item) for item in self.context["layout"] if item["id"] not in removed
+        ]
+        layout.extend(updates.values())
+        config = {pk: widget for pk, widget in existing.items() if pk not in removed}
+        config.update(data["config"])
+        # Validate the composed graph with the same native forms as full PUT.
+        # Only requested entries change; callers need not recopy other widgets.
+        complete = DashboardWrite(data={"layout": layout, "config": config}, context=self.context)
+        complete.is_valid(raise_exception=True)
+        validated = complete.validated_data
+        # Optional layout defaults must not rewrite entries the caller omitted.
+        unchanged = {item["id"]: item for item in self.context["layout"] if item["id"] not in ids}
+        validated["layout"] = [unchanged.get(item["id"], item) for item in validated["layout"]]
+        return validated
+
+
+def state(dashboard):
+    return {
+        "initialized": dashboard is not None,
+        "layout": dashboard.layout if dashboard else [],
+        "config": dashboard.config if dashboard else {},
+    }
+
+
+def etag(value):
+    return '"' + hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest() + '"'
+
+
+GUARD = [OpenApiParameter("If-Match", str, location=OpenApiParameter.HEADER, required=True)]
+
+
+class DashboardView(APIView):
+    """Read, initialize, replace or reset only the authenticated user's dashboard."""
+
+    permission_classes = [IsAuthenticated, TokenWritePermission]
+
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    def get(self, request):
+        value = state(Dashboard.objects.filter(user=request.user).first())
+        return Response(value, headers={"ETag": etag(value)})
+
+    def write(self, request):
+        serializer = {"PUT": DashboardWrite, "PATCH": DashboardPatch}.get(request.method, EmptyWrite)
+        body = serializer(data=request.data)
+        with transaction.atomic():
+            # Lock the user too: there may not be a dashboard row yet. Existing
+            # dashboards are locked against ordinary native UPDATE/DELETE writes.
+            get_user_model().objects.select_for_update().get(pk=request.user.pk)
+            dashboard = Dashboard.objects.select_for_update().filter(user=request.user).first()
+            current = state(dashboard)
+            if not request.headers.get("If-Match"):
+                return Response(
+                    {"detail": "Read this endpoint and supply its exact If-Match ETag."}, status=428
+                )
+            if request.headers["If-Match"] != etag(current):
+                return Response({"detail": "Dashboard changed; read it again."}, status=412)
+            body.context["existing"] = current["config"]
+            body.context["layout"] = current["layout"]
+            body.is_valid(raise_exception=True)
+            if request.method == "DELETE":
+                if dashboard:
+                    dashboard.delete()
+                return Response(status=204)
+            if request.method == "POST":
+                if dashboard is None:
+                    dashboard = get_default_dashboard()
+                    dashboard.user = request.user
+                    dashboard.save()
+            else:
+                if dashboard is None:
+                    dashboard = Dashboard(user=request.user)
+                dashboard.layout = body.validated_data["layout"]
+                dashboard.config = body.validated_data["config"]
+                # Native dashboards allow an empty layout/config after the last
+                # widget is removed; validation is done by the serializers/forms.
+                dashboard.save()
+            value = state(dashboard)
+            return Response(value, headers={"ETag": etag(value)})
+
+    @extend_schema(request=EmptyWrite, parameters=GUARD, responses={200: OpenApiTypes.OBJECT})
+    def post(self, request):
+        """Initialize native default widgets if absent, preserving an existing dashboard."""
+        return self.write(request)
+
+    @extend_schema(request=DashboardWrite, parameters=GUARD, responses={200: OpenApiTypes.OBJECT})
+    def put(self, request):
+        """Replace layout and widget configuration after native form validation."""
+        return self.write(request)
+
+    @extend_schema(request=DashboardPatch, parameters=GUARD, responses={200: OpenApiTypes.OBJECT})
+    def patch(self, request):
+        """Add/replace specified layout/config entries or remove widget IDs, preserving all others."""
+        return self.write(request)
+
+    @extend_schema(request=EmptyWrite, parameters=GUARD, responses={204: None})
+    def delete(self, request):
+        """Reset by deleting the current user's dashboard, as the native website does."""
+        return self.write(request)
+
+
+class DashboardWidgetSchemaView(APIView):
+    """Describe registered Community widgets and their native configuration fields."""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    def get(self, request):
+        return Response(
+            {
+                name: {
+                    "description": str(cls.description),
+                    "defaults": cls.default_config,
+                    "fields": {
+                        key: {
+                            "type": type(field).__name__,
+                            "required": field.required,
+                            "min_value": getattr(field, "min_value", None),
+                            "max_value": getattr(field, "max_value", None),
+                            **(
+                                {"choices": [str(value) for value, _ in flatten_choices(field.choices)]}
+                                if hasattr(field, "choices")
+                                else {}
+                            ),
+                        }
+                        for key, field in cls.ConfigForm().fields.items()
+                    },
+                }
+                for name, cls in registry["widgets"].items()
+                if name.startswith("extras.")
+            }
+        )

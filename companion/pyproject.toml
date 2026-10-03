@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netbox-agent-api"
+version = "0.4.4"
+description = "Community APIs for Reliable Collaboration's unofficial NetBox MCP server"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["netbox_agent_api*"]
+
+[project.scripts]
+netbox-agent-api-enable = "netbox_agent_api_setup:main"
+
+[tool.setuptools]
+py-modules = ["netbox_agent_api_setup", "netbox_agent_api_configuration"]

@@ -1,0 +1,204 @@
+"""Native script schema/source, file variables, scheduling, worker results and cleanup."""
+
+import base64
+from datetime import datetime, timedelta, timezone
+import os
+import time
+import uuid
+
+import pytest
+
+from tests.integration.test_administration import queue_admin  # noqa: F401
+from tests.integration.test_personal import people  # noqa: F401
+from tests.integration.test_configuration import shell
+
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.skipif(os.environ.get("NETBOX_RW_LIVE") != "1", reason="Disposable lab opt-in required"),
+]
+
+
+def test_native_script_form_source_files_scheduling_and_worker_result(queue_admin, people):  # noqa: F811
+    service = queue_admin
+    filename = "qualification_vars_" + uuid.uuid4().hex + ".py"
+    source = """from extras.scripts import Script, StringVar, FileVar, ChoiceVar
+class Qualification(Script):
+    text = StringVar(default="default text")
+    mode = ChoiceVar(choices=(("a", "Alpha"), ("b", "Beta")), default="a")
+    attachment = FileVar()
+    def run(self, data, commit):
+        value = data["attachment"].read().decode()
+        self.log_success("file=" + value + "; text=" + data["text"] + "; mode=" + data["mode"])
+        return value
+"""
+    uploaded = service.api.request(
+        "POST",
+        "extras/scripts/upload/",
+        {},
+        files=[{"field": "file", "filename": filename, "base64": base64.b64encode(source.encode()).decode()}],
+    )
+    assert uploaded["status"] == 201, uploaded
+    module_id = uploaded["body"]["id"]
+    try:
+        path = "extras/scripts/" + filename[:-3] + ".Qualification/"
+        script = service.api.get(path)["body"]
+        companion = f"plugins/agent-support/scripts/{script['id']}/"
+        metadata = service.api.get(companion)["body"]
+        assert metadata["fields"]["attachment"]["type"] == "FileField"
+        assert [row for row in metadata["fields"]["mode"]["choices"] if row["value"]] == [
+            {"value": "a", "label": "Alpha"},
+            {"value": "b", "label": "Beta"},
+        ]
+        assert metadata["scheduling_enabled"]
+        content = service.api.get(companion + "source/")["body"]
+        assert base64.b64decode(content["base64"]).decode().startswith("class Qualification(Script):")
+        assert "FileVar" in content["text"]
+        assert service.api.request("GET", companion + "source/?expected_sha256=" + "0" * 64)["status"] == 412
+        for client, readonly in people:
+            assert client.api.request("GET", companion)["status"] == 403
+            assert client.api.request("GET", companion + "source/")["status"] == 403
+        invalid = service.api.request("POST", path, {"data": {"mode": "invalid"}, "commit": False})
+        assert invalid["status"] == 400, invalid
+        future = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+        task = service.begin_task("Native scheduled file-variable script")["task_id"]
+        result = service.execute_action(
+            task,
+            "schedule-file-script",
+            "POST",
+            path,
+            {"data": {}, "commit": False, "schedule_at": future, "notifications": "never"},
+            files=[
+                {
+                    "field": "attachment",
+                    "filename": "fixture.txt",
+                    "base64": base64.b64encode(b"qualification payload").decode(),
+                }
+            ],
+        )
+        assert result["state"] == "accepted", result
+        job = result["last_receipt"]["body"]["result"]
+        assert job["status"]["value"] == "scheduled"
+        # A scheduled submission must not monopolize this agent's journal.
+        service.reconcile()
+        assert service.get_operation(result["id"])["state"] == "job_scheduled"
+        tag = service.create_object(
+            task,
+            "scheduled-inventory-write",
+            "extras/tags/",
+            {"name": filename, "slug": filename.replace("_", "-").replace(".", "-")},
+        )
+        assert tag["state"] == "applied", tag
+        tag_id = tag["last_receipt"]["body"]["id"]
+        assert service.api.request("DELETE", f"extras/tags/{tag_id}/")["status"] == 204
+        queued = service.api.request("POST", f"core/background-tasks/{job['job_id']}/enqueue/", {})
+        assert queued["status"] == 200, queued
+        deadline = time.monotonic() + 45
+        while time.monotonic() < deadline:
+            service.reconcile()
+            result = service.get_operation(result["id"])
+            if result["state"] not in {"accepted", "job_scheduled"}:
+                break
+            time.sleep(0.5)
+        assert result["state"] == "job_completed", result
+        actual = service.api.get(f"core/jobs/{job['id']}/")["body"]
+        assert actual["status"]["value"] == "completed"
+        assert "file=qualification payload; text=default text; mode=a" in str(actual["data"])
+        assert not actual["error"]
+        # Cancel a second acknowledged submission through our MCP service.
+        pending = service.execute_action(
+            task,
+            "schedule-to-cancel",
+            "POST",
+            path,
+            {"data": {}, "commit": False, "schedule_at": future, "notifications": "never"},
+            files=[
+                {
+                    "field": "attachment",
+                    "filename": "fixture.txt",
+                    "base64": base64.b64encode(b"cancelled payload").decode(),
+                }
+            ],
+        )
+        assert pending["state"] == "accepted", pending
+        from tests.integration.test_deletion import remove
+
+        remove(service, "core.job", pending["last_receipt"]["body"]["result"]["id"])
+        service.reconcile()
+        assert service.get_operation(pending["id"])["state"] == "job_missing"
+    finally:
+        shell(f"""
+from extras.models import ScriptModule
+for module in ScriptModule.objects.filter(pk={module_id}):
+    for script in module.scripts.all():
+        for job in script.jobs.all():
+            job.delete()
+    module.delete()
+""")
+
+
+def test_running_script_can_be_stopped_and_its_record_removed(queue_admin):  # noqa: F811
+    from tests.integration.test_administration import wait_task
+    from tests.integration.test_deletion import remove
+
+    service = queue_admin
+    filename = "qualification_stop_" + uuid.uuid4().hex + ".py"
+    source = """from extras.scripts import Script
+class Stoppable(Script):
+    def run(self, data, commit):
+        import time
+        time.sleep(90)
+"""
+    uploaded = service.api.request(
+        "POST",
+        "extras/scripts/upload/",
+        {},
+        files=[{"field": "file", "filename": filename, "base64": base64.b64encode(source.encode()).decode()}],
+    )
+    assert uploaded["status"] == 201, uploaded
+    module_id = uploaded["body"]["id"]
+    queue_id = None
+    try:
+        task = service.begin_task("Stop only the acknowledged disposable script")["task_id"]
+        result = service.execute_action(
+            task,
+            "run-stoppable-script",
+            "POST",
+            "extras/scripts/" + filename[:-3] + ".Stoppable/",
+            {"data": {}, "commit": False},
+        )
+        assert result["state"] == "accepted", result
+        job = result["last_receipt"]["body"]["result"]
+        queue_id = job["job_id"]
+        queue_path = f"core/background-tasks/{queue_id}/"
+        wait_task(service, queue_path, "started")
+        stopped = service.execute_action(task, "stop-own-script", "POST", queue_path + "stop/", {})
+        assert stopped["state"] == "completed", stopped
+        wait_task(service, queue_path, "stopped")
+        # Stopping the RQ task may leave a running database record. Delete it
+        # only after verifying the task stopped, retaining the MCP receipt.
+        remove(service, "core.job", job["id"])
+        service.reconcile()
+        assert service.get_operation(result["id"])["state"] == "job_missing"
+        assert not service.observability()["unresolved"]
+    finally:
+        shell(f"""
+from extras.models import ScriptModule
+from django_rq import get_queue
+from rq.command import send_stop_job_command
+for module in ScriptModule.objects.filter(pk={module_id}):
+    for script in module.scripts.all():
+        for job in script.jobs.all():
+            queue = get_queue(job.queue_name or 'default')
+            queued = queue.fetch_job(str(job.job_id))
+            if queued and queued.get_status() == 'started':
+                send_stop_job_command(queue.connection, str(job.job_id))
+            job.delete()
+    module.delete()
+if {queue_id!r}:
+    queue = get_queue('default')
+    queued = queue.fetch_job({queue_id!r})
+    if queued:
+        if queued.get_status() == 'started':
+            send_stop_job_command(queue.connection, {queue_id!r})
+        queued.delete()
+""")

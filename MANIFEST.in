@@ -1,0 +1,6 @@
+include LICENSE NOTICE README.md JOURNAL.md
+recursive-include third_party *.txt
+recursive-include docs *.md *.json *.txt
+recursive-include examples *.json *.py
+recursive-include scripts *.py *.json
+recursive-include tests *.py

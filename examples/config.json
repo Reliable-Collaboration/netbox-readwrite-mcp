@@ -1,0 +1,7 @@
+{
+  "netbox_url": "https://netbox.example.org",
+  "token_file": "token",
+  "journal": "state/journal.sqlite",
+  "instance_id": "replace-with-generated-uuid",
+  "actor": "inventory-agent"
+}

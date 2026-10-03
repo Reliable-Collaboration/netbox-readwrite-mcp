@@ -1,0 +1,38 @@
+name: Agent integration issue
+description: A consuming agent encountered an error, confusing result, or missing capability.
+title: "[agent] "
+body:
+  - type: textarea
+    id: intent
+    attributes:
+      label: Intended operation
+      description: Describe the goal using synthetic names. Do not include tokens or private inventory.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include tool names, sanitized arguments, expected behavior, and actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostic report
+      description: Paste diagnostic_report output. Do not attach recovery_bundle, journal exports, or raw receipts.
+      render: json
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Mutation outcome
+      options:
+        - No mutation attempted
+        - Applied
+        - Failed
+        - Uncertain — do not retry
+        - Other — inspect receipt
+    validations:
+      required: true

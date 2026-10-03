@@ -1,0 +1,205 @@
+{
+  "date": "2026-10-01",
+  "release_version": "0.4.2",
+  "release": {
+    "assets": [
+      {
+        "apiUrl": "https://api.github.com/repos/Reliable-Collaboration/netbox-readwrite-mcp/releases/assets/604317939",
+        "contentType": "application/yaml",
+        "createdAt": "2026-10-01T23:07:58Z",
+        "digest": "sha256:192c472925cf9cf5c376adcbe3194b650217f425ef9bebccdb42fe859f482e36",
+        "downloadCount": 0,
+        "id": "RA_kwDOUwbz1c4kBSjz",
+        "label": "",
+        "name": "compose.agent-api.yaml",
+        "size": 503,
+        "state": "uploaded",
+        "updatedAt": "2026-10-01T23:07:58Z",
+        "url": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/compose.agent-api.yaml"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/Reliable-Collaboration/netbox-readwrite-mcp/releases/assets/604317942",
+        "contentType": "application/x-gtar",
+        "createdAt": "2026-10-01T23:07:58Z",
+        "digest": "sha256:e22e2aa5bbce9f319af54cb53ba6ff6e80fb880b9bc79fe33a0b0820cdcef80b",
+        "downloadCount": 0,
+        "id": "RA_kwDOUwbz1c4kBSj2",
+        "label": "",
+        "name": "netbox-agent-api-container.tar.gz",
+        "size": 33964,
+        "state": "uploaded",
+        "updatedAt": "2026-10-01T23:07:58Z",
+        "url": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/netbox-agent-api-container.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/Reliable-Collaboration/netbox-readwrite-mcp/releases/assets/604317944",
+        "contentType": "application/octet-stream",
+        "createdAt": "2026-10-01T23:07:58Z",
+        "digest": "sha256:ce9fd21a67ccf1a2e4e155b2c8c03a25f6b064d181d34b841a48a877097eee15",
+        "downloadCount": 0,
+        "id": "RA_kwDOUwbz1c4kBSj4",
+        "label": "",
+        "name": "netbox-readwrite-mcp.pyz",
+        "size": 61770,
+        "state": "uploaded",
+        "updatedAt": "2026-10-01T23:07:58Z",
+        "url": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/netbox-readwrite-mcp.pyz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/Reliable-Collaboration/netbox-readwrite-mcp/releases/assets/604317941",
+        "contentType": "application/octet-stream",
+        "createdAt": "2026-10-01T23:07:58Z",
+        "digest": "sha256:05d35c5c3a2152ce037b86ad8a1a8ebb28805d01985cfa03fe8947a92c9b6984",
+        "downloadCount": 0,
+        "id": "RA_kwDOUwbz1c4kBSj1",
+        "label": "",
+        "name": "netbox_agent_api-0.4.2-py3-none-any.whl",
+        "size": 48942,
+        "state": "uploaded",
+        "updatedAt": "2026-10-01T23:07:58Z",
+        "url": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/netbox_agent_api-0.4.2-py3-none-any.whl"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/Reliable-Collaboration/netbox-readwrite-mcp/releases/assets/604317957",
+        "contentType": "application/x-gtar",
+        "createdAt": "2026-10-01T23:07:58Z",
+        "digest": "sha256:4fe2d052f2736385a3246c48bb4f75a37fd8c0ae88db45b123361278a78a2616",
+        "downloadCount": 0,
+        "id": "RA_kwDOUwbz1c4kBSkF",
+        "label": "",
+        "name": "netbox_agent_api-0.4.2.tar.gz",
+        "size": 38591,
+        "state": "uploaded",
+        "updatedAt": "2026-10-01T23:07:59Z",
+        "url": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/netbox_agent_api-0.4.2.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/Reliable-Collaboration/netbox-readwrite-mcp/releases/assets/604317956",
+        "contentType": "application/octet-stream",
+        "createdAt": "2026-10-01T23:07:58Z",
+        "digest": "sha256:32aea422c351e036e02d91f009191ac41befee7edd7b9bdacbf3e1e5130156a7",
+        "downloadCount": 0,
+        "id": "RA_kwDOUwbz1c4kBSkE",
+        "label": "",
+        "name": "netbox_readwrite_mcp-0.4.2-py3-none-any.whl",
+        "size": 75943,
+        "state": "uploaded",
+        "updatedAt": "2026-10-01T23:07:59Z",
+        "url": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/netbox_readwrite_mcp-0.4.2-py3-none-any.whl"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/Reliable-Collaboration/netbox-readwrite-mcp/releases/assets/604317958",
+        "contentType": "application/x-gtar",
+        "createdAt": "2026-10-01T23:07:58Z",
+        "digest": "sha256:46609f218573fe09f52331f6df3119f221f3a1aa921ad9a14e60352414d069ef",
+        "downloadCount": 0,
+        "id": "RA_kwDOUwbz1c4kBSkG",
+        "label": "",
+        "name": "netbox_readwrite_mcp-0.4.2.tar.gz",
+        "size": 321904,
+        "state": "uploaded",
+        "updatedAt": "2026-10-01T23:07:59Z",
+        "url": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/netbox_readwrite_mcp-0.4.2.tar.gz"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/Reliable-Collaboration/netbox-readwrite-mcp/releases/assets/604317959",
+        "contentType": "application/json",
+        "createdAt": "2026-10-01T23:07:59Z",
+        "digest": "sha256:c58a9d3404ba24256f8e363e60ddf1880a1098f59694364755e88c3ecb939cbe",
+        "downloadCount": 0,
+        "id": "RA_kwDOUwbz1c4kBSkH",
+        "label": "",
+        "name": "release.json",
+        "size": 239,
+        "state": "uploaded",
+        "updatedAt": "2026-10-01T23:07:59Z",
+        "url": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/release.json"
+      },
+      {
+        "apiUrl": "https://api.github.com/repos/Reliable-Collaboration/netbox-readwrite-mcp/releases/assets/604317943",
+        "contentType": "application/octet-stream",
+        "createdAt": "2026-10-01T23:07:58Z",
+        "digest": "sha256:3892199cedc98c9d400d9dd2fc83bbeb8b235775acd52a535d9f359862bfd192",
+        "downloadCount": 0,
+        "id": "RA_kwDOUwbz1c4kBSj3",
+        "label": "",
+        "name": "SHA256SUMS",
+        "size": 771,
+        "state": "uploaded",
+        "updatedAt": "2026-10-01T23:07:58Z",
+        "url": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.2/SHA256SUMS"
+      }
+    ],
+    "isDraft": false,
+    "isPrerelease": false,
+    "url": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.2"
+  },
+  "qualification_run": {
+    "conclusion": "success",
+    "headSha": "3366fdffb32266f46b25fcd8d1f104e08689a246",
+    "status": "completed",
+    "url": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/actions/runs/36936421631"
+  },
+  "netbox_accepted": ">=4.7.0 stable",
+  "netbox_tested": [
+    "4.7.2"
+  ],
+  "unit_tests": 387,
+  "integration_tests": 232,
+  "combined_tests": 619,
+  "subtests": 6,
+  "junit_sha256": "2e11d86dcce9da765b4e9aab8b5b6c14bdd6baaa129e8f37abb103b8eaef5f5a",
+  "mcp_runtime_coverage_percent": 91.99,
+  "live_suite_seconds": 1393.32,
+  "mcp_server": "Reliable Collaboration's unofficial NetBox read/write MCP server",
+  "mcp_server_repository": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp",
+  "agent_evaluation": "docs/client-agent-evaluations.json",
+  "local_agent_runs": {
+    "claude": "a5badc9997",
+    "codex": "2d208b74c6",
+    "opencode": "1a4272a45c"
+  },
+  "agent_guidance_delivery": "Unofficial read/write MCP initialization/capabilities/get_guidance; no client prompt guide injection",
+  "ci_scope": "Deterministic tests and packaging only; model evaluations run locally, not in CI.",
+  "credential_review": {
+    "provider_key_in_completed_release_log": false,
+    "repository_actions_secrets": [],
+    "tracked_files_and_reachable_git_objects_provider_key_matches": 0,
+    "local_provider_key_file_ignored": true,
+    "local_provider_key_file_mode": "0600",
+    "public_asset_members_scanned": 256,
+    "public_asset_provider_key_matches": 0
+  },
+  "public_download_verification": {
+    "release": "v0.4.2",
+    "source_commit": "3366fdffb32266f46b25fcd8d1f104e08689a246",
+    "unauthenticated_downloads": 9,
+    "checksums_verified": true,
+    "tested_candidate_zip_members_match": 22,
+    "tested_candidate_sha256": "ec76c6ce1d3b1c3df62dccc40c4aa479349a100a12ab6acefa74a2ec7ae3613d",
+    "published_application_sha256": "ce9fd21a67ccf1a2e4e155b2c8c03a25f6b064d181d34b841a48a877097eee15",
+    "wheel_python_modules_match_tag": {
+      "netbox_agent_api-0.4.2-py3-none-any.whl": 22,
+      "netbox_readwrite_mcp-0.4.2-py3-none-any.whl": 19
+    },
+    "downloaded_application_doctor": {
+      "netbox_version": "4.7.2",
+      "qualified": true,
+      "tested_versions": [
+        "4.7.2"
+      ],
+      "companion": "available",
+      "history": "readable",
+      "read_only": false
+    },
+    "downloaded_application_configuration": "Private configuration and usable OpenCode command produced; token absent from output."
+  },
+  "boundaries": [
+    "Targeted GLM CLI acceptance, not a reliability rate or qualification of native Anthropic/OpenAI models.",
+    "Later accepted NetBox versions have not passed this 4.7.2 integration suite.",
+    "Preservation checks cover 15 core collections and scenario-specific assertions, not a whole-database diff.",
+    "Kubernetes/Helm deployment recipes are not a separately qualified chart/operator.",
+    "Native client output truncation is not measured.",
+    "All original failed agent attempts remain in the evaluation record."
+  ]
+}

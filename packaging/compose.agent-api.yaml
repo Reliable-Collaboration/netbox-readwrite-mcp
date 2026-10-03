@@ -1,0 +1,14 @@
+# Extend an existing upstream netbox-docker deployment; keep its images and settings.
+services:
+  netbox:
+    volumes:
+      - ./netbox-agent-api/plugin:/opt/netbox/agent-api:ro,z
+    environment:
+      PYTHONPATH: /opt/netbox/agent-api
+      NETBOX_CONFIGURATION: netbox_agent_api_configuration
+  netbox-worker:
+    volumes:
+      - ./netbox-agent-api/plugin:/opt/netbox/agent-api:ro,z
+    environment:
+      PYTHONPATH: /opt/netbox/agent-api
+      NETBOX_CONFIGURATION: netbox_agent_api_configuration

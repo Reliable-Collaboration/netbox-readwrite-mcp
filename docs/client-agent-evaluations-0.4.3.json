@@ -1,0 +1,1107 @@
+{
+  "mcp_server": "Reliable Collaboration's unofficial NetBox read/write MCP server",
+  "release_candidate": "0.4.3",
+  "source_commit": "d1758af4a62899023469795945bf74866d43c6d7",
+  "scope": "Local GLM-5.3-Flash through LiteLLM; real NetBox 4.7.2; standalone candidate application",
+  "runs": [
+    {
+      "qualified_passed": true,
+      "report": {
+        "mcp_server": "Reliable Collaboration's unofficial NetBox read/write MCP server",
+        "mcp_server_repository": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp",
+        "mcp_client_alias": "netbox",
+        "harness_sha256": {
+          "scripts/agent_eval.py": "c41fa123ff51cea719451c22b91cb44935059e23b7f09a9e3b77e5432ac8219f",
+          "scripts/agent_gateway.py": "dae9f47840c2976ec6e4bbc83018dd76ace50c9f7a7305dc04f9338f795b6cd2",
+          "scripts/agent_clients.py": "0c5890e1c62af75fb5bcabebeccdacb8b320dd1c7e49ec487d7ce131cec7fb54"
+        },
+        "instructions_sha256": "483d9e0379471c731adc2f448247b657c395dfb40d91dad311d735dd3f44534d",
+        "source_sha256": {
+          "companion/netbox_agent_api/__init__.py": "44ae215867f23d5d43da85e2cd6c3d0b5e19ef9d1e48f7d877332a820c2a21e4",
+          "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "companion/netbox_agent_api/api/account.py": "51d86801d7aba8403c84f7d025eed1b9e8ba4b70f38b1e4b67ba463956f75f7f",
+          "companion/netbox_agent_api/api/administration.py": "7c2a60d87a06fc8172107087d2594ec307bc314a3b492ac503092fc9832a4883",
+          "companion/netbox_agent_api/api/batch_actions.py": "ba198506b46fbf48197cff52d65836c9f1d900a69d4716d841e3261451e95084",
+          "companion/netbox_agent_api/api/bulk_edit.py": "6f70d4f100e3667cfb71db2e1614e3aa5fa9539f1b4fd79200d4bb4e9684fb74",
+          "companion/netbox_agent_api/api/chassis.py": "86eafc985c1eddb7551ba5b9163cdf4c38da96056df23949c5693d4c2fd5135b",
+          "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+          "companion/netbox_agent_api/api/connections.py": "d6351a2eb91e935deb3d3e5a2390de4a44aecabd65f407f2d21bf0642ddbd800",
+          "companion/netbox_agent_api/api/dashboard.py": "34ee81112d046d6b0d05181cc1070fb88157aa1214568ef09330886272983981",
+          "companion/netbox_agent_api/api/deletion.py": "ae142a6401bc4d1dcb1052ea20e1e70c4de21a7f70b14c4a9303f64cb167a7c8",
+          "companion/netbox_agent_api/api/exports.py": "a77d0a7eb062188632e36161adadc24a8870fbc041eac3a512b44e100723f1c8",
+          "companion/netbox_agent_api/api/imports.py": "707b66befcd1639314287d1919c7b9afe1b649eec09235d50317d8133e5071f5",
+          "companion/netbox_agent_api/api/media.py": "5c55fef7c83ab5b1720515cd44d32f655b462f1e8cb6b7c26e58254c2fdb1aac",
+          "companion/netbox_agent_api/api/patterns.py": "a58f092c50979b8d8e71b78ca9599f86cd14e1efc26db4cf4d448156f568034d",
+          "companion/netbox_agent_api/api/rename.py": "2ed08aa8af26d611155f2f658c9c7406cf5b794a245c85175f9fcf388f8415ba",
+          "companion/netbox_agent_api/api/scripts.py": "e0f7e63c85b41ad6ffc0cdbf3f29bb62125ae45de8486a888fc4643fe945a9c2",
+          "companion/netbox_agent_api/api/urls.py": "7e65fbcd94d9527baa8a427d977a4b0237e0de4d9809ff82ce359352b7d9788e",
+          "companion/netbox_agent_api/api/utilities.py": "08706c789327f81db634a22d662edfcc5e9bdbe9cec47a5364812b0a36b4d745",
+          "companion/netbox_agent_api/api/views.py": "0f147ff5a3fa032284ffc9c51a38f622f237192242e2393239e0ef226a990fb3",
+          "src/netbox_readwrite_mcp/__init__.py": "df03177fae5255c4199f2377ab1863ed2d52c8b7e68dca710528bbe5554987aa",
+          "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+          "src/netbox_readwrite_mcp/api.py": "86f01b935f6486956668536f4258ae3e1027d60fd424c941f13cdbca9e1ad79b",
+          "src/netbox_readwrite_mcp/catalog.py": "fcc1e579bd03a01a1a5616fa982ea7589e22f58de6cc846f18ed32a90dd8a9ee",
+          "src/netbox_readwrite_mcp/compatibility.py": "06562891ca689d46dd9dc38fdf4fe879a6d4b67ed9769de484ae99e3d061f058",
+          "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+          "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+          "src/netbox_readwrite_mcp/feedback.py": "04bb64e375662216335a981f175959bca7ba00ffd406c02f5d0d847ea230de59",
+          "src/netbox_readwrite_mcp/guidance.py": "b996200014a5c4685bd4d5b0a7058fec17dff651106b356f2833b36c51074307",
+          "src/netbox_readwrite_mcp/http_server.py": "e836b4ca30048547c9bb497e2574c764a1fe87a48cd48fcea34e3a6ec08618ef",
+          "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+          "src/netbox_readwrite_mcp/recovery.py": "5a223b90189c98bda6b7f16a275413a36ca20dae00d41af9d6daaf6e0d91a738",
+          "src/netbox_readwrite_mcp/server.py": "7abcb3fec2caec71b23f21b287d42bc6a3ba0e510b791f6ff38dba0d7b077382",
+          "src/netbox_readwrite_mcp/service.py": "08081b37dab433dde6959525c16d9e0f1907a587723da864c0dd9a1719226d15",
+          "src/netbox_readwrite_mcp/setup.py": "6bf8b819ed9675487cddf691bde1b521558b73addf421bfd8346ec83e2dce682",
+          "src/netbox_readwrite_mcp/store.py": "50ba71fbdbccb152ceca16fb60c6cb9e494c71bf3829638795ae0ba593316436",
+          "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+          "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+          "src/netbox_readwrite_mcp/workspace.py": "27f73e8c8a638e6129acf68574edf20f051554b7bfc0ce9df911d2fc664a4a40"
+        },
+        "model": "zai-org/GLM-5.3-Flash",
+        "scenario": "community",
+        "guidance_delivery": "MCP initialization and tools only; no guide injected into client prompt",
+        "run": "62b19cf8b0",
+        "netbox": "4.7.2",
+        "phases": [
+          {
+            "mcp_server": "Reliable Collaboration's unofficial NetBox read/write MCP server",
+            "name": "community",
+            "interruption": null,
+            "llm_activity_cumulative": {
+              "requests": 45,
+              "request_bytes": 7583236,
+              "largest_instructions_bytes": 2,
+              "largest_tools_bytes": 13360,
+              "largest_input_bytes": 2,
+              "largest_messages_bytes": 260262,
+              "response_bytes": 163779,
+              "network_chunks": 1079,
+              "tool_calls_chunks": 52,
+              "stop_tool_use": 44,
+              "finished_requests": 45,
+              "transport_errors": 0,
+              "reasoning_chunks": 313,
+              "content_chunks": 413,
+              "stop_end_turn": 1,
+              "active_requests": [],
+              "last_network_age_seconds": 5.0,
+              "last_generation_age_seconds": 5.1
+            },
+            "seconds": 227.65,
+            "checks": {
+              "two_owned_devices": true,
+              "nested_template_import_used": true,
+              "multi_parent_single_request": true,
+              "native_trace_used": true,
+              "search_api_used": true,
+              "native_template_interfaces": true,
+              "multi_parent_power_ports": true,
+              "chassis_positions_swapped": true,
+              "chassis_atomic_api_used": true,
+              "disconnect_api_used": true,
+              "cable_removed": true,
+              "vm_primary_mac": true,
+              "contact_assignment": true,
+              "physical_journal": true,
+              "own_bookmark": true,
+              "native_csv_export": true,
+              "task_summary_read": true,
+              "no_website_calls": true,
+              "no_unresolved_operations": true,
+              "preexisting_inventory_unchanged": true,
+              "client_exit_zero": true,
+              "used_mcp": true,
+              "no_client_error": true,
+              "no_host_tool_calls": true
+            },
+            "passed": true,
+            "tool_calls": {
+              "capabilities": 1,
+              "begin_task": 1,
+              "get_guidance": 1,
+              "discover_models": 1,
+              "get_schema": 10,
+              "query": 7,
+              "bulk": 4,
+              "execute_action": 7,
+              "get_objects": 1,
+              "create_object": 10,
+              "run_workflow": 1,
+              "get_object_by_id": 4,
+              "update_object": 3,
+              "get_task": 1
+            },
+            "feedback_tool_calls": {},
+            "tool_errors": 2,
+            "tool_states": {
+              "200": 7,
+              "completed": 7,
+              "failed": 4,
+              "applied": 12,
+              "blocked": 2,
+              "partial_or_blocked": 1
+            },
+            "truncated_tool_outputs": null,
+            "tokens": {
+              "input_tokens": 238284,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 1665920,
+              "output_tokens": 6430
+            }
+          }
+        ],
+        "client": "claude",
+        "client_version": "2.1.287 (Claude Code)",
+        "mcp_application_sha256": "ccab909b1f0c1b7bfaa6c421b78b3984d89cd998da0241a1eeba71b41ea3952c",
+        "limits": {
+          "phase_seconds": 14400,
+          "idle_seconds": 0,
+          "max_consecutive_tool_errors": 12,
+          "agent_steps": null
+        },
+        "passed": true
+      },
+      "review": {
+        "report_sha256": "ec6b9a770450f1a526c2326c2932d0d882ac70a380322050f2d1fdec1840e9a4",
+        "phases": [
+          {
+            "name": "community",
+            "transcript_sha256": "2677d320b87af67492a1d6144862d53aa16ba02901ffbbf36381558d315f8477",
+            "no_host_tool_calls": true,
+            "client_reported_usage": [
+              {
+                "input_tokens": 238284,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 1665920,
+                "output_tokens": 6430,
+                "output_tokens_details": {
+                  "thinking_tokens": 0
+                },
+                "server_tool_use": {
+                  "web_search_requests": 0,
+                  "web_fetch_requests": 0
+                },
+                "service_tier": "standard",
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "inference_geo": "",
+                "iterations": [],
+                "speed": "standard",
+                "fallback_credit": null
+              }
+            ],
+            "client_mcp_failures": []
+          }
+        ],
+        "successful_read_checks": {
+          "native_trace_used": true,
+          "search_api_used": true
+        },
+        "resource_operation_states": {
+          "applied": 19,
+          "completed": 3,
+          "failed": 5
+        }
+      }
+    },
+    {
+      "qualified_passed": false,
+      "report": {
+        "mcp_server": "Reliable Collaboration's unofficial NetBox read/write MCP server",
+        "mcp_server_repository": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp",
+        "mcp_client_alias": "netbox",
+        "harness_sha256": {
+          "scripts/agent_eval.py": "c41fa123ff51cea719451c22b91cb44935059e23b7f09a9e3b77e5432ac8219f",
+          "scripts/agent_gateway.py": "dae9f47840c2976ec6e4bbc83018dd76ace50c9f7a7305dc04f9338f795b6cd2",
+          "scripts/agent_clients.py": "0c5890e1c62af75fb5bcabebeccdacb8b320dd1c7e49ec487d7ce131cec7fb54"
+        },
+        "instructions_sha256": "483d9e0379471c731adc2f448247b657c395dfb40d91dad311d735dd3f44534d",
+        "source_sha256": {
+          "companion/netbox_agent_api/__init__.py": "44ae215867f23d5d43da85e2cd6c3d0b5e19ef9d1e48f7d877332a820c2a21e4",
+          "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "companion/netbox_agent_api/api/account.py": "51d86801d7aba8403c84f7d025eed1b9e8ba4b70f38b1e4b67ba463956f75f7f",
+          "companion/netbox_agent_api/api/administration.py": "7c2a60d87a06fc8172107087d2594ec307bc314a3b492ac503092fc9832a4883",
+          "companion/netbox_agent_api/api/batch_actions.py": "ba198506b46fbf48197cff52d65836c9f1d900a69d4716d841e3261451e95084",
+          "companion/netbox_agent_api/api/bulk_edit.py": "6f70d4f100e3667cfb71db2e1614e3aa5fa9539f1b4fd79200d4bb4e9684fb74",
+          "companion/netbox_agent_api/api/chassis.py": "86eafc985c1eddb7551ba5b9163cdf4c38da96056df23949c5693d4c2fd5135b",
+          "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+          "companion/netbox_agent_api/api/connections.py": "d6351a2eb91e935deb3d3e5a2390de4a44aecabd65f407f2d21bf0642ddbd800",
+          "companion/netbox_agent_api/api/dashboard.py": "34ee81112d046d6b0d05181cc1070fb88157aa1214568ef09330886272983981",
+          "companion/netbox_agent_api/api/deletion.py": "ae142a6401bc4d1dcb1052ea20e1e70c4de21a7f70b14c4a9303f64cb167a7c8",
+          "companion/netbox_agent_api/api/exports.py": "a77d0a7eb062188632e36161adadc24a8870fbc041eac3a512b44e100723f1c8",
+          "companion/netbox_agent_api/api/imports.py": "707b66befcd1639314287d1919c7b9afe1b649eec09235d50317d8133e5071f5",
+          "companion/netbox_agent_api/api/media.py": "5c55fef7c83ab5b1720515cd44d32f655b462f1e8cb6b7c26e58254c2fdb1aac",
+          "companion/netbox_agent_api/api/patterns.py": "a58f092c50979b8d8e71b78ca9599f86cd14e1efc26db4cf4d448156f568034d",
+          "companion/netbox_agent_api/api/rename.py": "2ed08aa8af26d611155f2f658c9c7406cf5b794a245c85175f9fcf388f8415ba",
+          "companion/netbox_agent_api/api/scripts.py": "e0f7e63c85b41ad6ffc0cdbf3f29bb62125ae45de8486a888fc4643fe945a9c2",
+          "companion/netbox_agent_api/api/urls.py": "7e65fbcd94d9527baa8a427d977a4b0237e0de4d9809ff82ce359352b7d9788e",
+          "companion/netbox_agent_api/api/utilities.py": "08706c789327f81db634a22d662edfcc5e9bdbe9cec47a5364812b0a36b4d745",
+          "companion/netbox_agent_api/api/views.py": "0f147ff5a3fa032284ffc9c51a38f622f237192242e2393239e0ef226a990fb3",
+          "src/netbox_readwrite_mcp/__init__.py": "df03177fae5255c4199f2377ab1863ed2d52c8b7e68dca710528bbe5554987aa",
+          "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+          "src/netbox_readwrite_mcp/api.py": "86f01b935f6486956668536f4258ae3e1027d60fd424c941f13cdbca9e1ad79b",
+          "src/netbox_readwrite_mcp/catalog.py": "fcc1e579bd03a01a1a5616fa982ea7589e22f58de6cc846f18ed32a90dd8a9ee",
+          "src/netbox_readwrite_mcp/compatibility.py": "06562891ca689d46dd9dc38fdf4fe879a6d4b67ed9769de484ae99e3d061f058",
+          "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+          "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+          "src/netbox_readwrite_mcp/feedback.py": "04bb64e375662216335a981f175959bca7ba00ffd406c02f5d0d847ea230de59",
+          "src/netbox_readwrite_mcp/guidance.py": "b996200014a5c4685bd4d5b0a7058fec17dff651106b356f2833b36c51074307",
+          "src/netbox_readwrite_mcp/http_server.py": "e836b4ca30048547c9bb497e2574c764a1fe87a48cd48fcea34e3a6ec08618ef",
+          "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+          "src/netbox_readwrite_mcp/recovery.py": "5a223b90189c98bda6b7f16a275413a36ca20dae00d41af9d6daaf6e0d91a738",
+          "src/netbox_readwrite_mcp/server.py": "7abcb3fec2caec71b23f21b287d42bc6a3ba0e510b791f6ff38dba0d7b077382",
+          "src/netbox_readwrite_mcp/service.py": "08081b37dab433dde6959525c16d9e0f1907a587723da864c0dd9a1719226d15",
+          "src/netbox_readwrite_mcp/setup.py": "6bf8b819ed9675487cddf691bde1b521558b73addf421bfd8346ec83e2dce682",
+          "src/netbox_readwrite_mcp/store.py": "50ba71fbdbccb152ceca16fb60c6cb9e494c71bf3829638795ae0ba593316436",
+          "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+          "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+          "src/netbox_readwrite_mcp/workspace.py": "27f73e8c8a638e6129acf68574edf20f051554b7bfc0ce9df911d2fc664a4a40"
+        },
+        "model": "zai-org/GLM-5.3-Flash",
+        "scenario": "community",
+        "guidance_delivery": "MCP initialization and tools only; no guide injected into client prompt",
+        "run": "2eec47f2f4",
+        "netbox": "4.7.2",
+        "phases": [
+          {
+            "mcp_server": "Reliable Collaboration's unofficial NetBox read/write MCP server",
+            "name": "community",
+            "interruption": null,
+            "llm_activity_cumulative": {
+              "requests": 45,
+              "request_bytes": 12245765,
+              "largest_instructions_bytes": 17553,
+              "largest_tools_bytes": 23404,
+              "largest_input_bytes": 335072,
+              "largest_messages_bytes": 2,
+              "response_bytes": 4241440,
+              "network_chunks": 2910,
+              "response_delta_chunks": 2000,
+              "response_completed": 45,
+              "finished_requests": 45,
+              "transport_errors": 0,
+              "active_requests": [],
+              "last_network_age_seconds": 5.9,
+              "last_generation_age_seconds": 6.0
+            },
+            "seconds": 413.24,
+            "checks": {
+              "two_owned_devices": true,
+              "nested_template_import_used": true,
+              "multi_parent_single_request": true,
+              "native_trace_used": true,
+              "search_api_used": false,
+              "native_template_interfaces": true,
+              "multi_parent_power_ports": true,
+              "chassis_positions_swapped": false,
+              "chassis_atomic_api_used": true,
+              "disconnect_api_used": true,
+              "cable_removed": true,
+              "vm_primary_mac": true,
+              "contact_assignment": true,
+              "physical_journal": true,
+              "own_bookmark": false,
+              "native_csv_export": true,
+              "task_summary_read": true,
+              "no_website_calls": true,
+              "no_unresolved_operations": true,
+              "preexisting_inventory_unchanged": true,
+              "client_exit_zero": true,
+              "used_mcp": true,
+              "no_client_error": true,
+              "no_host_tool_calls": true
+            },
+            "passed": false,
+            "tool_calls": {
+              "discover_models": 1,
+              "capabilities": 1,
+              "begin_task": 1,
+              "get_guidance": 2,
+              "get_schema": 40,
+              "get_objects": 9,
+              "query": 14,
+              "create_object": 16,
+              "execute_action": 7,
+              "read_device": 2,
+              "update_device": 1,
+              "get_object_by_id": 5,
+              "update_object": 2,
+              "get_task": 1
+            },
+            "feedback_tool_calls": {},
+            "tool_errors": 15,
+            "tool_states": {
+              "blocked": 15,
+              "200": 9,
+              "applied": 19,
+              "completed": 3,
+              "failed": 3
+            },
+            "truncated_tool_outputs": null,
+            "tokens": {
+              "input_tokens": 3351295,
+              "cached_input_tokens": 3095936,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 7521,
+              "reasoning_output_tokens": 912
+            }
+          }
+        ],
+        "client": "codex",
+        "client_version": "codex-cli 0.159.2",
+        "mcp_application_sha256": "ccab909b1f0c1b7bfaa6c421b78b3984d89cd998da0241a1eeba71b41ea3952c",
+        "limits": {
+          "phase_seconds": 14400,
+          "idle_seconds": 0,
+          "max_consecutive_tool_errors": 12,
+          "agent_steps": null
+        },
+        "passed": false
+      },
+      "review": {
+        "report_sha256": "12d66761702906df27548993e4474cc8515fc90146691aa4f0e62afaa9ea3ba1",
+        "phases": [
+          {
+            "name": "community",
+            "transcript_sha256": "7de55a004fdc90b7385be3e563f45a54dc9d1789651b5f49bc97e80b8852d34d",
+            "no_host_tool_calls": true,
+            "client_reported_usage": [
+              {
+                "input_tokens": 3351295,
+                "cached_input_tokens": 3095936,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 7521,
+                "reasoning_output_tokens": 912
+              }
+            ],
+            "client_mcp_failures": [
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "query",
+                "error": null
+              },
+              {
+                "tool": "query",
+                "error": null
+              },
+              {
+                "tool": "update_device",
+                "error": null
+              },
+              {
+                "tool": "query",
+                "error": null
+              },
+              {
+                "tool": "query",
+                "error": null
+              },
+              {
+                "tool": "get_objects",
+                "error": null
+              },
+              {
+                "tool": "query",
+                "error": null
+              }
+            ]
+          }
+        ],
+        "successful_read_checks": {
+          "native_trace_used": true,
+          "search_api_used": true
+        },
+        "resource_operation_states": {
+          "applied": 19,
+          "completed": 3,
+          "failed": 3
+        }
+      }
+    },
+    {
+      "qualified_passed": true,
+      "report": {
+        "mcp_server": "Reliable Collaboration's unofficial NetBox read/write MCP server",
+        "mcp_server_repository": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp",
+        "mcp_client_alias": "netbox",
+        "harness_sha256": {
+          "scripts/agent_eval.py": "c41fa123ff51cea719451c22b91cb44935059e23b7f09a9e3b77e5432ac8219f",
+          "scripts/agent_gateway.py": "dae9f47840c2976ec6e4bbc83018dd76ace50c9f7a7305dc04f9338f795b6cd2",
+          "scripts/agent_clients.py": "8d6640ccc9aa21715ad37eea3fa63dc32ad8ee46a26da6aaf1c8c036d855e291"
+        },
+        "instructions_sha256": "67b935f360424eb11166852a3bf919aaa50d8401078b2cdfbb8160f6868ef80b",
+        "source_sha256": {
+          "companion/netbox_agent_api/__init__.py": "44ae215867f23d5d43da85e2cd6c3d0b5e19ef9d1e48f7d877332a820c2a21e4",
+          "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "companion/netbox_agent_api/api/account.py": "51d86801d7aba8403c84f7d025eed1b9e8ba4b70f38b1e4b67ba463956f75f7f",
+          "companion/netbox_agent_api/api/administration.py": "7c2a60d87a06fc8172107087d2594ec307bc314a3b492ac503092fc9832a4883",
+          "companion/netbox_agent_api/api/batch_actions.py": "ba198506b46fbf48197cff52d65836c9f1d900a69d4716d841e3261451e95084",
+          "companion/netbox_agent_api/api/bulk_edit.py": "6f70d4f100e3667cfb71db2e1614e3aa5fa9539f1b4fd79200d4bb4e9684fb74",
+          "companion/netbox_agent_api/api/chassis.py": "86eafc985c1eddb7551ba5b9163cdf4c38da96056df23949c5693d4c2fd5135b",
+          "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+          "companion/netbox_agent_api/api/connections.py": "d6351a2eb91e935deb3d3e5a2390de4a44aecabd65f407f2d21bf0642ddbd800",
+          "companion/netbox_agent_api/api/dashboard.py": "34ee81112d046d6b0d05181cc1070fb88157aa1214568ef09330886272983981",
+          "companion/netbox_agent_api/api/deletion.py": "ae142a6401bc4d1dcb1052ea20e1e70c4de21a7f70b14c4a9303f64cb167a7c8",
+          "companion/netbox_agent_api/api/exports.py": "a77d0a7eb062188632e36161adadc24a8870fbc041eac3a512b44e100723f1c8",
+          "companion/netbox_agent_api/api/imports.py": "707b66befcd1639314287d1919c7b9afe1b649eec09235d50317d8133e5071f5",
+          "companion/netbox_agent_api/api/media.py": "5c55fef7c83ab5b1720515cd44d32f655b462f1e8cb6b7c26e58254c2fdb1aac",
+          "companion/netbox_agent_api/api/patterns.py": "a58f092c50979b8d8e71b78ca9599f86cd14e1efc26db4cf4d448156f568034d",
+          "companion/netbox_agent_api/api/rename.py": "2ed08aa8af26d611155f2f658c9c7406cf5b794a245c85175f9fcf388f8415ba",
+          "companion/netbox_agent_api/api/scripts.py": "e0f7e63c85b41ad6ffc0cdbf3f29bb62125ae45de8486a888fc4643fe945a9c2",
+          "companion/netbox_agent_api/api/urls.py": "7e65fbcd94d9527baa8a427d977a4b0237e0de4d9809ff82ce359352b7d9788e",
+          "companion/netbox_agent_api/api/utilities.py": "08706c789327f81db634a22d662edfcc5e9bdbe9cec47a5364812b0a36b4d745",
+          "companion/netbox_agent_api/api/views.py": "0f147ff5a3fa032284ffc9c51a38f622f237192242e2393239e0ef226a990fb3",
+          "src/netbox_readwrite_mcp/__init__.py": "df03177fae5255c4199f2377ab1863ed2d52c8b7e68dca710528bbe5554987aa",
+          "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+          "src/netbox_readwrite_mcp/api.py": "86f01b935f6486956668536f4258ae3e1027d60fd424c941f13cdbca9e1ad79b",
+          "src/netbox_readwrite_mcp/catalog.py": "fcc1e579bd03a01a1a5616fa982ea7589e22f58de6cc846f18ed32a90dd8a9ee",
+          "src/netbox_readwrite_mcp/compatibility.py": "06562891ca689d46dd9dc38fdf4fe879a6d4b67ed9769de484ae99e3d061f058",
+          "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+          "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+          "src/netbox_readwrite_mcp/feedback.py": "04bb64e375662216335a981f175959bca7ba00ffd406c02f5d0d847ea230de59",
+          "src/netbox_readwrite_mcp/guidance.py": "b996200014a5c4685bd4d5b0a7058fec17dff651106b356f2833b36c51074307",
+          "src/netbox_readwrite_mcp/http_server.py": "e836b4ca30048547c9bb497e2574c764a1fe87a48cd48fcea34e3a6ec08618ef",
+          "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+          "src/netbox_readwrite_mcp/recovery.py": "5a223b90189c98bda6b7f16a275413a36ca20dae00d41af9d6daaf6e0d91a738",
+          "src/netbox_readwrite_mcp/server.py": "7abcb3fec2caec71b23f21b287d42bc6a3ba0e510b791f6ff38dba0d7b077382",
+          "src/netbox_readwrite_mcp/service.py": "08081b37dab433dde6959525c16d9e0f1907a587723da864c0dd9a1719226d15",
+          "src/netbox_readwrite_mcp/setup.py": "6bf8b819ed9675487cddf691bde1b521558b73addf421bfd8346ec83e2dce682",
+          "src/netbox_readwrite_mcp/store.py": "50ba71fbdbccb152ceca16fb60c6cb9e494c71bf3829638795ae0ba593316436",
+          "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+          "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+          "src/netbox_readwrite_mcp/workspace.py": "27f73e8c8a638e6129acf68574edf20f051554b7bfc0ce9df911d2fc664a4a40"
+        },
+        "model": "zai-org/GLM-5.3-Flash",
+        "scenario": "community",
+        "guidance_delivery": "MCP initialization and tools only; no guide injected into client prompt",
+        "run": "f7262ba4df",
+        "netbox": "4.7.2",
+        "phases": [
+          {
+            "mcp_server": "Reliable Collaboration's unofficial NetBox read/write MCP server",
+            "name": "community",
+            "interruption": null,
+            "llm_activity_cumulative": {
+              "requests": 71,
+              "request_bytes": 15473774,
+              "largest_instructions_bytes": 17553,
+              "largest_tools_bytes": 23404,
+              "largest_input_bytes": 298963,
+              "largest_messages_bytes": 2,
+              "response_bytes": 6430534,
+              "network_chunks": 3402,
+              "response_delta_chunks": 2196,
+              "response_completed": 71,
+              "finished_requests": 71,
+              "transport_errors": 0,
+              "active_requests": [],
+              "last_network_age_seconds": 6.2,
+              "last_generation_age_seconds": 6.5
+            },
+            "seconds": 506.47,
+            "checks": {
+              "two_owned_devices": true,
+              "nested_template_import_used": true,
+              "multi_parent_single_request": true,
+              "native_trace_used": true,
+              "search_api_used": true,
+              "native_template_interfaces": true,
+              "multi_parent_power_ports": true,
+              "chassis_positions_swapped": true,
+              "chassis_atomic_api_used": true,
+              "disconnect_api_used": true,
+              "cable_removed": true,
+              "vm_primary_mac": true,
+              "contact_assignment": true,
+              "physical_journal": true,
+              "own_bookmark": true,
+              "native_csv_export": true,
+              "task_summary_read": true,
+              "no_website_calls": true,
+              "no_unresolved_operations": true,
+              "preexisting_inventory_unchanged": true,
+              "client_exit_zero": true,
+              "used_mcp": true,
+              "no_client_error": true,
+              "no_host_tool_calls": true
+            },
+            "passed": true,
+            "tool_calls": {
+              "discover_models": 2,
+              "capabilities": 1,
+              "begin_task": 1,
+              "get_schema": 26,
+              "create_object": 16,
+              "execute_action": 9,
+              "get_objects": 7,
+              "query": 6,
+              "get_object_by_id": 7,
+              "update_object": 7,
+              "update_device": 1,
+              "get_guidance": 1,
+              "get_task": 2
+            },
+            "feedback_tool_calls": {},
+            "tool_errors": 16,
+            "tool_states": {
+              "applied": 21,
+              "blocked": 16,
+              "failed": 3,
+              "200": 5,
+              "completed": 3
+            },
+            "truncated_tool_outputs": null,
+            "tokens": {
+              "input_tokens": 4496067,
+              "cached_input_tokens": 4105216,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 8096,
+              "reasoning_output_tokens": 488
+            }
+          }
+        ],
+        "client": "codex",
+        "client_version": "codex-cli 0.159.2",
+        "mcp_application_sha256": "b2dc66830c7a5d218810616654cbe3e95f1187ada1ed974e72e9ae708f70527f",
+        "limits": {
+          "phase_seconds": 14400,
+          "idle_seconds": 0,
+          "max_consecutive_tool_errors": 12,
+          "agent_steps": null
+        },
+        "passed": true
+      },
+      "review": {
+        "report_sha256": "c6dafb172fd8fc91c1a2ac959da59ead622cd0ea0275cc4736bf31cc5be4b7a3",
+        "phases": [
+          {
+            "name": "community",
+            "transcript_sha256": "dde4c4ad6f1a0b76a2fd3cd16f2e55fd67dc96be7b3f2998aeffc7167cdaea9d",
+            "no_host_tool_calls": true,
+            "client_reported_usage": [
+              {
+                "input_tokens": 4496067,
+                "cached_input_tokens": 4105216,
+                "cache_write_input_tokens": 0,
+                "output_tokens": 8096,
+                "reasoning_output_tokens": 488
+              }
+            ],
+            "client_mcp_failures": [
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "update_object",
+                "error": null
+              },
+              {
+                "tool": "update_object",
+                "error": null
+              },
+              {
+                "tool": "update_object",
+                "error": null
+              },
+              {
+                "tool": "update_object",
+                "error": null
+              },
+              {
+                "tool": "update_device",
+                "error": null
+              },
+              {
+                "tool": "query",
+                "error": null
+              },
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "get_objects",
+                "error": null
+              },
+              {
+                "tool": "get_objects",
+                "error": null
+              },
+              {
+                "tool": "execute_action",
+                "error": null
+              },
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "get_schema",
+                "error": null
+              },
+              {
+                "tool": "get_objects",
+                "error": null
+              },
+              {
+                "tool": "get_objects",
+                "error": null
+              }
+            ]
+          }
+        ],
+        "successful_read_checks": {
+          "native_trace_used": true,
+          "search_api_used": true
+        },
+        "resource_operation_states": {
+          "applied": 21,
+          "completed": 3,
+          "failed": 3
+        }
+      }
+    },
+    {
+      "qualified_passed": true,
+      "report": {
+        "mcp_server": "Reliable Collaboration's unofficial NetBox read/write MCP server",
+        "mcp_server_repository": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp",
+        "mcp_client_alias": "netbox",
+        "harness_sha256": {
+          "scripts/agent_eval.py": "c41fa123ff51cea719451c22b91cb44935059e23b7f09a9e3b77e5432ac8219f",
+          "scripts/agent_gateway.py": "dae9f47840c2976ec6e4bbc83018dd76ace50c9f7a7305dc04f9338f795b6cd2",
+          "scripts/agent_clients.py": "8d6640ccc9aa21715ad37eea3fa63dc32ad8ee46a26da6aaf1c8c036d855e291"
+        },
+        "instructions_sha256": "67b935f360424eb11166852a3bf919aaa50d8401078b2cdfbb8160f6868ef80b",
+        "source_sha256": {
+          "companion/netbox_agent_api/__init__.py": "44ae215867f23d5d43da85e2cd6c3d0b5e19ef9d1e48f7d877332a820c2a21e4",
+          "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "companion/netbox_agent_api/api/account.py": "51d86801d7aba8403c84f7d025eed1b9e8ba4b70f38b1e4b67ba463956f75f7f",
+          "companion/netbox_agent_api/api/administration.py": "7c2a60d87a06fc8172107087d2594ec307bc314a3b492ac503092fc9832a4883",
+          "companion/netbox_agent_api/api/batch_actions.py": "ba198506b46fbf48197cff52d65836c9f1d900a69d4716d841e3261451e95084",
+          "companion/netbox_agent_api/api/bulk_edit.py": "6f70d4f100e3667cfb71db2e1614e3aa5fa9539f1b4fd79200d4bb4e9684fb74",
+          "companion/netbox_agent_api/api/chassis.py": "86eafc985c1eddb7551ba5b9163cdf4c38da96056df23949c5693d4c2fd5135b",
+          "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+          "companion/netbox_agent_api/api/connections.py": "d6351a2eb91e935deb3d3e5a2390de4a44aecabd65f407f2d21bf0642ddbd800",
+          "companion/netbox_agent_api/api/dashboard.py": "34ee81112d046d6b0d05181cc1070fb88157aa1214568ef09330886272983981",
+          "companion/netbox_agent_api/api/deletion.py": "ae142a6401bc4d1dcb1052ea20e1e70c4de21a7f70b14c4a9303f64cb167a7c8",
+          "companion/netbox_agent_api/api/exports.py": "a77d0a7eb062188632e36161adadc24a8870fbc041eac3a512b44e100723f1c8",
+          "companion/netbox_agent_api/api/imports.py": "707b66befcd1639314287d1919c7b9afe1b649eec09235d50317d8133e5071f5",
+          "companion/netbox_agent_api/api/media.py": "5c55fef7c83ab5b1720515cd44d32f655b462f1e8cb6b7c26e58254c2fdb1aac",
+          "companion/netbox_agent_api/api/patterns.py": "a58f092c50979b8d8e71b78ca9599f86cd14e1efc26db4cf4d448156f568034d",
+          "companion/netbox_agent_api/api/rename.py": "2ed08aa8af26d611155f2f658c9c7406cf5b794a245c85175f9fcf388f8415ba",
+          "companion/netbox_agent_api/api/scripts.py": "e0f7e63c85b41ad6ffc0cdbf3f29bb62125ae45de8486a888fc4643fe945a9c2",
+          "companion/netbox_agent_api/api/urls.py": "7e65fbcd94d9527baa8a427d977a4b0237e0de4d9809ff82ce359352b7d9788e",
+          "companion/netbox_agent_api/api/utilities.py": "08706c789327f81db634a22d662edfcc5e9bdbe9cec47a5364812b0a36b4d745",
+          "companion/netbox_agent_api/api/views.py": "0f147ff5a3fa032284ffc9c51a38f622f237192242e2393239e0ef226a990fb3",
+          "src/netbox_readwrite_mcp/__init__.py": "df03177fae5255c4199f2377ab1863ed2d52c8b7e68dca710528bbe5554987aa",
+          "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+          "src/netbox_readwrite_mcp/api.py": "86f01b935f6486956668536f4258ae3e1027d60fd424c941f13cdbca9e1ad79b",
+          "src/netbox_readwrite_mcp/catalog.py": "fcc1e579bd03a01a1a5616fa982ea7589e22f58de6cc846f18ed32a90dd8a9ee",
+          "src/netbox_readwrite_mcp/compatibility.py": "06562891ca689d46dd9dc38fdf4fe879a6d4b67ed9769de484ae99e3d061f058",
+          "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+          "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+          "src/netbox_readwrite_mcp/feedback.py": "04bb64e375662216335a981f175959bca7ba00ffd406c02f5d0d847ea230de59",
+          "src/netbox_readwrite_mcp/guidance.py": "b996200014a5c4685bd4d5b0a7058fec17dff651106b356f2833b36c51074307",
+          "src/netbox_readwrite_mcp/http_server.py": "e836b4ca30048547c9bb497e2574c764a1fe87a48cd48fcea34e3a6ec08618ef",
+          "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+          "src/netbox_readwrite_mcp/recovery.py": "5a223b90189c98bda6b7f16a275413a36ca20dae00d41af9d6daaf6e0d91a738",
+          "src/netbox_readwrite_mcp/server.py": "7abcb3fec2caec71b23f21b287d42bc6a3ba0e510b791f6ff38dba0d7b077382",
+          "src/netbox_readwrite_mcp/service.py": "08081b37dab433dde6959525c16d9e0f1907a587723da864c0dd9a1719226d15",
+          "src/netbox_readwrite_mcp/setup.py": "6bf8b819ed9675487cddf691bde1b521558b73addf421bfd8346ec83e2dce682",
+          "src/netbox_readwrite_mcp/store.py": "50ba71fbdbccb152ceca16fb60c6cb9e494c71bf3829638795ae0ba593316436",
+          "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+          "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+          "src/netbox_readwrite_mcp/workspace.py": "27f73e8c8a638e6129acf68574edf20f051554b7bfc0ce9df911d2fc664a4a40"
+        },
+        "model": "zai-org/GLM-5.3-Flash",
+        "scenario": "community",
+        "guidance_delivery": "MCP initialization and tools only; no guide injected into client prompt",
+        "run": "9ccd9a9280",
+        "netbox": "4.7.2",
+        "phases": [
+          {
+            "mcp_server": "Reliable Collaboration's unofficial NetBox read/write MCP server",
+            "name": "community",
+            "interruption": null,
+            "llm_activity_cumulative": {
+              "requests": 55,
+              "request_bytes": 11102441,
+              "largest_instructions_bytes": 2,
+              "largest_tools_bytes": 14166,
+              "largest_input_bytes": 2,
+              "largest_messages_bytes": 298157,
+              "response_bytes": 348747,
+              "network_chunks": 1464,
+              "content_chunks": 375,
+              "finished_choices": 55,
+              "finish_stop": 2,
+              "tool_calls_chunks": 481,
+              "finish_tool_calls": 53,
+              "finished_requests": 55,
+              "transport_errors": 0,
+              "reasoning_content_chunks": 396,
+              "active_requests": [],
+              "last_network_age_seconds": 5.7,
+              "last_generation_age_seconds": 5.7
+            },
+            "seconds": 440.94,
+            "checks": {
+              "two_owned_devices": true,
+              "nested_template_import_used": true,
+              "multi_parent_single_request": true,
+              "native_trace_used": true,
+              "search_api_used": true,
+              "native_template_interfaces": true,
+              "multi_parent_power_ports": true,
+              "chassis_positions_swapped": true,
+              "chassis_atomic_api_used": true,
+              "disconnect_api_used": true,
+              "cable_removed": true,
+              "vm_primary_mac": true,
+              "contact_assignment": true,
+              "physical_journal": true,
+              "own_bookmark": true,
+              "native_csv_export": true,
+              "task_summary_read": true,
+              "no_website_calls": true,
+              "no_unresolved_operations": true,
+              "preexisting_inventory_unchanged": true,
+              "client_exit_zero": true,
+              "used_mcp": true,
+              "no_client_error": true
+            },
+            "passed": true,
+            "tool_calls": {
+              "capabilities": 1,
+              "discover_models": 1,
+              "get_guidance": 2,
+              "get_schema": 15,
+              "begin_task": 1,
+              "create_object": 17,
+              "execute_action": 7,
+              "query": 6,
+              "read_device": 2,
+              "update_object": 3,
+              "get_objects": 2,
+              "get_task": 2
+            },
+            "feedback_tool_calls": {},
+            "tool_errors": 2,
+            "tool_states": {
+              "applied": 21,
+              "200": 6,
+              "completed": 3,
+              "blocked": 2,
+              "failed": 2
+            },
+            "truncated_tool_outputs": 0,
+            "tokens": {
+              "total": 3063570,
+              "input": 365294,
+              "output": 5072,
+              "reasoning": 980
+            }
+          }
+        ],
+        "client": "opencode",
+        "client_version": "1.18.33",
+        "mcp_application_sha256": "ef26359e7113bcf5951a8086bb10bbee2111a5932b3d25c0d96ffdfafda983ce",
+        "limits": {
+          "phase_seconds": 14400,
+          "idle_seconds": 0,
+          "max_consecutive_tool_errors": 12,
+          "agent_steps": 160
+        },
+        "passed": true
+      },
+      "review": {
+        "report_sha256": "ae316e48cdc075f6dc7dd5566985aeaa051ac35b31e8317e5df4c382083ada1f",
+        "phases": [
+          {
+            "name": "community",
+            "transcript_sha256": "428bea08854ca7517304c63529ab3387ed4edbaa05f0b771115dff5d4b8f2e28",
+            "no_host_tool_calls": true,
+            "client_reported_usage": [],
+            "client_mcp_failures": []
+          }
+        ],
+        "successful_read_checks": {
+          "native_trace_used": true,
+          "search_api_used": true
+        },
+        "resource_operation_states": {
+          "applied": 21,
+          "completed": 3,
+          "failed": 2
+        }
+      }
+    },
+    {
+      "qualified_passed": true,
+      "report": {
+        "mcp_server": "Reliable Collaboration's unofficial NetBox read/write MCP server",
+        "mcp_server_repository": "https://github.com/Reliable-Collaboration/netbox-readwrite-mcp",
+        "mcp_client_alias": "netbox",
+        "harness_sha256": {
+          "scripts/agent_eval.py": "c41fa123ff51cea719451c22b91cb44935059e23b7f09a9e3b77e5432ac8219f",
+          "scripts/agent_gateway.py": "dae9f47840c2976ec6e4bbc83018dd76ace50c9f7a7305dc04f9338f795b6cd2",
+          "scripts/agent_clients.py": "8d6640ccc9aa21715ad37eea3fa63dc32ad8ee46a26da6aaf1c8c036d855e291"
+        },
+        "instructions_sha256": "67b935f360424eb11166852a3bf919aaa50d8401078b2cdfbb8160f6868ef80b",
+        "source_sha256": {
+          "companion/netbox_agent_api/__init__.py": "44ae215867f23d5d43da85e2cd6c3d0b5e19ef9d1e48f7d877332a820c2a21e4",
+          "companion/netbox_agent_api/api/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "companion/netbox_agent_api/api/account.py": "51d86801d7aba8403c84f7d025eed1b9e8ba4b70f38b1e4b67ba463956f75f7f",
+          "companion/netbox_agent_api/api/administration.py": "7c2a60d87a06fc8172107087d2594ec307bc314a3b492ac503092fc9832a4883",
+          "companion/netbox_agent_api/api/batch_actions.py": "ba198506b46fbf48197cff52d65836c9f1d900a69d4716d841e3261451e95084",
+          "companion/netbox_agent_api/api/bulk_edit.py": "6f70d4f100e3667cfb71db2e1614e3aa5fa9539f1b4fd79200d4bb4e9684fb74",
+          "companion/netbox_agent_api/api/chassis.py": "86eafc985c1eddb7551ba5b9163cdf4c38da96056df23949c5693d4c2fd5135b",
+          "companion/netbox_agent_api/api/configuration.py": "444c840e67e329220e1281a8036552a355af8ed7f4064849edd4377e6328fe3b",
+          "companion/netbox_agent_api/api/connections.py": "d6351a2eb91e935deb3d3e5a2390de4a44aecabd65f407f2d21bf0642ddbd800",
+          "companion/netbox_agent_api/api/dashboard.py": "34ee81112d046d6b0d05181cc1070fb88157aa1214568ef09330886272983981",
+          "companion/netbox_agent_api/api/deletion.py": "ae142a6401bc4d1dcb1052ea20e1e70c4de21a7f70b14c4a9303f64cb167a7c8",
+          "companion/netbox_agent_api/api/exports.py": "a77d0a7eb062188632e36161adadc24a8870fbc041eac3a512b44e100723f1c8",
+          "companion/netbox_agent_api/api/imports.py": "707b66befcd1639314287d1919c7b9afe1b649eec09235d50317d8133e5071f5",
+          "companion/netbox_agent_api/api/media.py": "5c55fef7c83ab5b1720515cd44d32f655b462f1e8cb6b7c26e58254c2fdb1aac",
+          "companion/netbox_agent_api/api/patterns.py": "a58f092c50979b8d8e71b78ca9599f86cd14e1efc26db4cf4d448156f568034d",
+          "companion/netbox_agent_api/api/rename.py": "2ed08aa8af26d611155f2f658c9c7406cf5b794a245c85175f9fcf388f8415ba",
+          "companion/netbox_agent_api/api/scripts.py": "e0f7e63c85b41ad6ffc0cdbf3f29bb62125ae45de8486a888fc4643fe945a9c2",
+          "companion/netbox_agent_api/api/urls.py": "7e65fbcd94d9527baa8a427d977a4b0237e0de4d9809ff82ce359352b7d9788e",
+          "companion/netbox_agent_api/api/utilities.py": "08706c789327f81db634a22d662edfcc5e9bdbe9cec47a5364812b0a36b4d745",
+          "companion/netbox_agent_api/api/views.py": "0f147ff5a3fa032284ffc9c51a38f622f237192242e2393239e0ef226a990fb3",
+          "src/netbox_readwrite_mcp/__init__.py": "df03177fae5255c4199f2377ab1863ed2d52c8b7e68dca710528bbe5554987aa",
+          "src/netbox_readwrite_mcp/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+          "src/netbox_readwrite_mcp/api.py": "86f01b935f6486956668536f4258ae3e1027d60fd424c941f13cdbca9e1ad79b",
+          "src/netbox_readwrite_mcp/catalog.py": "fcc1e579bd03a01a1a5616fa982ea7589e22f58de6cc846f18ed32a90dd8a9ee",
+          "src/netbox_readwrite_mcp/compatibility.py": "06562891ca689d46dd9dc38fdf4fe879a6d4b67ed9769de484ae99e3d061f058",
+          "src/netbox_readwrite_mcp/config.py": "36dea978350d7b9ba842b0706921883b37f9472a67ac41d9548a953d0278e5d0",
+          "src/netbox_readwrite_mcp/errors.py": "ada365a170a80fb494e742dcf1ddbb6641bc289524234d7463a150d3fe70ab49",
+          "src/netbox_readwrite_mcp/feedback.py": "04bb64e375662216335a981f175959bca7ba00ffd406c02f5d0d847ea230de59",
+          "src/netbox_readwrite_mcp/guidance.py": "b996200014a5c4685bd4d5b0a7058fec17dff651106b356f2833b36c51074307",
+          "src/netbox_readwrite_mcp/http_server.py": "e836b4ca30048547c9bb497e2574c764a1fe87a48cd48fcea34e3a6ec08618ef",
+          "src/netbox_readwrite_mcp/normalization.py": "bcab6de4c0b5a1866eb5712960d8ad539b59174156870879c684cfca39a3de9d",
+          "src/netbox_readwrite_mcp/recovery.py": "5a223b90189c98bda6b7f16a275413a36ca20dae00d41af9d6daaf6e0d91a738",
+          "src/netbox_readwrite_mcp/server.py": "7abcb3fec2caec71b23f21b287d42bc6a3ba0e510b791f6ff38dba0d7b077382",
+          "src/netbox_readwrite_mcp/service.py": "08081b37dab433dde6959525c16d9e0f1907a587723da864c0dd9a1719226d15",
+          "src/netbox_readwrite_mcp/setup.py": "6bf8b819ed9675487cddf691bde1b521558b73addf421bfd8346ec83e2dce682",
+          "src/netbox_readwrite_mcp/store.py": "50ba71fbdbccb152ceca16fb60c6cb9e494c71bf3829638795ae0ba593316436",
+          "src/netbox_readwrite_mcp/web.py": "26b73c3e14f5ec1cd6f56bf6eeacebf30e33dfa4ffd526b2106a25e39a8705a7",
+          "src/netbox_readwrite_mcp/workflow.py": "3245fb8254aa8e97b6afe77639437d24906d40a103ad6bc470fa07ddcefb2716",
+          "src/netbox_readwrite_mcp/workspace.py": "27f73e8c8a638e6129acf68574edf20f051554b7bfc0ce9df911d2fc664a4a40"
+        },
+        "model": "zai-org/GLM-5.3-Flash",
+        "scenario": "community",
+        "guidance_delivery": "MCP initialization and tools only; no guide injected into client prompt",
+        "run": "0fe913dfb3",
+        "netbox": "4.7.2",
+        "phases": [
+          {
+            "mcp_server": "Reliable Collaboration's unofficial NetBox read/write MCP server",
+            "name": "community",
+            "interruption": null,
+            "llm_activity_cumulative": {
+              "requests": 47,
+              "request_bytes": 7143408,
+              "largest_instructions_bytes": 2,
+              "largest_tools_bytes": 13360,
+              "largest_input_bytes": 2,
+              "largest_messages_bytes": 221529,
+              "response_bytes": 171336,
+              "network_chunks": 1133,
+              "reasoning_chunks": 281,
+              "tool_calls_chunks": 59,
+              "stop_tool_use": 46,
+              "finished_requests": 47,
+              "transport_errors": 0,
+              "content_chunks": 460,
+              "stop_end_turn": 1,
+              "active_requests": [],
+              "last_network_age_seconds": 5.0,
+              "last_generation_age_seconds": 5.1
+            },
+            "seconds": 301.73,
+            "checks": {
+              "two_owned_devices": true,
+              "nested_template_import_used": true,
+              "multi_parent_single_request": true,
+              "native_trace_used": true,
+              "search_api_used": true,
+              "native_template_interfaces": true,
+              "multi_parent_power_ports": true,
+              "chassis_positions_swapped": true,
+              "chassis_atomic_api_used": true,
+              "disconnect_api_used": true,
+              "cable_removed": true,
+              "vm_primary_mac": true,
+              "contact_assignment": true,
+              "physical_journal": true,
+              "own_bookmark": true,
+              "native_csv_export": true,
+              "task_summary_read": true,
+              "no_website_calls": true,
+              "no_unresolved_operations": true,
+              "preexisting_inventory_unchanged": true,
+              "client_exit_zero": true,
+              "used_mcp": true,
+              "no_client_error": true,
+              "no_host_tool_calls": true
+            },
+            "passed": true,
+            "tool_calls": {
+              "capabilities": 1,
+              "discover_models": 1,
+              "get_guidance": 1,
+              "begin_task": 2,
+              "create_object": 20,
+              "get_schema": 4,
+              "query": 7,
+              "execute_action": 6,
+              "get_objects": 2,
+              "read_device": 2,
+              "update_device": 1,
+              "get_object_by_id": 3,
+              "update_object": 5,
+              "get_task": 2
+            },
+            "feedback_tool_calls": {},
+            "tool_errors": 5,
+            "tool_states": {
+              "applied": 21,
+              "200": 7,
+              "failed": 5,
+              "blocked": 5,
+              "completed": 3
+            },
+            "truncated_tool_outputs": null,
+            "tokens": {
+              "input_tokens": 230131,
+              "cache_creation_input_tokens": 0,
+              "cache_read_input_tokens": 1575936,
+              "output_tokens": 6943
+            }
+          }
+        ],
+        "client": "claude",
+        "client_version": "2.1.287 (Claude Code)",
+        "mcp_application_sha256": "ef26359e7113bcf5951a8086bb10bbee2111a5932b3d25c0d96ffdfafda983ce",
+        "limits": {
+          "phase_seconds": 14400,
+          "idle_seconds": 0,
+          "max_consecutive_tool_errors": 12,
+          "agent_steps": null
+        },
+        "passed": true
+      },
+      "review": {
+        "report_sha256": "ed717c057cee9d20aa9987fd239ce5856d7dd88dff732e5a5de74fcdccad81fc",
+        "phases": [
+          {
+            "name": "community",
+            "transcript_sha256": "b7e099ddfd1e1a6dd6d1ac525f88a97f952fa0125223d8eb3962acfa5d2f1bd3",
+            "no_host_tool_calls": true,
+            "client_reported_usage": [
+              {
+                "input_tokens": 230131,
+                "cache_creation_input_tokens": 0,
+                "cache_read_input_tokens": 1575936,
+                "output_tokens": 6943,
+                "output_tokens_details": {
+                  "thinking_tokens": 0
+                },
+                "server_tool_use": {
+                  "web_search_requests": 0,
+                  "web_fetch_requests": 0
+                },
+                "service_tier": "standard",
+                "cache_creation": {
+                  "ephemeral_1h_input_tokens": 0,
+                  "ephemeral_5m_input_tokens": 0
+                },
+                "inference_geo": "",
+                "iterations": [],
+                "speed": "standard",
+                "fallback_credit": null
+              }
+            ],
+            "client_mcp_failures": []
+          }
+        ],
+        "successful_read_checks": {
+          "native_trace_used": true,
+          "search_api_used": true
+        },
+        "resource_operation_states": {
+          "applied": 21,
+          "completed": 3,
+          "failed": 5
+        }
+      }
+    }
+  ],
+  "limits": [
+    "Targeted acceptance, not a statistical reliability benchmark.",
+    "Native OpenAI and Anthropic models are not qualified by these GLM runs.",
+    "Preservation checks cover 15 core collections and scenario-specific assertions, not a whole-database diff.",
+    "Native client output truncation is not measured."
+  ],
+  "final_candidate_runs": {
+    "claude": "0fe913dfb3",
+    "codex": "f7262ba4df",
+    "opencode": "9ccd9a9280"
+  },
+  "candidate_artifacts": [
+    {
+      "source_commit": "74fe6f76cf64e3afb4e97e6f2595854bb6cba339",
+      "mcp_application_sha256": "ccab909b1f0c1b7bfaa6c421b78b3984d89cd998da0241a1eeba71b41ea3952c"
+    },
+    {
+      "source_commit": "d1758af4a62899023469795945bf74866d43c6d7",
+      "mcp_application_sha256": "ef26359e7113bcf5951a8086bb10bbee2111a5932b3d25c0d96ffdfafda983ce"
+    }
+  ],
+  "review_notes": [
+    "Initial Codex run 2eec47f2f4 failed the requested chassis device order and site bookmark. The successful get_objects search was also missed by the original oracle; the original report remains unchanged, and current review recognizes it.",
+    "Added regression coverage for successful get_objects search across all three clients. Chassis and bookmark outcome requirements were unchanged.",
+    "Built-in MCP guidance now calls for explicit name-to-ID mapping and verification of relationship targets.",
+    "Codex retry narration incorrectly described all completed exchanges as read-side with no mutation. Completed is an HTTP-exchange state, not proof of no mutation; its bookmark POST returned 201. The independent oracle verified the bookmark."
+  ]
+}
