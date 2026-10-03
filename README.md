@@ -62,14 +62,11 @@ GitHub login to publish structured issues and read maintainer replies.
 
 ## 1. Install the MCP server
 
-The commands below install published **v0.4.3**. This branch prepares **v0.4.4**,
-which includes the unreleased PR review fixes; those assets are not published yet.
-
 Requires Python 3.11+ on POSIX and a client that can launch a local MCP process.
 Download the CI-built application and run its setup wizard:
 
 ```sh
-curl -fL https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.3/netbox-readwrite-mcp.pyz -o netbox-readwrite-mcp.pyz
+curl -fL https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v1.0.0/netbox-readwrite-mcp.pyz -o netbox-readwrite-mcp.pyz
 python3 netbox-readwrite-mcp.pyz configure
 ```
 
@@ -83,11 +80,11 @@ are preserved. The default directory is
 If you already use pipx, you can install the wheel instead:
 
 ```sh
-pipx install https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.3/netbox_readwrite_mcp-0.4.3-py3-none-any.whl
+pipx install https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v1.0.0/netbox_readwrite_mcp-1.0.0-py3-none-any.whl
 netbox-readwrite-mcp configure
 ```
 
-[Release downloads](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v0.4.3)
+[Release downloads](https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/tag/v1.0.0)
 include checksums, both wheels, the container plugin bundle, source distributions
 and the exact build revision. No checkout or local build is required.
 
@@ -105,7 +102,7 @@ its effective `PLUGINS` setting. These are example paths; package-managed instal
 may use different locations. Run as the environment/configuration owner:
 
 ```sh
-/opt/netbox/venv/bin/python -m pip install https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.3/netbox_agent_api-0.4.3-py3-none-any.whl
+/opt/netbox/venv/bin/python -m pip install https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v1.0.0/netbox_agent_api-1.0.0-py3-none-any.whl
 /opt/netbox/venv/bin/netbox-agent-api-enable --config /opt/netbox/netbox/netbox/configuration.py
 ```
 
@@ -121,7 +118,7 @@ same wheel; do not bypass its environment protections.
 From your existing netbox-docker deployment directory:
 
 ```sh
-curl -fL https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v0.4.3/netbox-agent-api-container.tar.gz -o agent-api.tar.gz && tar -xzf agent-api.tar.gz
+curl -fL https://github.com/Reliable-Collaboration/netbox-readwrite-mcp/releases/download/v1.0.0/netbox-agent-api-container.tar.gz -o agent-api.tar.gz && tar -xzf agent-api.tar.gz
 docker compose -f docker-compose.yml -f netbox-agent-api/compose.agent-api.yaml up -d netbox netbox-worker
 ```
 
